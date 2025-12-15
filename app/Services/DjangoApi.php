@@ -86,9 +86,13 @@ class DjangoApi
         }
     }
 
-    public function employees(): array
+    public function employees(?int $organizationId = null): array
     {
-        return $this->get('/api/employees/');
+        $path = '/api/employees/';
+        if ($organizationId) {
+            $path .= '?organization_id=' . $organizationId;
+        }
+        return $this->get($path);
     }
 
     public function messageSettings(): array
