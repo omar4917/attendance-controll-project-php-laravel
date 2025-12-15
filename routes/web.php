@@ -11,6 +11,7 @@ use App\Http\Controllers\LiveFeedController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\ModeratorController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CompanyController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes (public)
@@ -94,4 +95,17 @@ Route::middleware(['web', 'django.auth'])->group(function () {
     // Moderator Labels
     Route::get('/moderator', [ModeratorController::class, 'index'])->name('moderator.index');
     Route::post('/moderator', [ModeratorController::class, 'store'])->name('moderator.store');
+
+    // Companies (Organizations) - Super Admin
+    Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+    Route::get('/companies/create', [CompanyController::class, 'create'])->name('companies.create');
+    Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+    Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
+    Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
+    Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
+    Route::delete('/companies/{id}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+    Route::get('/companies/{id}/devices', [CompanyController::class, 'devices'])->name('companies.devices');
+    Route::post('/companies/{id}/devices', [CompanyController::class, 'storeDevice'])->name('companies.devices.store');
+    Route::put('/companies/{orgId}/devices/{deviceId}', [CompanyController::class, 'updateDevice'])->name('companies.devices.update');
+    Route::delete('/companies/{orgId}/devices/{deviceId}', [CompanyController::class, 'destroyDevice'])->name('companies.devices.destroy');
 });

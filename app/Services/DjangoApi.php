@@ -375,4 +375,114 @@ class DjangoApi
             return ['error' => $e->getMessage()];
         }
     }
+
+    // =========================================================================
+    // MULTI-TENANT ORGANIZATION & DEVICE APIs
+    // =========================================================================
+
+    /**
+     * Get all organizations
+     */
+    public function organizations(array $query = []): array
+    {
+        $queryStr = http_build_query($query);
+        return $this->get('/api/organizations/' . ($queryStr ? '?' . $queryStr : ''));
+    }
+
+    /**
+     * Get single organization by ID
+     */
+    public function organization(int $id): array
+    {
+        return $this->get("/api/organizations/{$id}/");
+    }
+
+    /**
+     * Create new organization
+     */
+    public function createOrganization(array $payload): array
+    {
+        return $this->post('/api/organizations/', $payload);
+    }
+
+    /**
+     * Update organization
+     */
+    public function updateOrganization(int $id, array $payload): array
+    {
+        return $this->send('PUT', "/api/organizations/{$id}/", $payload);
+    }
+
+    /**
+     * Delete organization
+     */
+    public function deleteOrganization(int $id): array
+    {
+        return $this->send('DELETE', "/api/organizations/{$id}/", []);
+    }
+
+    /**
+     * Get organization statistics
+     */
+    public function organizationStats(int $id): array
+    {
+        return $this->get("/api/organizations/{$id}/stats/");
+    }
+
+    /**
+     * Get devices for an organization
+     */
+    public function organizationDevices(int $orgId): array
+    {
+        return $this->get("/api/organizations/{$orgId}/devices/");
+    }
+
+    /**
+     * Get all devices
+     */
+    public function devices(array $query = []): array
+    {
+        $queryStr = http_build_query($query);
+        return $this->get('/api/devices/' . ($queryStr ? '?' . $queryStr : ''));
+    }
+
+    /**
+     * Get single device by ID
+     */
+    public function device(int $id): array
+    {
+        return $this->get("/api/devices/{$id}/");
+    }
+
+    /**
+     * Create new device
+     */
+    public function createDevice(array $payload): array
+    {
+        return $this->post('/api/devices/', $payload);
+    }
+
+    /**
+     * Update device
+     */
+    public function updateDevice(int $id, array $payload): array
+    {
+        return $this->send('PUT', "/api/devices/{$id}/", $payload);
+    }
+
+    /**
+     * Delete device
+     */
+    public function deleteDevice(int $id): array
+    {
+        return $this->send('DELETE', "/api/devices/{$id}/", []);
+    }
+
+    /**
+     * Validate device ID
+     */
+    public function validateDevice(string $deviceId): array
+    {
+        return $this->get("/api/devices/validate/?device_id=" . urlencode($deviceId));
+    }
 }

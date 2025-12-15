@@ -388,6 +388,9 @@
             <li><a href="{{ route('settings.context') }}"><i class="bi bi-gear"></i> Context Settings</a></li>
             <li><a href="{{ route('settings.company') }}"><i class="bi bi-building-gear"></i> Company Info</a></li>
             <li><a href="{{ route('settings.integration') }}"><i class="bi bi-plug"></i> Integration</a></li>
+            <li style="border-top:1px solid var(--border-color); margin-top:10px; padding-top:10px;">
+                <a href="{{ route('companies.index') }}"><i class="bi bi-buildings"></i> Companies (Admin)</a>
+            </li>
         </ul>
     </nav>
     @endif
