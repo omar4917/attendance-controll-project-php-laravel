@@ -2,58 +2,28 @@
 
 @section('content')
 <style>
-    :root {
-        /* Default Dark Theme */
-        --bg-primary: #2b2b2b;
-        --bg-secondary: #3a3a3a;
-        --bg-tertiary: #2f2f2f;
-        --bg-quaternary: #252525;
-        --bg-header: #393737;
-        --text-primary: #f8f8f2;
-        --text-secondary: #dac3c3;
-        --border-color: #484848;
-        --border-header: #555;
-        --input-bg: #3a3a3a;
-        --btn-primary: #0b7d5c;
-        --btn-text: #fff;
-    }
+    /* Page uses global theme variables from layout */
 
-    .light-theme {
-        /* Light Theme (Fresh Light Green) */
-        --bg-primary: #ffffff;
-        --bg-secondary: #c3e6cb; /* Hover green */
-        --bg-tertiary: #ffffff;
-        --bg-quaternary: #f0fdf4; /* Very pale green for alternating rows */
-        --bg-header: #d1e7dd; /* Fresh light green header */
-        --text-primary: #052c18; /* Darker green/black for better visibility */
-        --text-secondary: #0f5132;
-        --border-color: #badbcc; /* Soft green border */
-        --border-header: #a3cfbb;
-        --input-bg: #ffffff;
-        --btn-primary: #198754;
-        --btn-text: #fff;
-    }
-
-    .filter-form { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-primary); }
+    .filter-form { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-primary); }
     .filter-form label { font-weight: 600; font-size: 13px; color: var(--text-primary); margin-right: 4px; }
     .filter-form select { padding: 6px 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-primary); border-radius: 4px; font-size: 13px; }
-    .filter-form button { padding: 6px 12px; background: var(--btn-primary); color: var(--btn-text); border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .filter-form button { padding: 6px 12px; background: var(--accent); color: var(--btn-primary-text); border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
     
-    .admin-table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
-    .admin-table th { background: var(--bg-header); color: var(--text-primary); padding: 8px; text-align: center; border: 1px solid var(--border-header); position: sticky; top: 0; z-index: 5; }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 14.5px; background: var(--bg-card); }
+    .admin-table th { background: var(--bg-header); color: var(--text-primary); padding: 8px; text-align: center; border: 1px solid var(--border-color); position: sticky; top: 0; z-index: 5; }
     .admin-table td { padding: 6px; border: 1px solid var(--border-color); text-align: center; vertical-align: middle; color: var(--text-primary); }
-    .admin-table tr:nth-child(even) { background: var(--bg-tertiary); }
-    .admin-table tr:nth-child(odd) { background: var(--bg-quaternary); }
-    .admin-table tr:hover { background: var(--bg-secondary); }
+    .admin-table tr:nth-child(even) { background: var(--bg-alternate); }
+    .admin-table tr:nth-child(odd) { background: var(--bg-card); }
+    .admin-table tr:hover { background: var(--bg-hover); }
     
     .employee-cell { text-align: left !important; min-width: 200px; }
     .day-cell { min-width: 30px; padding: 4px !important; }
     .status-badge { position: absolute; top: -6px; right: -4px; color: #ff3333; font-weight: 900; font-size: 16px; display: flex; align-items: center; justify-content: center; text-shadow: 0 0 2px rgba(0,0,0,0.5); }
     
-    .dashboard-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-primary); }
+    .dashboard-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-primary); }
     
     /* Import/Export Section Styles */
-    .import-export-section { background: var(--bg-primary); padding: 12px; border-radius: 6px; margin: 15px 0; border: 1px solid var(--border-color); color: var(--text-primary); }
+    .import-export-section { background: var(--bg-card); padding: 12px; border-radius: 6px; margin: 15px 0; border: 1px solid var(--border-color); color: var(--text-primary); }
     .import-export-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
     .section-label { color: var(--text-primary); font-weight: 600; font-size: 14px; }
     
@@ -61,7 +31,7 @@
     #att-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; display: none; align-items: center; justify-content: center; }
     #att-modal { width: 90%; max-width: 1100px; height: 90%; max-height: 900px; background: #fff; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
     
-    .theme-toggle-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .theme-toggle-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-primary); border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; }
 </style>
 
 <!-- Manual CRUD Form Removed (Moved to Attendance Records page) -->
@@ -323,24 +293,6 @@
 </div>
 
 <script>
-// Theme Toggle Logic
-(function(){
-    var toggleBtn = document.getElementById('theme-toggle');
-    var body = document.body;
-    var themeKey = 'attendance_theme';
-    
-    // Load preference
-    var savedTheme = localStorage.getItem(themeKey);
-    if(savedTheme === 'light') {
-        body.classList.add('light-theme');
-    }
-    
-    toggleBtn.addEventListener('click', function(){
-        body.classList.toggle('light-theme');
-        var isLight = body.classList.contains('light-theme');
-        localStorage.setItem(themeKey, isLight ? 'light' : 'dark');
-    });
-})();
 
 // Modal Logic
 function openPopup(url){

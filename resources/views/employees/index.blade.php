@@ -4,145 +4,305 @@
 
 @section('content')
 <style>
-    :root {
-        /* Default Dark Theme */
-        --bg-primary: #2b2b2b;
-        --bg-secondary: #3a3a3a;
-        --bg-tertiary: #2f2f2f;
-        --bg-quaternary: #252525;
-        --bg-header: #393737;
-        --text-primary: #f8f8f2;
-        --text-secondary: #dac3c3;
-        --border-color: #484848;
-        --border-header: #555;
-        --input-bg: #3a3a3a;
-        --btn-primary: #0b7d5c;
-        --btn-text: #fff;
+    /* Page-specific styles using global theme variables */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
     }
 
-    .light-theme {
-        /* Light Theme (Fresh Light Green) */
-        --bg-primary: #ffffff;
-        --bg-secondary: #c3e6cb; /* Hover green */
-        --bg-tertiary: #ffffff;
-        --bg-quaternary: #f0fdf4; /* Very pale green for alternating rows */
-        --bg-header: #d1e7dd; /* Fresh light green header */
-        --text-primary: #052c18; /* Darker green/black for better visibility */
-        --text-secondary: #0f5132;
-        --border-color: #badbcc; /* Soft green border */
-        --border-header: #a3cfbb;
-        --input-bg: #ffffff;
-        --btn-primary: #198754;
-        --btn-text: #fff;
+    .page-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-primary);
     }
 
-    body {
-        background-color: var(--bg-primary) !important;
-        color: var(--text-primary) !important;
+    .controls-bar {
+        background: var(--bg-header);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
     }
 
-    .filter-form { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-primary); }
-    .filter-form label { font-weight: 600; font-size: 13px; color: var(--text-primary); margin-right: 4px; }
-    .filter-form select { padding: 6px 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-primary); border-radius: 4px; font-size: 13px; }
-    .filter-form button { padding: 6px 12px; background: var(--btn-primary); color: var(--btn-text); border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
-    
-    .admin-table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
-    .admin-table th { background: var(--bg-header); color: var(--text-primary); padding: 8px; text-align: left; border: 1px solid var(--border-header); position: sticky; top: 0; z-index: 5; }
-    .admin-table td { padding: 6px; border: 1px solid var(--border-color); text-align: left; vertical-align: middle; color: var(--text-primary); }
-    .admin-table tr:nth-child(even) { background: var(--bg-tertiary); }
-    .admin-table tr:nth-child(odd) { background: var(--bg-quaternary); }
-    .admin-table tr:hover { background: var(--bg-secondary); }
-    
-    .employee-img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-right: 8px; vertical-align: middle; border: 1px solid #555; }
-    
-    .dashboard-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-primary); }
-    
-    /* Modal Styles */
-    #att-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; display: none; align-items: center; justify-content: center; }
-    #att-modal { width: 90%; max-width: 1100px; height: 90%; max-height: 900px; background: #fff; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
-    
-    .theme-toggle-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; }
-    
-    .icon-yes { color: #4caf50; font-weight: bold; }
-    .icon-no { color: #f44336; font-weight: bold; }
-    .text-synced { color: #4caf50; font-size: 0.85rem; }
+    .filter-form {
+        background: var(--bg-alternate);
+        border: 1px solid var(--border-color);
+        padding: 15px;
+        border-radius: 8px;
+        display: flex;
+        gap: 20px;
+        align-items: flex-end;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        min-width: 150px;
+    }
+
+    .filter-group.search {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-label {
+        display: block;
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .filter-input, .filter-select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--input-bg);
+        color: var(--text-primary);
+        font-size: 14px;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px var(--shadow);
+    }
+
+    .btn-action {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 13px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: var(--accent);
+        color: var(--btn-primary-text);
+    }
+
+    .btn-primary:hover {
+        background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-color);
+    }
+
+    .btn-dark {
+        background: #212529;
+        color: #fff;
+    }
+
+    .btn-warning {
+        background: #f57f17;
+        color: #000;
+    }
+
+    /* Table */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        background: var(--bg-card);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    .data-table th {
+        background: var(--bg-header);
+        color: var(--text-primary);
+        padding: 12px 10px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .data-table td {
+        padding: 10px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+
+    .data-table tbody tr:nth-child(even) {
+        background: var(--bg-alternate);
+    }
+
+    .data-table tbody tr:hover {
+        background: var(--bg-hover);
+    }
+
+    .employee-img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--border-color);
+    }
+
+    .employee-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--btn-primary-text);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-icon-yes { color: #22c55e; font-weight: bold; }
+    .status-icon-no { color: #ef4444; font-weight: bold; }
+    .text-synced { color: #22c55e; font-size: 0.85rem; font-weight: 500; }
+
+    .link-primary {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .link-primary:hover {
+        text-decoration: underline;
+    }
+
+    .link-danger {
+        color: #ef4444;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .results-count {
+        margin-top: 15px;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    /* Modal */
+    #att-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #att-modal {
+        width: 90%;
+        max-width: 1100px;
+        height: 90%;
+        max-height: 900px;
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+        background: #f8f9fa;
+    }
 </style>
 
-<div class="dashboard-header">
-    <h3 style="margin:0;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-        Select employee to change
-    </h3>
-    <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
-        <span>&#9728;&#65039;</span> Theme
-    </button>
+<div class="page-header">
+    <h2 class="page-title">Select employee to change</h2>
 </div>
 
 @if(session('success'))
-    <div class="alert alert-success" style="background:#1b5e20; color:#e8f5e9; border:none; padding:10px; border-radius:4px; margin-bottom:15px;">{{ session('success') }}</div>
+    <div class="alert alert-success" style="background:var(--bg-alternate); color:var(--text-secondary); border:1px solid var(--border-color); padding:12px; border-radius:6px; margin-bottom:15px;">{{ session('success') }}</div>
 @endif
 @if(session('error'))
-    <div class="alert alert-danger" style="background:#b71c1c; color:#ffebee; border:none; padding:10px; border-radius:4px; margin-bottom:15px;">{{ session('error') }}</div>
+    <div class="alert alert-danger" style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:12px; border-radius:6px; margin-bottom:15px;">{{ session('error') }}</div>
 @endif
 
 <!-- Top Controls -->
-<div style="background:var(--bg-secondary); padding:15px; border-radius:4px; margin-bottom:20px; border:1px solid var(--border-color);">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
-        <!-- Export -->
-        <form action="{{ route('attendance.export') }}" method="POST" style="display:inline;">
-            @csrf
-            <input type="hidden" name="year" value="{{ date('Y') }}">
-            <input type="hidden" name="month" value="{{ date('m') }}">
-            <input type="hidden" name="export_data" value="1">
-            <span style="color:var(--text-primary); font-weight:600; margin-right:10px;">Export:</span>
-            <button type="submit" style="background:#5b6b79; color:#fff; border:none; padding:6px 15px; border-radius:4px; font-weight:600; cursor:pointer;">Export ZIP (with images)</button>
-        </form>
+<div class="controls-bar">
+    <!-- Export -->
+    <form action="{{ route('attendance.export') }}" method="POST" style="display:flex; align-items:center; gap:10px;">
+        @csrf
+        <input type="hidden" name="year" value="{{ date('Y') }}">
+        <input type="hidden" name="month" value="{{ date('m') }}">
+        <input type="hidden" name="export_data" value="1">
+        <span style="font-weight:600; color:var(--text-primary);">Export:</span>
+        <button type="submit" class="btn-action btn-secondary">Export ZIP (with Images)</button>
+    </form>
 
-        <!-- Import & Add -->
-        <div style="display:flex; align-items:center; gap:15px;">
-            <form action="{{ route('attendance.import') }}" method="POST" enctype="multipart/form-data" style="display:flex; align-items:center;">
-                @csrf
-                <span style="color:var(--text-primary); font-weight:600; margin-right:10px;">Import:</span>
-                <input type="file" name="import_file" style="background:var(--input-bg); border:1px solid var(--border-color); color:var(--text-primary); padding:3px; border-radius:4px 0 0 4px;">
-                <button type="submit" style="background:#5b6b79; color:#fff; border:none; padding:6px 15px; border-radius:0 4px 4px 0; font-weight:600; cursor:pointer;">Import</button>
-            </form>
-            
-            <a href="#" class="btn-update-db" style="background:#f57f17; color:#000; padding:8px 15px; border-radius:4px; font-weight:700; text-decoration:none;">Update Database</a>
-            <a href="#" onclick="return openPopup('{{ route('employees.create', ['popup' => 1]) }}');" style="background:#212121; color:#fff; border:1px solid #444; padding:6px 15px; border-radius:4px; font-weight:600; text-decoration:none; margin-left:10px;">ADD EMPLOYEE</a>
-        </div>
+    <!-- Import & Add -->
+    <div style="display:flex; align-items:center; gap:10px;">
+        <form action="{{ route('attendance.import') }}" method="POST" enctype="multipart/form-data" style="display:flex; align-items:center; gap:5px;">
+            @csrf
+            <span style="font-weight:600; color:var(--text-primary);">Import:</span>
+            <input type="file" name="import_file" class="filter-input" style="width:auto; padding:5px;">
+            <button type="submit" class="btn-action btn-secondary">Import</button>
+        </form>
+        
+        <a href="#" class="btn-action btn-warning">Update Database</a>
+        <a href="#" onclick="return openPopup('{{ route('employees.create', ['popup' => 1]) }}');" class="btn-action btn-dark">ADD EMPLOYEE</a>
     </div>
 </div>
 
-<style>
-<style>
-    .layout-container {
-        display: block;
-    }
-</style>
-
 <!-- Filter Form -->
-<form method="GET" style="background:#f0fdf4; border:1px solid #badbcc; padding:15px; border-radius:8px; display:flex; gap:20px; align-items:flex-end; margin-bottom:20px; flex-wrap:wrap;">
-    <div style="flex:1; min-width:200px;">
-        <label style="display:block; font-weight:600; font-size:13px; color:#0f5132; margin-bottom:5px;">Search</label>
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or ID..." class="form-control" style="width:100%; padding:8px 12px; border:1px solid #badbcc; border-radius:4px;">
+<form method="GET" class="filter-form">
+    <div class="filter-group search">
+        <label class="filter-label">Search</label>
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or ID..." class="filter-input">
     </div>
     
-    <div style="width:150px;">
-        <label style="display:block; font-weight:600; font-size:13px; color:#0f5132; margin-bottom:5px;">Date</label>
-        <input type="date" name="date" value="{{ request('date') }}" class="form-control" style="width:100%; padding:8px 12px; border:1px solid #badbcc; border-radius:4px;">
+    <div class="filter-group">
+        <label class="filter-label">Date</label>
+        <input type="date" name="date" value="{{ request('date') }}" class="filter-input">
     </div>
 
-    <div style="width:150px;">
-        <label style="display:block; font-weight:600; font-size:13px; color:#0f5132; margin-bottom:5px;">Status</label>
-        <select name="active" class="form-select" style="width:100%; padding:8px 12px; border:1px solid #badbcc; border-radius:4px;">
+    <div class="filter-group">
+        <label class="filter-label">Status</label>
+        <select name="active" class="filter-select">
             <option value="">All</option>
             <option value="yes" {{ request('active') == 'yes' ? 'selected' : '' }}>Active</option>
             <option value="no" {{ request('active') == 'no' ? 'selected' : '' }}>Inactive</option>
         </select>
     </div>
 
-    <div style="width:150px;">
-        <label style="display:block; font-weight:600; font-size:13px; color:#0f5132; margin-bottom:5px;">Department</label>
-        <select name="department" class="form-select" style="width:100%; padding:8px 12px; border:1px solid #badbcc; border-radius:4px;">
+    <div class="filter-group">
+        <label class="filter-label">Department</label>
+        <select name="department" class="filter-select">
             <option value="">All</option>
             @foreach($departments ?? [] as $dept)
                 <option value="{{ $dept }}" {{ request('department') == $dept ? 'selected' : '' }}>{{ $dept }}</option>
@@ -150,9 +310,9 @@
         </select>
     </div>
 
-    <div style="width:150px;">
-        <label style="display:block; font-weight:600; font-size:13px; color:#0f5132; margin-bottom:5px;">Designation</label>
-        <select name="designation" class="form-select" style="width:100%; padding:8px 12px; border:1px solid #badbcc; border-radius:4px;">
+    <div class="filter-group">
+        <label class="filter-label">Designation</label>
+        <select name="designation" class="filter-select">
             <option value="">All</option>
             @foreach($designations ?? [] as $desig)
                 <option value="{{ $desig }}" {{ request('designation') == $desig ? 'selected' : '' }}>{{ $desig }}</option>
@@ -160,27 +320,26 @@
         </select>
     </div>
 
-    <div style="display:flex; gap:10px;">
-        <button type="submit" style="background:#198754; color:#fff; border:none; padding:8px 20px; border-radius:4px; font-weight:600; cursor:pointer;">Filter</button>
-        <a href="{{ route('employees.index') }}" style="background:#6c757d; color:#fff; text-decoration:none; padding:8px 20px; border-radius:4px; font-weight:600; display:inline-block;">Reset</a>
+    <div style="display:flex; gap:8px; align-items:flex-end;">
+        <button type="submit" class="btn-action btn-primary">Filter</button>
+        <a href="{{ route('employees.index') }}" class="btn-action btn-secondary">Reset</a>
     </div>
 </form>
 
-
 <!-- Table -->
-<div class="table-container" style="overflow-x:auto;">
-    <table class="admin-table">
+<div style="overflow-x:auto;">
+    <table class="data-table">
         <thead>
             <tr>
                 <th style="width: 40px;">#</th>
-                <th>EMPLOYEE ID</th>
-                <th>NAME</th>
-                <th>DEPARTMENT</th>
-                <th>DESIGNATION</th>
-                <th>MONTHLY SALARY</th>
-                <th>IS ACTIVE</th>
-                <th>TEMPLATE SYNCED</th>
-                <th style="text-align:right;">ACTIONS</th>
+                <th>Employee ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Designation</th>
+                <th>Monthly Salary</th>
+                <th>Is Active</th>
+                <th>Template Synced</th>
+                <th style="text-align:right;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -192,14 +351,14 @@
                     @if($img)
                         <img src="data:image/jpeg;base64,{{ $img }}" class="employee-img" alt="face">
                     @else
-                        <div class="employee-img" style="display:inline-flex; align-items:center; justify-content:center; background:#333; color:#fff; font-size:0.7rem;">{{ strtoupper(substr($emp['name'] ?? 'N',0,1)) }}</div>
+                        <div class="employee-avatar">{{ strtoupper(substr($emp['name'] ?? 'N',0,1)) }}</div>
                     @endif
-                    <a href="#" onclick="return openPopup('{{ route('employees.edit', ['id' => $emp['id'], 'popup' => 1]) }}');" style="color:var(--text-primary); text-decoration:none; font-weight:600;">
+                    <a href="#" onclick="return openPopup('{{ route('employees.edit', ['id' => $emp['id'], 'popup' => 1]) }}');" class="link-primary" style="margin-left:8px;">
                         {{ $emp['employee_id'] ?? '-' }}
                     </a>
                 </td>
                 <td>
-                    <a href="#" onclick="return openPopup('{{ route('employees.edit', ['id' => $emp['id'], 'popup' => 1]) }}');" style="color:var(--text-primary); text-decoration:none; font-weight:600;">
+                    <a href="#" onclick="return openPopup('{{ route('employees.edit', ['id' => $emp['id'], 'popup' => 1]) }}');" class="link-primary">
                         {{ $emp['name'] ?? '-' }}
                     </a>
                 </td>
@@ -208,46 +367,44 @@
                 <td>{{ number_format($emp['monthly_salary'] ?? 0, 2) }}</td>
                 <td style="text-align:center;">
                     @if(!empty($emp['is_active']))
-                        <span class="icon-yes">✔</span>
+                        <span class="status-icon-yes">✔</span>
                     @else
-                        <span class="icon-no">✘</span>
+                        <span class="status-icon-no">✘</span>
                     @endif
                 </td>
                 <td>
                     <span class="text-synced">Synced</span>
                 </td>
                 <td style="text-align:right;">
-                    <a href="#" onclick="return openPopup('{{ route('employees.edit', ['id' => $emp['id'], 'popup' => 1]) }}');" style="color:var(--btn-primary); text-decoration:none; margin-right:8px; font-weight:600;">Edit</a>
+                    <a href="#" onclick="return openPopup('{{ route('employees.edit', ['id' => $emp['id'], 'popup' => 1]) }}');" class="link-primary" style="margin-right:10px;">Edit</a>
                     <form action="{{ route('employees.destroy', $emp['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:600; padding:0;">Delete</button>
+                        <button type="submit" class="link-danger">Delete</button>
                     </form>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="9" style="text-align:center; padding: 30px; color: var(--text-secondary);">No employees found.</td>
+                <td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">No employees found.</td>
             </tr>
             @endforelse
         </tbody>
     </table>
     
-    <div style="margin-top: 15px; color: var(--text-secondary); font-size: 0.9rem;">
+    <div class="results-count">
         {{ count($employees) }} employees
-    </div>
-</div>
     </div>
 </div>
 
 <!-- Modal Overlay -->
 <div id="att-modal-overlay">
   <div id="att-modal">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #eee;background:#fafafa;">
+    <div class="modal-header">
       <strong style="font-size:14px;color:#333;">Record</strong>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button id="att-modal-refresh" style="padding:6px 10px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;color:#333;">Refresh</button>
-        <button id="att-modal-close" style="padding:6px 10px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;color:#333;">Close</button>
+      <div style="display:flex;gap:8px;">
+        <button id="att-modal-refresh" class="btn-action btn-secondary">Refresh</button>
+        <button id="att-modal-close" class="btn-action btn-secondary">Close</button>
       </div>
     </div>
     <iframe id="att-modal-iframe" src="" style="border:0;width:100%;flex:1;background:#fff;"></iframe>
@@ -255,25 +412,6 @@
 </div>
 
 <script>
-// Theme Toggle Logic
-(function(){
-    var toggleBtn = document.getElementById('theme-toggle');
-    var body = document.body;
-    var themeKey = 'attendance_theme';
-    
-    // Load preference
-    var savedTheme = localStorage.getItem(themeKey);
-    if(savedTheme === 'light') {
-        body.classList.add('light-theme');
-    }
-    
-    toggleBtn.addEventListener('click', function(){
-        body.classList.toggle('light-theme');
-        var isLight = body.classList.contains('light-theme');
-        localStorage.setItem(themeKey, isLight ? 'light' : 'dark');
-    });
-})();
-
 // Modal Logic
 function openPopup(url){
     var overlay = document.getElementById('att-modal-overlay');

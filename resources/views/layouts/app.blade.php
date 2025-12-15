@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light-green">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,107 +12,355 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root {
-            /* Light Theme (Fresh Light Green) - Default */
-            --bg-primary: #ffffff;
-            --bg-secondary: #c3e6cb; /* Hover green */
-            --bg-tertiary: #ffffff;
-            --bg-quaternary: #f0fdf4; /* Very pale green for alternating rows */
-            --bg-header: #d1e7dd; /* Fresh light green header */
-            --text-primary: #052c18; /* Darker green/black for better visibility */
+        /* ============================================
+           THEME 1: LIGHT GREEN (Default)
+           Fresh, clean, professional green palette
+           ============================================ */
+        [data-theme="light-green"] {
+            --bg-body: #f8fdf9;
+            --bg-nav: #f0fdf4;
+            --bg-header: #d1e7dd;
+            --bg-card: #ffffff;
+            --bg-hover: #c3e6cb;
+            --bg-alternate: #f0fdf4;
+            --text-primary: #052c18;
             --text-secondary: #0f5132;
-            --border-color: #badbcc; /* Soft green border */
-            --border-header: #a3cfbb;
+            --text-muted: #417a5c;
+            --border-color: #badbcc;
+            --accent: #198754;
+            --accent-hover: #157347;
             --input-bg: #ffffff;
-            --input-text: #212529;
             --input-border: #badbcc;
-            --btn-primary: #198754;
-            --btn-text: #fff;
-            
-            /* Layout variables mapped to theme */
-            --nav-bg: #f8f9fa;
-            --nav-text: #212529;
-            --nav-hover: #e9ecef;
-            --primary: #198754;
-            --card: #ffffff;
-            --bg: #f4f6f9;
-            --body-bg: #f4f6f9;
-            --body-text: #212529;
-            --header-bg: #d1e7dd;
-            --header-text: #052c18;
+            --btn-primary-bg: #198754;
+            --btn-primary-text: #ffffff;
+            --shadow: rgba(25, 135, 84, 0.1);
+            --nav-active: #d1e7dd;
         }
 
-        .light-theme {
-            --body-bg: #ffffff;
-            --body-text: #212529;
-            --header-bg: #f8f9fa;
-            --header-text: #212529;
+        /* ============================================
+           THEME 2: DARK GREEN
+           Elegant dark mode with green accents
+           ============================================ */
+        [data-theme="dark-green"] {
+            --bg-body: #0d1f17;
+            --bg-nav: #142a1f;
+            --bg-header: #1a3829;
+            --bg-card: #1a3829;
+            --bg-hover: #245238;
+            --bg-alternate: #142a1f;
+            --text-primary: #e8f5ec;
+            --text-secondary: #a8d4b8;
+            --text-muted: #6aaa8a;
+            --border-color: #2d543e;
+            --accent: #2dd36f;
+            --accent-hover: #4ade80;
+            --input-bg: #1a3829;
+            --input-border: #2d543e;
+            --btn-primary-bg: #2dd36f;
+            --btn-primary-text: #0d1f17;
+            --shadow: rgba(45, 211, 111, 0.15);
+            --nav-active: #245238;
+        }
+
+        /* ============================================
+           THEME 3: OCEAN BLUE
+           Cool, calming blue palette
+           ============================================ */
+        [data-theme="ocean-blue"] {
+            --bg-body: #f0f7ff;
+            --bg-nav: #e8f1fb;
+            --bg-header: #cfe2ff;
+            --bg-card: #ffffff;
+            --bg-hover: #b6d4fe;
+            --bg-alternate: #e8f1fb;
+            --text-primary: #052255;
+            --text-secondary: #0a58ca;
+            --text-muted: #4a7cc5;
+            --border-color: #a3c4f3;
+            --accent: #0d6efd;
+            --accent-hover: #0b5ed7;
             --input-bg: #ffffff;
-            --input-text: #212529;
-            --input-border: #ced4da;
-            --nav-bg: #f8f9fa;
-            --nav-text: #212529;
-            --nav-hover: #e9ecef;
-            --bg: #ffffff;
+            --input-border: #a3c4f3;
+            --btn-primary-bg: #0d6efd;
+            --btn-primary-text: #ffffff;
+            --shadow: rgba(13, 110, 253, 0.1);
+            --nav-active: #cfe2ff;
         }
 
+        /* ============================================
+           BASE STYLES
+           ============================================ */
         * { box-sizing: border-box; }
+        
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
-            background: var(--body-bg);
-            color: var(--body-text);
-        }
-        .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-        nav {
-            background: var(--nav-bg);
-            padding: 18px 14px;
-            border-right: 1px solid #d5e5da;
-        }
-        .logo {
-            display: flex; align-items: center; gap: 10px;
-            font-weight: 700; color: var(--nav-text); margin-bottom: 24px; text-decoration: none;
-            font-size: 1.2rem;
-        }
-        .menu { list-style: none; padding: 0; margin: 0; }
-        .menu li a {
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 12px; margin-bottom: 6px;
-            color: var(--nav-text); text-decoration: none; border-radius: 10px;
-            font-weight: 500;
-        }
-        .menu li a:hover, .menu li a.active { 
-            background: var(--nav-hover); 
-            color: #0b7d5c;
-        }
-        header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 22px; color: var(--header-text);
-            background: var(--header-bg); backdrop-filter: blur(8px);
-            position: sticky; top: 0; z-index: 10;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .light-theme header {
-            border-bottom: 1px solid #dee2e6;
-        }
-        .content { padding: 22px; }
-        .card {
-            background: var(--card); border-radius: 16px; padding: 18px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-            border: none;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         
-        /* Form Controls Override */
+        .layout { 
+            display: grid; 
+            grid-template-columns: 260px 1fr; 
+            min-height: 100vh; 
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        nav {
+            background: var(--bg-nav);
+            padding: 18px 14px;
+            border-right: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .logo {
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            font-weight: 700; 
+            color: var(--text-primary); 
+            margin-bottom: 24px; 
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+        
+        .menu { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+        }
+        
+        .menu li a {
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            padding: 10px 12px; 
+            margin-bottom: 6px;
+            color: var(--text-primary); 
+            text-decoration: none; 
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .menu li a:hover, .menu li a.active { 
+            background: var(--nav-active); 
+            color: var(--accent);
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        header {
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 12px 22px; 
+            color: var(--text-primary);
+            background: var(--bg-header); 
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .header-title {
+            font-weight: 700; 
+            font-size: 1.1rem;
+        }
+
+        .header-actions {
+            display: flex !important;
+            align-items: center;
+            gap: 15px;
+            visibility: visible !important;
+        }
+
+        /* ============================================
+           THEME SWITCHER
+           ============================================ */
+        .theme-switcher {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 6px 12px;
+            border-radius: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .theme-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-btn.active {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 3px var(--shadow);
+        }
+
+        .theme-btn-green {
+            background: linear-gradient(135deg, #198754, #d1e7dd);
+        }
+
+        .theme-btn-dark {
+            background: linear-gradient(135deg, #0d1f17, #2dd36f);
+        }
+
+        .theme-btn-blue {
+            background: linear-gradient(135deg, #0d6efd, #cfe2ff);
+        }
+
+        .theme-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 5px;
+        }
+
+        .theme-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 5px;
+        }
+
+        /* ============================================
+           CONTENT AREA
+           ============================================ */
+        .content { 
+            padding: 22px; 
+        }
+        
+        .card {
+            background: var(--bg-card); 
+            border-radius: 12px; 
+            padding: 18px;
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* ============================================
+           FORM CONTROLS
+           ============================================ */
         .form-control, .form-select {
             background-color: var(--input-bg);
-            color: var(--input-text);
+            color: var(--text-primary);
             border-color: var(--input-border);
+            transition: all 0.2s ease;
         }
+        
         .form-control:focus, .form-select:focus {
             background-color: var(--input-bg);
-            color: var(--input-text);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 0.25rem rgba(11, 125, 92, 0.25);
+            color: var(--text-primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 0.25rem var(--shadow);
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+        .btn-primary {
+            background-color: var(--btn-primary-bg);
+            border-color: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        /* ============================================
+           TABLES
+           ============================================ */
+        .table {
+            color: var(--text-primary);
+        }
+
+        .table thead th {
+            background: var(--bg-header);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .table tbody td {
+            border-color: var(--border-color);
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: var(--bg-alternate);
+        }
+
+        .table tbody tr:hover {
+            background: var(--bg-hover);
+        }
+
+        /* ============================================
+           LINKS
+           ============================================ */
+        a {
+            color: var(--accent);
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+        }
+
+        /* ============================================
+           USER INFO
+           ============================================ */
+        .user-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .btn-logout {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .btn-logout:hover {
+            background: var(--accent);
+            color: var(--btn-primary-text);
+            border-color: var(--accent);
+        }
+
+        /* ============================================
+           ALERTS
+           ============================================ */
+        .alert-success {
+            background: var(--bg-alternate);
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
         }
     </style>
     @stack('head')
@@ -122,38 +370,45 @@
     @if(!request('popup'))
     <nav>
         <a class="logo" href="{{ url('/') }}">
-            <span>PHP BaraBD</span>
+            <i class="bi bi-building" style="font-size: 1.5rem; color: var(--accent);"></i>
+            <span>BaraBD</span>
         </a>
         <ul class="menu">
-            <li><a href="{{ route('attendance.index') }}">Attendance Dashboard</a></li>
-            <li><a href="{{ route('attendance-records.index') }}">Attendance Records</a></li>
-            <li><a href="{{ route('employees.index') }}">Employees</a></li>
-            <li><a href="{{ route('livefeed.index') }}">Live Feed</a></li>
-            <li><a href="{{ route('shifts.index') }}">Shifts</a></li>
-            <li><a href="{{ route('moderator.index') }}">Moderator Labels</a></li>
-            <li><a href="{{ route('salary.defaults') }}">Salary Defaults</a></li>
-            <li><a href="{{ route('salary.index') }}">Salary Statistics</a></li>
-            <li><a href="{{ route('holidays.index') }}">Holidays</a></li>
-            <li><a href="{{ route('reports.index') }}">Reports</a></li>
-            <li><a href="{{ route('settings.voice_message') }}">Voice & Message Settings</a></li>
-            <li><a href="{{ route('settings.context') }}">Context Settings</a></li>
-            <li><a href="{{ route('settings.company') }}">Company Info</a></li>
-            <li><a href="{{ route('settings.integration') }}">Integration Settings</a></li>
+            <li><a href="{{ route('attendance.index') }}"><i class="bi bi-calendar-check"></i> Attendance Dashboard</a></li>
+            <li><a href="{{ route('attendance-records.index') }}"><i class="bi bi-list-check"></i> Attendance Records</a></li>
+            <li><a href="{{ route('employees.index') }}"><i class="bi bi-people"></i> Employees</a></li>
+            <li><a href="{{ route('livefeed.index') }}"><i class="bi bi-broadcast"></i> Live Feed</a></li>
+            <li><a href="{{ route('shifts.index') }}"><i class="bi bi-clock"></i> Shifts</a></li>
+            <li><a href="{{ route('moderator.index') }}"><i class="bi bi-tags"></i> Moderator Labels</a></li>
+            <li><a href="{{ route('salary.defaults') }}"><i class="bi bi-sliders"></i> Salary Defaults</a></li>
+            <li><a href="{{ route('salary.index') }}"><i class="bi bi-cash-stack"></i> Salary Statistics</a></li>
+            <li><a href="{{ route('holidays.index') }}"><i class="bi bi-calendar-heart"></i> Holidays</a></li>
+            <li><a href="{{ route('reports.index') }}"><i class="bi bi-file-earmark-text"></i> Reports</a></li>
+            <li><a href="{{ route('settings.voice_message') }}"><i class="bi bi-volume-up"></i> Voice & Message</a></li>
+            <li><a href="{{ route('settings.context') }}"><i class="bi bi-gear"></i> Context Settings</a></li>
+            <li><a href="{{ route('settings.company') }}"><i class="bi bi-building-gear"></i> Company Info</a></li>
+            <li><a href="{{ route('settings.integration') }}"><i class="bi bi-plug"></i> Integration</a></li>
         </ul>
     </nav>
     @endif
     <div>
         @if(!request('popup'))
         <header>
-            <div>
-                <div style="font-weight:700; font-size: 1.1rem;">Employee Management</div>
-            </div>
-            <div class="d-flex align-items-center gap-3">
+            <div class="header-title">Employee Management System</div>
+            <div class="header-actions">
+                <!-- Theme Switcher -->
+                <div class="theme-switcher">
+                    <span class="theme-label">Theme:</span>
+                    <button class="theme-btn theme-btn-green" data-theme="light-green" title="Light Green"></button>
+                    <button class="theme-btn theme-btn-dark" data-theme="dark-green" title="Dark Green"></button>
+                    <button class="theme-btn theme-btn-blue" data-theme="ocean-blue" title="Ocean Blue"></button>
+                </div>
+                
                 @if(session('admin_user'))
-                    <span style="font-size:13px; color:#fff;">{{ session('admin_user') }}</span>
+                    <span class="user-info">{{ session('admin_user') }}</span>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0;">
                         @csrf
-                        <button type="submit" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:#fff; border:none;">Logout</button>
+                        <button type="submit" class="btn-logout">Logout</button>
                     </form>
                 @endif
             </div>
@@ -164,8 +419,58 @@
         </main>
     </div>
 </div>
-<!-- Bootstrap JS (Removed) -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script> -->
+
+<script>
+    // Theme Switcher Logic
+    (function() {
+        const THEME_KEY = 'barabd_theme';
+        const DEFAULT_THEME = 'light-green';
+        
+        // Load saved theme or default
+        function loadTheme() {
+            const savedTheme = localStorage.getItem(THEME_KEY) || DEFAULT_THEME;
+            applyTheme(savedTheme);
+        }
+        
+        // Apply theme to document
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Update active state on buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.theme === theme) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Save to localStorage
+            localStorage.setItem(THEME_KEY, theme);
+        }
+        
+        // Initialize on page load
+        loadTheme();
+        
+        // Add click handlers to theme buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    applyTheme(this.dataset.theme);
+                });
+            });
+            
+            // Re-apply active state after DOM is ready
+            const currentTheme = localStorage.getItem(THEME_KEY) || DEFAULT_THEME;
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.theme === currentTheme) {
+                    btn.classList.add('active');
+                }
+            });
+        });
+    })();
+</script>
+
 @stack('scripts')
 </body>
 </html>
