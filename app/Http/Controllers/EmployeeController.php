@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Services\DjangoApi;
+use App\Traits\HasOrganizationContext;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
+    use HasOrganizationContext;
+
     public function index(Request $request, DjangoApi $api)
     {
-        $data = $api->employees();
+        // Get organization-filtered employees
+        $orgId = $this->getOrganizationId();
+        $data = $api->employees($orgId);
         $employees = $data['employees'] ?? [];
         $error = $data['error'] ?? null;
 
@@ -49,7 +54,10 @@ class EmployeeController extends Controller
             'email' => $request->query('email'),
             'phone' => $request->query('phone'),
         ];
-        return view('employees.index', compact('employees', 'error', 'editing', 'departments', 'designations'));
+        
+        $organizationName = $this->getOrganizationName();
+        
+        return view('employees.index', compact('employees', 'error', 'editing', 'departments', 'designations', 'organizationName'));
     }
 
     public function create()
@@ -59,7 +67,8 @@ class EmployeeController extends Controller
 
     public function edit($id, DjangoApi $api)
     {
-        $data = $api->employees();
+        $orgId = $this->getOrganizationId();
+        $data = $api->employees($orgId);
         $employees = $data['employees'] ?? [];
         $employee = collect($employees)->firstWhere('id', $id);
         
@@ -79,6 +88,12 @@ class EmployeeController extends Controller
         
         // Handle checkbox
         $payload['is_active'] = $request->has('is_active');
+        
+        // Add organization_id for new employees
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $payload['organization_id'] = $orgId;
+        }
         
         $resp = $api->upsertEmployee($payload);
         if (!empty($resp['error'])) {

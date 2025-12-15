@@ -46,6 +46,11 @@ class AuthController extends Controller
             Session::put('admin_user', $user->name);
             Session::put('auth_type', 'php');
             Session::put('auth_expires', now()->addHours(8)->timestamp);
+            // For PHP users, default to super_admin (since they're local admins)
+            Session::put('user_role', 'super_admin');
+            Session::put('organization_id', null);
+            Session::put('organization_name', null);
+            Session::put('organizations', []);
             
             return redirect()->intended(route('attendance.index'));
         }
@@ -60,6 +65,15 @@ class AuthController extends Controller
             Session::put('is_admin', $result['is_admin'] ?? true);
             Session::put('auth_type', 'django');
             Session::put('auth_expires', now()->addHours(8)->timestamp);
+            
+            // Store multi-tenant role info
+            Session::put('user_role', $result['role'] ?? 'org_admin');
+            Session::put('organization_id', $result['organization_id'] ?? null);
+            Session::put('organization_name', $result['organization_name'] ?? null);
+            Session::put('organizations', $result['organizations'] ?? []);
+            
+            // If super_admin with no org selected, they'll see all data
+            // If org_admin, they only see their organization's data
 
             return redirect()->intended(route('attendance.index'));
         }
@@ -75,9 +89,41 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        Session::forget(['authenticated', 'admin_user', 'is_admin', 'auth_type', 'auth_expires']);
+        Session::forget([
+            'authenticated', 'admin_user', 'is_admin', 'auth_type', 'auth_expires',
+            'user_role', 'organization_id', 'organization_name', 'organizations'
+        ]);
         Session::flush();
         
         return redirect()->route('login');
+    }
+
+    /**
+     * Switch organization (for super_admin only)
+     */
+    public function switchOrganization(Request $request)
+    {
+        if (Session::get('user_role') !== 'super_admin') {
+            return back()->with('error', 'Only super admins can switch organizations');
+        }
+
+        $orgId = $request->input('organization_id');
+        
+        if ($orgId === '' || $orgId === null || $orgId === 'all') {
+            // Clear org selection - show all data
+            Session::put('selected_organization_id', null);
+            Session::put('selected_organization_name', 'All Organizations');
+        } else {
+            // Find org in available list
+            $organizations = Session::get('organizations', []);
+            $selectedOrg = collect($organizations)->firstWhere('id', (int) $orgId);
+            
+            if ($selectedOrg) {
+                Session::put('selected_organization_id', $selectedOrg['id']);
+                Session::put('selected_organization_name', $selectedOrg['name']);
+            }
+        }
+
+        return back()->with('success', 'Organization switched');
     }
 }

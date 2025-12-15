@@ -388,17 +388,47 @@
             <li><a href="{{ route('settings.context') }}"><i class="bi bi-gear"></i> Context Settings</a></li>
             <li><a href="{{ route('settings.company') }}"><i class="bi bi-building-gear"></i> Company Info</a></li>
             <li><a href="{{ route('settings.integration') }}"><i class="bi bi-plug"></i> Integration</a></li>
+            @if(session('user_role') === 'super_admin')
             <li style="border-top:1px solid var(--border-color); margin-top:10px; padding-top:10px;">
-                <a href="{{ route('companies.index') }}"><i class="bi bi-buildings"></i> Companies (Admin)</a>
+                <a href="{{ route('companies.index') }}" class="{{ request()->routeIs('companies.*') ? 'active' : '' }}">
+                    <i class="bi bi-buildings"></i> Companies (Admin)
+                </a>
             </li>
+            @endif
         </ul>
     </nav>
     @endif
     <div>
         @if(!request('popup'))
         <header>
-            <div class="header-title">Employee Management System</div>
+            <div class="header-title">
+                Employee Management System
+                @if(session('user_role') === 'super_admin' && session('selected_organization_name'))
+                    <span style="font-size:0.8rem; font-weight:400; margin-left:10px; padding:4px 10px; background:var(--accent); color:white; border-radius:4px;">
+                        {{ session('selected_organization_name') }}
+                    </span>
+                @elseif(session('organization_name'))
+                    <span style="font-size:0.8rem; font-weight:400; margin-left:10px; padding:4px 10px; background:var(--accent); color:white; border-radius:4px;">
+                        {{ session('organization_name') }}
+                    </span>
+                @endif
+            </div>
             <div class="header-actions">
+                @if(session('user_role') === 'super_admin' && count(session('organizations', [])) > 0)
+                <!-- Organization Selector for Super Admin -->
+                <form action="{{ route('switch.organization') }}" method="POST" style="margin:0; display:flex; align-items:center; gap:8px;">
+                    @csrf
+                    <select name="organization_id" onchange="this.form.submit()" style="padding:5px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); font-size:12px;">
+                        <option value="all" {{ !session('selected_organization_id') ? 'selected' : '' }}>All Organizations</option>
+                        @foreach(session('organizations', []) as $org)
+                            <option value="{{ $org['id'] }}" {{ session('selected_organization_id') == $org['id'] ? 'selected' : '' }}>
+                                {{ $org['name'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+                @endif
+
                 <!-- Theme Switcher -->
                 <div class="theme-switcher">
                     <span class="theme-label">Theme:</span>
@@ -408,7 +438,10 @@
                 </div>
                 
                 @if(session('admin_user'))
-                    <span class="user-info">{{ session('admin_user') }}</span>
+                    <span class="user-info">
+                        {{ session('admin_user') }}
+                        <small style="opacity:0.7;">({{ session('user_role', 'admin') }})</small>
+                    </span>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0;">
                         @csrf
                         <button type="submit" class="btn-logout">Logout</button>
