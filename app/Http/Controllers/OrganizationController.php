@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Services\DjangoApi;
 use Illuminate\Http\Request;
 
-class CompanyController extends Controller
+class OrganizationController extends Controller
 {
     /**
-     * Display a listing of organizations (companies).
+     * Display a listing of organizations.
      * Super Admin only.
      */
     public function index(Request $request, DjangoApi $api)
@@ -29,15 +29,23 @@ class CompanyController extends Controller
         $organizations = $data['organizations'] ?? [];
         $error = $data['error'] ?? null;
         
-        return view('companies.index', compact('organizations', 'error'));
+        // Fetch plans for assignment dropdown
+        $plansData = $api->plans();
+        $plans = $plansData['plans'] ?? [];
+        
+        return view('organizations.index', compact('organizations', 'error', 'plans'));
     }
 
     /**
      * Show the form for creating a new organization.
      */
-    public function create()
+    public function create(DjangoApi $api)
     {
-        return view('companies.form');
+        // Fetch plans for dropdown
+        $plansData = $api->plans();
+        $plans = $plansData['plans'] ?? [];
+        
+        return view('organizations.form', compact('plans'));
     }
 
     /**
@@ -53,6 +61,7 @@ class CompanyController extends Controller
             'address' => $request->input('address'),
             'max_employees' => $request->input('max_employees', 100),
             'max_devices' => $request->input('max_devices', 5),
+            'plan_id' => $request->input('plan_id') ?: null,
             'is_active' => $request->has('is_active'),
         ];
         
@@ -62,7 +71,7 @@ class CompanyController extends Controller
             return redirect()->back()->withInput()->with('error', $resp['error']);
         }
         
-        return redirect()->route('companies.index')->with('success', 'Organization created successfully');
+        return redirect()->route('organizations.index')->with('success', 'Organization created successfully');
     }
 
     /**
@@ -73,13 +82,13 @@ class CompanyController extends Controller
         $orgData = $api->organization($id);
         
         if (!empty($orgData['error'])) {
-            return redirect()->route('companies.index')->with('error', 'Organization not found');
+            return redirect()->route('organizations.index')->with('error', 'Organization not found');
         }
         
         $organization = $orgData['organization'] ?? null;
         
         if (!$organization) {
-            return redirect()->route('companies.index')->with('error', 'Organization not found');
+            return redirect()->route('organizations.index')->with('error', 'Organization not found');
         }
         
         // Get stats
@@ -90,7 +99,11 @@ class CompanyController extends Controller
         $devicesData = $api->organizationDevices($id);
         $devices = $devicesData['devices'] ?? [];
         
-        return view('companies.show', compact('organization', 'stats', 'devices'));
+        // Get plans for display
+        $plansData = $api->plans();
+        $plans = $plansData['plans'] ?? [];
+        
+        return view('organizations.show', compact('organization', 'stats', 'devices', 'plans'));
     }
 
     /**
@@ -102,10 +115,14 @@ class CompanyController extends Controller
         $organization = $orgData['organization'] ?? null;
         
         if (!$organization) {
-            return redirect()->route('companies.index')->with('error', 'Organization not found');
+            return redirect()->route('organizations.index')->with('error', 'Organization not found');
         }
         
-        return view('companies.form', compact('organization'));
+        // Fetch plans for dropdown
+        $plansData = $api->plans();
+        $plans = $plansData['plans'] ?? [];
+        
+        return view('organizations.form', compact('organization', 'plans'));
     }
 
     /**
@@ -120,6 +137,7 @@ class CompanyController extends Controller
             'address' => $request->input('address'),
             'max_employees' => $request->input('max_employees', 100),
             'max_devices' => $request->input('max_devices', 5),
+            'plan_id' => $request->input('plan_id') ?: null,
             'is_active' => $request->has('is_active'),
         ];
         
@@ -129,7 +147,7 @@ class CompanyController extends Controller
             return redirect()->back()->withInput()->with('error', $resp['error']);
         }
         
-        return redirect()->route('companies.index')->with('success', 'Organization updated successfully');
+        return redirect()->route('organizations.index')->with('success', 'Organization updated successfully');
     }
 
     /**
@@ -143,7 +161,7 @@ class CompanyController extends Controller
             return redirect()->back()->with('error', $resp['error']);
         }
         
-        return redirect()->route('companies.index')->with('success', 'Organization deleted');
+        return redirect()->route('organizations.index')->with('success', 'Organization deleted');
     }
 
     /**
@@ -155,13 +173,13 @@ class CompanyController extends Controller
         $organization = $orgData['organization'] ?? null;
         
         if (!$organization) {
-            return redirect()->route('companies.index')->with('error', 'Organization not found');
+            return redirect()->route('organizations.index')->with('error', 'Organization not found');
         }
         
         $devicesData = $api->organizationDevices($id);
         $devices = $devicesData['devices'] ?? [];
         
-        return view('companies.devices', compact('organization', 'devices'));
+        return view('organizations.devices', compact('organization', 'devices'));
     }
 
     /**
@@ -183,7 +201,7 @@ class CompanyController extends Controller
             return redirect()->back()->withInput()->with('error', $resp['error']);
         }
         
-        return redirect()->route('companies.devices', $orgId)->with('success', 'Device added successfully');
+        return redirect()->route('organizations.devices', $orgId)->with('success', 'Device added successfully');
     }
 
     /**
@@ -203,7 +221,7 @@ class CompanyController extends Controller
             return redirect()->back()->with('error', $resp['error']);
         }
         
-        return redirect()->route('companies.devices', $orgId)->with('success', 'Device updated');
+        return redirect()->route('organizations.devices', $orgId)->with('success', 'Device updated');
     }
 
     /**
@@ -217,6 +235,6 @@ class CompanyController extends Controller
             return redirect()->back()->with('error', $resp['error']);
         }
         
-        return redirect()->route('companies.devices', $orgId)->with('success', 'Device deleted');
+        return redirect()->route('organizations.devices', $orgId)->with('success', 'Device deleted');
     }
 }

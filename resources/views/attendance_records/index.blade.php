@@ -194,8 +194,31 @@
 
 <div style="padding: 20px;">
     <div class="page-header">
-        <h2 style="margin:0; font-size: 20px; font-weight: 600; color: var(--text-primary);">Select attendance record to change</h2>
+        <div>
+            @if($isSuperAdmin ?? false)
+                @if($selectedOrgId ?? false)
+                <h2 style="margin:0; font-size: 20px; font-weight: 600; color: var(--text-primary);">
+                    <i class="bi bi-building text-primary me-2"></i>{{ $selectedOrgName ?? 'Organization' }} - Attendance Records
+                </h2>
+                <small class="text-muted">
+                    <a href="{{ route('attendance-records.index') }}" style="color:var(--btn-primary);">← Back to all organizations</a>
+                </small>
+                @else
+                <h2 style="margin:0; font-size: 20px; font-weight: 600; color: var(--text-primary);">
+                    <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>All Organizations - Attendance Records
+                </h2>
+                <small class="text-muted">Select an organization to view its attendance records</small>
+                @endif
+            @else
+            <h2 style="margin:0; font-size: 20px; font-weight: 600; color: var(--text-primary);">
+                Select attendance record to change
+            </h2>
+            <small class="text-muted">Your organization's records</small>
+            @endif
+        </div>
+        @if(!($showOrgOverview ?? false))
         <a href="#" onclick="return openPopup('{{ route('attendance-records.create', ['popup' => 1]) }}');" style="padding:8px 16px; background:var(--btn-primary); color:var(--btn-text); text-decoration:none; border-radius:6px; font-size:14px; font-weight:600;">+ Add New Record</a>
+        @endif
     </div>
 
     @if(session('success'))
@@ -205,8 +228,71 @@
         <div class="alert alert-danger" style="background:#f8d7da; color:#842029; padding:12px; border-radius:6px; margin-bottom:20px; border: 1px solid #f5c2c7;">{{ session('error') }}</div>
     @endif
 
+    {{-- ============================================================== --}}
+    {{-- SUPER ADMIN: Organization Cards Overview --}}
+    {{-- ============================================================== --}}
+    @if($showOrgOverview ?? false)
+    <div class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="mb-0">
+                <i class="bi bi-building me-2 text-primary"></i>
+                Select Organization
+            </h5>
+            <span class="badge bg-primary rounded-pill">{{ count($organizations ?? []) }} Organizations</span>
+        </div>
+        
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+            @foreach($organizations ?? [] as $org)
+            <div class="col">
+                <a href="{{ route('attendance-records.index', ['organization_id' => $org['id']]) }}" style="text-decoration:none;">
+                    <div class="card h-100 border-0 shadow-sm" style="transition: transform 0.2s, box-shadow 0.2s;">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-3">
+                                @if(!empty($org['logo']))
+                                {{-- Show org logo if available --}}
+                                <div style="width:50px;height:50px;border-radius:12px;overflow:hidden;background:#f8f9fa;display:flex;align-items:center;justify-content:center;">
+                                    <img src="{{ rtrim(Session::get('django_base_url', config('django.base_url', 'http://localhost:8001')), '/') . $org['logo'] }}" 
+                                         alt="{{ $org['name'] }}" 
+                                         style="width:100%;height:100%;object-fit:cover;"
+                                         onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'bi bi-building text-secondary fs-4\'></i>';">
+                                </div>
+                                @else
+                                {{-- Fallback: gradient icon --}}
+                                <div style="width:50px;height:50px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-building text-white fs-4"></i>
+                                </div>
+                                @endif
+                                <div>
+                                    <h6 class="card-title mb-1 fw-bold text-dark">{{ $org['name'] }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-people me-1"></i>{{ $org['employee_count'] ?? '?' }} employees
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-primary bg-opacity-10 border-0 text-center">
+                            <small class="text-primary fw-semibold">
+                                <i class="bi bi-arrow-right-circle me-1"></i>View Attendance Records
+                            </small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    
+    @else
+    {{-- ============================================================== --}}
+    {{-- Normal View: Filter Bar and Records Table --}}
+    {{-- ============================================================== --}}
+
     <!-- Filter Bar -->
     <form method="GET" action="{{ route('attendance-records.index') }}" style="background:var(--bg-quaternary); padding:15px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:flex-end;">
+        
+        @if($isSuperAdmin ?? false)
+        <input type="hidden" name="organization_id" value="{{ $selectedOrgId }}">
+        @endif
         
         <div style="flex:1; min-width:200px;">
             <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Search</label>
@@ -252,7 +338,7 @@
 
         <div>
             <button type="submit" class="btn btn-primary" style="background:var(--btn-primary); border:none; padding:8px 20px;">Filter</button>
-            <a href="{{ route('attendance-records.index') }}" class="btn btn-secondary" style="background:#6c757d; border:none; padding:8px 20px; color:#fff; text-decoration:none; display:inline-block; line-height:1.5;">Reset</a>
+            <a href="{{ route('attendance-records.index', ['organization_id' => $selectedOrgId ?? '']) }}" class="btn btn-secondary" style="background:#6c757d; border:none; padding:8px 20px; color:#fff; text-decoration:none; display:inline-block; line-height:1.5;">Reset</a>
         </div>
     </form>
 
@@ -261,7 +347,6 @@
         <div style="flex:1; min-width:0;">
 
             <!-- Bulk Action Controls -->
-            @csrf
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; background:var(--bg-quaternary); padding:10px; border-radius:6px; border:1px solid var(--border-color);">
                 <label style="font-weight:600; font-size:13px; color:var(--text-primary);">Action:</label>
                 <select id="bulk-action-select" class="form-select" style="width:auto; display:inline-block; padding:4px 8px; font-size:13px;">
@@ -269,7 +354,7 @@
                     <option value="delete">Delete selected attendance records</option>
                     <option value="remove_checkout">Remove checkout time and image</option>
                 </select>
-                <button type="button" onclick="submitBulkAction()" class="btn btn-primary" style="padding:4px 12px; font-size:13px; background:var(--btn-primary); border:none;">Go</button>
+                <button type="button" onclick="submitBulkAction()" class="btn btn-primary" style="padding:4px 12px; font-size:13px; background:var(--btn-primary); border:none; color:#fff;">Go</button>
                 <span id="selected-count" style="font-size:13px; color:var(--text-secondary); margin-left:10px;">0 of {{ count($records) }} selected</span>
             </div>
 
@@ -352,12 +437,12 @@
                                     <span style="color:#ccc;">—</span>
                                 @endif
                             </td>
-                            <td style="text-align:right;">
-                                <a href="#" onclick="return openPopup('{{ route('attendance-records.edit', ['id' => $record['id'], 'popup' => 1]) }}');" class="action-link">Edit</a>
-                                <form action="{{ route('attendance-records.destroy', $record['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                            <td style="text-align:right; white-space:nowrap;">
+                                <a href="#" onclick="return openPopup('{{ route('attendance-records.edit', ['id' => $record['id'], 'popup' => 1]) }}');" class="action-link" style="margin-right:10px;">Edit</a>
+                                <form id="delete-form-{{ $record['id'] }}" action="{{ route('attendance-records.destroy', $record['id']) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="delete-btn">Delete</button>
+                                    <button type="button" class="delete-btn" onclick="if(confirm('Are you sure you want to delete this record?')) { document.getElementById('delete-form-{{ $record['id'] }}').submit(); }">Delete</button>
                                 </form>
                             </td>
                         </tr>
@@ -376,6 +461,8 @@
         </div>
     </div>
 </div>
+
+@endif {{-- End of showOrgOverview else block --}}
 
 <form id="bulk-action-form" action="{{ route('attendance-records.bulk_action') }}" method="POST" style="display:none;">
     @csrf

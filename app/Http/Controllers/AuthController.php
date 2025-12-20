@@ -43,14 +43,28 @@ class AuthController extends Controller
         if ($user && Hash::check($password, $user->password)) {
             // PHP user authenticated successfully
             Session::put('authenticated', true);
+            Session::put('admin_id', $user->id); // Store local user ID
             Session::put('admin_user', $user->name);
+            Session::put('admin_email', $user->email);
+            Session::put('admin_name', $user->name);
             Session::put('auth_type', 'php');
             Session::put('auth_expires', now()->addHours(8)->timestamp);
             // For PHP users, default to super_admin (since they're local admins)
             Session::put('user_role', 'super_admin');
+            Session::put('is_superuser', true);
             Session::put('organization_id', null);
             Session::put('organization_name', null);
-            Session::put('organizations', []);
+            
+            // Fetch organizations from Django for super_admin dropdown
+            try {
+                $orgsData = $api->organizations();
+                $organizations = collect($orgsData['organizations'] ?? [])->map(function($org) {
+                    return ['id' => $org['id'], 'name' => $org['name'], 'slug' => $org['slug'] ?? ''];
+                })->toArray();
+                Session::put('organizations', $organizations);
+            } catch (\Exception $e) {
+                Session::put('organizations', []);
+            }
             
             return redirect()->intended(route('attendance.index'));
         }
@@ -58,11 +72,18 @@ class AuthController extends Controller
         // Method 2: Try Django admin authentication
         $result = $api->validateAdmin($username, $password);
 
+        // DEBUG: Log the result
+        \Log::info('Django auth result', $result);
+
         if ($result['success'] ?? false) {
             // Django admin authenticated successfully
             Session::put('authenticated', true);
+            Session::put('admin_id', $result['id'] ?? null); // Store remote user ID
             Session::put('admin_user', $result['user'] ?? $username);
-            Session::put('is_admin', $result['is_admin'] ?? true);
+            Session::put('admin_email', $result['email'] ?? $username);
+            Session::put('admin_name', $result['user'] ?? $username);
+            Session::put('is_admin', $result['is_admin'] ?? false);
+            Session::put('is_superuser', $result['is_admin'] ?? false);
             Session::put('auth_type', 'django');
             Session::put('auth_expires', now()->addHours(8)->timestamp);
             
@@ -78,9 +99,12 @@ class AuthController extends Controller
             return redirect()->intended(route('attendance.index'));
         }
 
+        // DEBUG: Show actual error in message
+        $errorMsg = $result['error'] ?? 'Invalid username/email or password';
+        
         // Both authentication methods failed
         return back()->withErrors([
-            'login' => 'Invalid username/email or password',
+            'login' => $errorMsg,
         ])->withInput(['username' => $username]);
     }
 

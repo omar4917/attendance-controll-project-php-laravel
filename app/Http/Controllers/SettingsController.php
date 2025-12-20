@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Services\DjangoApi;
+use App\Traits\HasOrganizationContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Session;
 
 class SettingsController extends Controller
 {
+    use HasOrganizationContext;
 
 
 
@@ -43,6 +46,12 @@ class SettingsController extends Controller
             ['employee_id','language_code']
         );
 
+        // Add organization_id
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $payload['organization_id'] = $orgId;
+        }
+
         $resp = $api->saveVoiceSettings($payload);
         if (!empty($resp['error'])) {
             return redirect()->back()->withInput()->with('error', $resp['error']);
@@ -52,8 +61,13 @@ class SettingsController extends Controller
 
     public function voiceMessage(DjangoApi $api)
     {
-        $voiceData = $api->voiceSettings();
-        $messageData = $api->messageSettings();
+        $orgId = $this->getOrganizationId();
+        $voiceData = $api->voiceSettings($orgId);
+        $messageData = $api->messageSettings($orgId);
+        
+        // Fetch employees for dropdown selection
+        $employeesData = $api->employees($orgId);
+        $employees = $employeesData['employees'] ?? [];
         
         // Merge data, prioritizing message data structure but including voice fields
         $data = [
@@ -77,7 +91,7 @@ class SettingsController extends Controller
         $error = $voiceData['error'] ?? ($messageData['error'] ?? null);
         $apiServer = Session::get('django_base_url', config('django.base_url'));
         
-        return view('settings.message', compact('data', 'error', 'apiServer'));
+        return view('settings.message', compact('data', 'error', 'apiServer', 'employees'));
     }
 
     public function saveVoiceMessage(Request $request, DjangoApi $api)
@@ -110,6 +124,12 @@ class SettingsController extends Controller
             ['employee_id','language_code']
         );
 
+        // Add organization_id
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $voicePayload['organization_id'] = $orgId;
+        }
+
         $voiceResp = $api->saveVoiceSettings($voicePayload);
 
         // 2. Save Message Settings
@@ -130,6 +150,11 @@ class SettingsController extends Controller
         $messagePayload['voice_name_overrides'] = $voicePayload['voice_name_overrides'];
         $messagePayload['voice_phrase_overrides'] = $voicePayload['voice_phrase_overrides'];
         $messagePayload['voice_preferences'] = $voicePayload['voice_preferences'];
+        
+        // Add organization_id
+        if ($orgId) {
+            $messagePayload['organization_id'] = $orgId;
+        }
 
         $messageResp = $api->saveMessageSettings($messagePayload);
 
@@ -147,7 +172,9 @@ class SettingsController extends Controller
     {
         $url = rtrim($request->input('api_server'), '/');
         if ($url) {
+            // Save to both Session and Cache for persistence across logouts
             Session::put('django_base_url', $url);
+            Cache::forever('django_base_url', $url);
             Config::set('django.base_url', $url);
         }
         return redirect()->back()->with('success', 'API server updated to '.$url);
@@ -155,7 +182,8 @@ class SettingsController extends Controller
 
     public function company(DjangoApi $api)
     {
-        $data = $api->companyInfo();
+        $orgId = $this->getOrganizationId();
+        $data = $api->companyInfo($orgId);
         $error = $data['error'] ?? null;
         return view('settings.company', compact('data', 'error'));
     }
@@ -165,6 +193,13 @@ class SettingsController extends Controller
         $payload = $request->only([
             'name', 'address', 'email', 'phone', 'website', 'tin', 'bin', 'founder'
         ]);
+        
+        // Add organization_id
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $payload['organization_id'] = $orgId;
+        }
+        
         $file = $request->file('logo');
         
         $resp = $api->saveCompanyInfo($payload, $file);
@@ -176,7 +211,8 @@ class SettingsController extends Controller
 
     public function context(DjangoApi $api)
     {
-        $data = $api->contextSettings();
+        $orgId = $this->getOrganizationId();
+        $data = $api->contextSettings($orgId);
         $error = $data['error'] ?? null;
         return view('settings.context', compact('data', 'error'));
     }
@@ -187,6 +223,12 @@ class SettingsController extends Controller
         // Checkboxes not sent if unchecked
         $payload['text_message_display'] = $request->has('text_message_display');
         $payload['voice_message_active'] = $request->has('voice_message_active');
+
+        // Add organization_id
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $payload['organization_id'] = $orgId;
+        }
 
         $resp = $api->saveContextSettings($payload);
         if (!empty($resp['error'])) {
@@ -206,7 +248,10 @@ class SettingsController extends Controller
     {
         // Handle API Server URL save
         if ($request->has('api_server')) {
-            Session::put('django_base_url', rtrim($request->input('api_server'), '/'));
+            $url = rtrim($request->input('api_server'), '/');
+            // Save to both Session and Cache for persistence across logouts
+            Session::put('django_base_url', $url);
+            Cache::forever('django_base_url', $url);
             
             // If only saving API server, return early
             if ($request->has('save_api_server')) {

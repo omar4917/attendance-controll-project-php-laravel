@@ -280,17 +280,35 @@
 <div class="salary-report-container">
     <!-- Header -->
     <div class="report-header">
-        <h1>Salary Report - {{ $monthName ?? 'December' }} {{ $year ?? date('Y') }}</h1>
-        <div class="report-subtitle">📋 Data cutdate formatted from database</div>
+        @if($isSuperAdmin ?? false)
+        <h1><i class="bi bi-graph-up-arrow" style="margin-right:8px;"></i>System Salary Report - {{ $monthName ?? 'December' }} {{ $year ?? date('Y') }}</h1>
+        <div class="report-subtitle">📊 Cross-organization salary overview</div>
+        @else
+        <h1>💰 Salary Report - {{ $monthName ?? 'December' }} {{ $year ?? date('Y') }}</h1>
+        <div class="report-subtitle">📋 Your organization's salary data</div>
+        @endif
         <div class="header-actions">
             <a href="{{ route('attendance.index') }}" class="btn-back">← Back to Admin</a>
             <button type="button" class="btn-check">✓</button>
+            @if($isSuperAdmin ?? false)
             <button type="button" class="btn-delete">Delete salary from database</button>
+            @endif
         </div>
     </div>
 
     <!-- Filters -->
     <form method="GET" class="filter-bar">
+        @if($isSuperAdmin ?? false)
+        <div>
+            <label><i class="bi bi-building"></i> Organization:</label>
+            <select name="organization_id" style="min-width:180px;" onchange="this.form.submit()">
+                <option value="">All Organizations</option>
+                @foreach($organizations ?? [] as $org)
+                    <option value="{{ $org['id'] }}" {{ request('organization_id') == $org['id'] ? 'selected' : '' }}>{{ $org['name'] }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <div>
             <label>Month:</label>
             <select name="month">
@@ -324,9 +342,13 @@
     <!-- Download Button -->
     @php
         $djangoUrl = rtrim(Session::get('django_base_url', config('django.base_url', env('DJANGO_BASE_URL', 'http://localhost:8001'))), '/');
+        $orgIdForPdf = session('organization_id');
         $pdfUrl = $djangoUrl . '/salary-report/pdf/?month=' . ($month ?? date('n')) . '&year=' . ($year ?? date('Y'));
         if (!empty(request('department'))) {
             $pdfUrl .= '&department=' . urlencode(request('department'));
+        }
+        if ($orgIdForPdf) {
+            $pdfUrl .= '&organization_id=' . $orgIdForPdf;
         }
     @endphp
     <a href="{{ $pdfUrl }}" target="_blank" class="download-btn" style="text-decoration:none; display:inline-block;">📥 Download PDF</a>

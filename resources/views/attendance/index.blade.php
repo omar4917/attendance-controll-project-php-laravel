@@ -73,7 +73,8 @@
 
 @php
     $base = rtrim($djangoBaseUrl, '/');
-    $qs = http_build_query(['month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation')]);
+    $orgId = session('organization_id');
+    $qs = http_build_query(['month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]);
     $pdfs = !empty($pdfUrls) ? $pdfUrls : ['pdf' => $base.'/attendance-dashboard/pdf/', 'bulk_pdf' => $base.'/attendance-dashboard/pdf/bulk/', 'combined_pdf' => $base.'/attendance-dashboard/pdf/combined/'];
 @endphp
 
@@ -85,14 +86,68 @@
         <a href="?{{ $next_qs }}" style="padding:8px 14px;border:1px solid var(--border-color);background:var(--bg-secondary);border-radius:4px;color:var(--text-primary);text-decoration:none;font-size:13px;font-weight:600;">Next &rarr;</a>
     </div>
     
-    <!-- Downloads -->
+    @if($isSuperAdmin ?? false)
+    <!-- Super Admin Org Selector -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--bg-alternate);border-radius:4px;border:1px solid var(--border-color);">
+        <label style="font-weight:600;font-size:13px;color:var(--text-primary);white-space:nowrap;">📊 PDF for:</label>
+        <select id="pdf-org-selector" style="padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;font-size:13px;background:var(--input-bg);color:var(--text-primary);min-width:200px;">
+            <option value="{{ $orgId ?? '' }}">Current Organization</option>
+            <option value="all">🗂️ All Organizations (Batch)</option>
+            @foreach($organizations ?? [] as $org)
+                <option value="{{ $org['id'] }}">{{ $org['name'] }}</option>
+            @endforeach
+        </select>
+    </div>
+    @endif
+    
+    <!-- Downloads (via Laravel proxy for Chrome compatibility) -->
     <div style="display:flex;gap:6px;">
-        <a href="{{ $pdfs['pdf'] ?? ($base.'/attendance-dashboard/pdf/') }}?{{ $qs }}" target="_blank" style="padding:8px 14px;background:#198754;color:#fff;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;border:none;">Download PDF</a>
-        <a href="{{ $pdfs['bulk_pdf'] ?? ($base.'/attendance-dashboard/pdf/bulk/') }}?{{ $qs }}" target="_blank" style="padding:8px 14px;background:#6f42c1;color:#fff;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;border:none;">Download Individual PDFs (ZIP)</a>
-        <a href="{{ $pdfs['combined_pdf'] ?? ($base.'/attendance-dashboard/pdf/combined/') }}?{{ $qs }}" target="_blank" style="padding:8px 14px;background:#fd7e14;color:#fff;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;border:none;">Download Combined Detailed PDF</a>
+        <a href="{{ route('attendance.pdf', ['type' => 'pdf', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="pdf-download-btn" data-type="pdf" style="padding:8px 14px;background:#198754;color:#fff;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;border:none;">Download PDF</a>
+        <a href="{{ route('attendance.pdf', ['type' => 'bulk', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="pdf-download-btn" data-type="bulk_pdf" style="padding:8px 14px;background:#6f42c1;color:#fff;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;border:none;">Download Individual PDFs (ZIP)</a>
+        <a href="{{ route('attendance.pdf', ['type' => 'combined', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="pdf-download-btn" data-type="combined_pdf" style="padding:8px 14px;background:#fd7e14;color:#fff;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;border:none;">Download Combined Detailed PDF</a>
     </div>
 </div>
 
+@if($isSuperAdmin ?? false)
+<script>
+// Update PDF download links when organization selector changes
+(function() {
+    var selector = document.getElementById('pdf-org-selector');
+    if (!selector) return;
+    
+    var downloadBtns = document.querySelectorAll('.pdf-download-btn');
+    var baseUrls = {
+        pdf: '{{ $pdfs["pdf"] ?? ($base."/attendance-dashboard/pdf/") }}',
+        bulk_pdf: '{{ $pdfs["bulk_pdf"] ?? ($base."/attendance-dashboard/pdf/bulk/") }}',
+        combined_pdf: '{{ $pdfs["combined_pdf"] ?? ($base."/attendance-dashboard/pdf/combined/") }}'
+    };
+    
+    selector.addEventListener('change', function() {
+        var orgId = this.value;
+        var params = new URLSearchParams({
+            month: '{{ $month }}',
+            year: '{{ $year }}',
+            department: '{{ request("department") ?? "" }}',
+            designation: '{{ request("designation") ?? "" }}'
+        });
+        
+        if (orgId && orgId !== 'all') {
+            params.set('organization_id', orgId);
+        } else if (orgId === 'all') {
+            params.delete('organization_id');
+            params.set('batch', '1');
+        }
+        
+        downloadBtns.forEach(function(btn) {
+            var type = btn.getAttribute('data-type');
+            btn.href = baseUrls[type] + '?' + params.toString();
+        });
+    });
+})();
+</script>
+@endif
+
+@if(session('user_role') !== 'org_viewer')
 <!-- Import/Export Section -->
 <div style="background:var(--bg-secondary);padding:12px;border-radius:8px;border:1px solid var(--border-color);margin-bottom:20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:15px;">
     <!-- Export -->
@@ -118,14 +173,26 @@
         </form>
     </div>
 </div>
+@endif
 
 <!-- Dashboard Title & Search -->
 <div style="margin-bottom:15px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <h3 style="margin:0;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height:24px;" onerror="this.style.display='none'" />
-            Attendance Dashboard – {{ $month }}/{{ $year }}
-        </h3>
+        <div>
+            @if($isSuperAdmin ?? false)
+            <h3 style="margin:0;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                <i class="bi bi-graph-up-arrow text-primary"></i>
+                System Attendance Dashboard – {{ $month }}/{{ $year }}
+            </h3>
+            <small class="text-muted">Cross-organization attendance overview</small>
+            @else
+            <h3 style="margin:0;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height:24px;" onerror="this.style.display='none'" />
+                Attendance Dashboard – {{ $month }}/{{ $year }}
+            </h3>
+            <small class="text-muted">Your organization's attendance</small>
+            @endif
+        </div>
         <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
             <span>&#9728;&#65039;</span> Theme
         </button>
@@ -242,7 +309,9 @@
                             'popup' => 1,
                         ];
                     @endphp
+                    @if(session('user_role') !== 'org_viewer')
                     <a href="#" onclick="return openPopup('{{ route('attendance-records.edit', array_merge(['id' => $st['id'] ?? 0], $editParams)) }}');" aria-label="Edit record">
+                    @endif
                         <span style="position:relative;display:inline-block;width:22px;height:22px;">
                             @if(!empty($st['icon']))
                                 <img src="{{ asset($st['icon']) }}" style="width:22px;height:22px;object-fit:contain" alt="{{ $st['status'] }}" />
@@ -258,9 +327,15 @@
                                 <span style="position:absolute; bottom:-8px; left:50%; transform:translateX(-50%); font-size:8px; color:#f0ad4e; font-weight:bold;" title="Manual Override">⚠</span>
                             @endif
                         </span>
+                    @if(session('user_role') !== 'org_viewer')
                     </a>
+                    @endif
                 @else
+                    @if(session('user_role') !== 'org_viewer')
                     <a href="#" onclick="return openPopup('{{ route('attendance-records.create', ['employee_id' => $emp['employee_id'], 'date' => $day['full'], 'popup' => 1]) }}');" style="color:#ccc; text-decoration:none;">&mdash;</a>
+                    @else
+                    <span style="color:#ccc;">&mdash;</span>
+                    @endif
                 @endif
             </td>
         @endforeach

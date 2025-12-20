@@ -368,7 +368,16 @@
             <tbody>
             @foreach($nameOverrides as $idx => $o)
                 <tr>
-                    <td><input name="voice_name_overrides[{{ $idx }}][employee_id]" value="{{ $o['employee_id'] ?? '' }}"></td>
+                    <td>
+                        <select name="voice_name_overrides[{{ $idx }}][employee_id]" class="form-input" style="width:100%;">
+                            <option value="">-- Select Employee --</option>
+                            @foreach($employees as $emp)
+                            <option value="{{ $emp['employee_id'] }}" {{ ($o['employee_id'] ?? '') == $emp['employee_id'] ? 'selected' : '' }}>
+                                {{ $emp['name'] }} ({{ $emp['employee_id'] }})
+                            </option>
+                            @endforeach
+                        </select>
+                    </td>
                     <td><input name="voice_name_overrides[{{ $idx }}][language_code]" value="{{ $o['language_code'] ?? '' }}"></td>
                     <td><input name="voice_name_overrides[{{ $idx }}][spoken_name]" value="{{ $o['spoken_name'] ?? '' }}"></td>
                     <td style="text-align:center;"><input type="checkbox"></td>
@@ -377,7 +386,14 @@
             <!-- Empty row for adding -->
             @php $newIdx = count($nameOverrides); @endphp
             <tr>
-                <td><input name="voice_name_overrides[{{ $newIdx }}][employee_id]" placeholder="Add new..."></td>
+                <td>
+                    <select name="voice_name_overrides[{{ $newIdx }}][employee_id]" class="form-input" style="width:100%;">
+                        <option value="">-- Add New... --</option>
+                        @foreach($employees as $emp)
+                        <option value="{{ $emp['employee_id'] }}">{{ $emp['name'] }} ({{ $emp['employee_id'] }})</option>
+                        @endforeach
+                    </select>
+                </td>
                 <td><input name="voice_name_overrides[{{ $newIdx }}][language_code]"></td>
                 <td><input name="voice_name_overrides[{{ $newIdx }}][spoken_name]"></td>
                 <td></td>
@@ -418,7 +434,16 @@
             <tbody>
             @foreach($prefs as $idx => $pref)
                 <tr>
-                    <td><input name="voice_preferences[{{ $idx }}][employee_id]" value="{{ $pref['employee_id'] ?? '' }}"></td>
+                    <td>
+                        <select name="voice_preferences[{{ $idx }}][employee_id]" class="form-input" style="width:100%;">
+                            <option value="">-- Select Employee --</option>
+                            @foreach($employees as $emp)
+                            <option value="{{ $emp['employee_id'] }}" {{ ($pref['employee_id'] ?? '') == $emp['employee_id'] ? 'selected' : '' }}>
+                                {{ $emp['name'] }} ({{ $emp['employee_id'] }})
+                            </option>
+                            @endforeach
+                        </select>
+                    </td>
                     <td><input name="voice_preferences[{{ $idx }}][language_code]" value="{{ $pref['language_code'] ?? '' }}"></td>
                     <td style="text-align:center;"><input type="checkbox"></td>
                 </tr>
@@ -426,7 +451,14 @@
             <!-- Empty row for adding -->
             @php $newIdx = count($prefs); @endphp
             <tr>
-                <td><input name="voice_preferences[{{ $newIdx }}][employee_id]" placeholder="Add new..."></td>
+                <td>
+                    <select name="voice_preferences[{{ $newIdx }}][employee_id]" class="form-input" style="width:100%;">
+                        <option value="">-- Add New... --</option>
+                        @foreach($employees as $emp)
+                        <option value="{{ $emp['employee_id'] }}">{{ $emp['name'] }} ({{ $emp['employee_id'] }})</option>
+                        @endforeach
+                    </select>
+                </td>
                 <td><input name="voice_preferences[{{ $newIdx }}][language_code]"></td>
                 <td></td>
             </tr>

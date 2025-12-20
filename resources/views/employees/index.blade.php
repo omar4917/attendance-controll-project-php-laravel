@@ -261,6 +261,7 @@
         <input type="hidden" name="year" value="{{ date('Y') }}">
         <input type="hidden" name="month" value="{{ date('m') }}">
         <input type="hidden" name="export_data" value="1">
+        <input type="hidden" name="type" value="employees">
         <span style="font-weight:600; color:var(--text-primary);">Export:</span>
         <button type="submit" class="btn-action btn-secondary">Export ZIP (with Images)</button>
     </form>

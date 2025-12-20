@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 
 class DjangoApi
 {
@@ -15,11 +16,23 @@ class DjangoApi
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(Session::get('django_base_url', config('django.base_url', env('DJANGO_BASE_URL'))), '/');
+        // Priority: Session > Cache (persistent) > ENV > fallback
+        // Cache persists across sessions, session is per-login
+        $this->baseUrl = rtrim(
+            Session::get('django_base_url') 
+            ?: Cache::get('django_base_url')
+            ?: env('DJANGO_BASE_URL') 
+            ?: 'http://127.0.0.1:8001', 
+            '/'
+        );
         $this->apiKey = config('django.api_key', env('DJANGO_API_KEY'));
 
         $headers = [
             'Accept' => 'application/json',
+            'X-User-Email' => Session::get('admin_email', Session::get('admin_user', 'unknown')),
+            'X-User-Name' => Session::get('admin_name', Session::get('admin_user', 'unknown')),
+            'X-User-Role' => Session::get('user_role', 'org_viewer'),
+            'X-Organization-Id' => Session::get('organization_id'),
         ];
         if ($this->apiKey) {
             $headers['Authorization'] = "Key {$this->apiKey}";
@@ -39,18 +52,55 @@ class DjangoApi
             $resp = $this->client->get($path);
             return json_decode((string) $resp->getBody(), true) ?: [];
         } catch (GuzzleException $e) {
-            return ['error' => $e->getMessage()];
+            return $this->handleGuzzleException($e);
         }
     }
 
     protected function send(string $method, string $path, array $payload): array
     {
+        \Log::info("DJANGO_API: {$method} {$path} - Payload: " . json_encode($payload));
         try {
             $resp = $this->client->request($method, $path, ['json' => $payload]);
-            return json_decode((string) $resp->getBody(), true) ?: [];
+            $body = (string) $resp->getBody();
+            \Log::info("DJANGO_API: Response: " . $body);
+            return json_decode($body, true) ?: [];
         } catch (GuzzleException $e) {
-            return ['error' => $e->getMessage(), 'payload' => Arr::except($payload, [])];
+            \Log::error("DJANGO_API: Error: " . $e->getMessage());
+            $error = $this->handleGuzzleException($e);
+            $error['payload'] = Arr::except($payload, []);
+            return $error;
         }
+    }
+
+    protected function handleGuzzleException(GuzzleException $e): array
+    {
+        $code = $e->getCode();
+        
+        if ($code === 403) {
+            // Try to extract detail from response
+            if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse()) {
+                $body = (string) $e->getResponse()->getBody();
+                $json = json_decode($body, true);
+                if (!empty($json['detail'])) {
+                    return ['error' => "Permission Denied: " . $json['detail']];
+                }
+            }
+            return ['error' => 'Permission Denied: You do not have permission to perform this action.'];
+        }
+
+        // For other errors, try to get a clean message if possible
+        if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse()) {
+            $body = (string) $e->getResponse()->getBody();
+            $json = json_decode($body, true);
+            if (!empty($json['detail'])) {
+                return ['error' => "Error: " . $json['detail']];
+            }
+            if (!empty($json['error'])) {
+                 return ['error' => "Error: " . $json['error']];
+            }
+        }
+
+        return ['error' => $e->getMessage()];
     }
 
     /**
@@ -66,16 +116,24 @@ class DjangoApi
                 'timeout' => 10,
                 'auth' => [$username, $password],
                 'headers' => ['Accept' => 'application/json'],
+                'verify' => false,
             ]);
             
-            // Try to access a protected endpoint to validate credentials
-            $resp = $client->get('/api/validate-admin/');
+            // Use POST to validate credentials (Django API expects POST or any method)
+            $resp = $client->post('/api/validate-admin/');
             $data = json_decode((string) $resp->getBody(), true) ?: [];
             
+            // Return full response including role and organization data
             return [
-                'success' => true,
+                'success' => $data['success'] ?? true,
+                'id' => $data['id'] ?? null,
                 'user' => $data['user'] ?? $username,
-                'is_admin' => $data['is_admin'] ?? true,
+                'is_admin' => $data['is_admin'] ?? false,
+                'is_staff' => $data['is_staff'] ?? false,
+                'role' => $data['role'] ?? 'org_admin',
+                'organization_id' => $data['organization_id'] ?? null,
+                'organization_name' => $data['organization_name'] ?? null,
+                'organizations' => $data['organizations'] ?? [],
             ];
         } catch (GuzzleException $e) {
             $statusCode = $e->getCode();
@@ -95,14 +153,16 @@ class DjangoApi
         return $this->get($path);
     }
 
-    public function messageSettings(): array
+    public function messageSettings(?int $organizationId = null): array
     {
-        return $this->get('/api/message-settings/');
+        $query = $organizationId ? '?organization_id=' . $organizationId : '';
+        return $this->get('/api/message-settings/' . $query);
     }
 
-    public function voiceSettings(): array
+    public function voiceSettings(?int $organizationId = null): array
     {
-        return $this->get('/api/voice-settings/');
+        $query = $organizationId ? '?organization_id=' . $organizationId : '';
+        return $this->get('/api/voice-settings/' . $query);
     }
 
     public function attendance(): array
@@ -150,7 +210,7 @@ class DjangoApi
                 $resp = $this->client->request($method, '/api/attendance/', ['multipart' => $multipart]);
                 return json_decode((string) $resp->getBody(), true) ?: [];
             } catch (GuzzleException $e) {
-                return ['error' => $e->getMessage()];
+                return $this->handleGuzzleException($e);
             }
         }
 
@@ -167,9 +227,10 @@ class DjangoApi
         return $this->post('/api/attendance-bulk-action/', ['action' => $action, 'ids' => $ids]);
     }
 
-    public function holidays(): array
+    public function holidays(?int $organizationId = null): array
     {
-        return $this->get('/api/holidays/');
+        $query = $organizationId ? '?organization_id=' . $organizationId : '';
+        return $this->get('/api/holidays/' . $query);
     }
 
     public function upsertHoliday(array $payload): array
@@ -183,14 +244,19 @@ class DjangoApi
         return $this->send('DELETE', '/api/holidays/', ['id' => $id]);
     }
 
-    public function generateBulkHolidays($year): array
+    public function generateBulkHolidays($year, ?int $organizationId = null): array
     {
-        return $this->post('/api/bulk-holidays-generate/', ['year' => $year]);
+        $payload = ['year' => $year];
+        if ($organizationId) {
+            $payload['organization_id'] = $organizationId;
+        }
+        return $this->post('/api/bulk-holidays-generate/', $payload);
     }
 
-    public function salaryStatistics(): array
+    public function salaryStatistics(?int $organizationId = null): array
     {
-        return $this->get('/api/salary-statistics/');
+        $query = $organizationId ? '?organization_id=' . $organizationId : '';
+        return $this->get('/api/salary-statistics/' . $query);
     }
 
     public function upsertSalaryStatistic(array $payload): array
@@ -249,20 +315,10 @@ class DjangoApi
         return $this->post('/api/livefeed-action/', $payload);
     }
 
-    public function moderatorLabels(array $query = []): array
+    public function shifts(?int $organizationId = null): array
     {
-        $queryStr = http_build_query($query);
-        return $this->get('/api/moderator-labels/?' . $queryStr);
-    }
-
-    public function saveModeratorLabel(array $payload): array
-    {
-        return $this->post('/api/moderator-labels/', $payload);
-    }
-
-    public function shifts(): array
-    {
-        return $this->get('/api/shifts/');
+        $query = $organizationId ? '?organization_id=' . $organizationId : '';
+        return $this->get('/api/shifts/' . $query);
     }
 
     public function saveShift(array $payload): array
@@ -275,9 +331,10 @@ class DjangoApi
         return $this->send('DELETE', '/api/shifts/', ['id' => $id]);
     }
 
-    public function salaryDefaults(): array
+    public function salaryDefaults(?int $organizationId = null): array
     {
-        return $this->get('/api/salary-defaults/');
+        $query = $organizationId ? '?organization_id=' . $organizationId : '';
+        return $this->get('/api/salary-defaults/' . $query);
     }
 
     public function saveSalaryDefaults(array $payload): array
@@ -285,9 +342,10 @@ class DjangoApi
         return $this->post('/api/salary-defaults/', $payload);
     }
 
-    public function companyInfo(): array
+    public function companyInfo(?int $organizationId = null): array
     {
-        return $this->get('/api/company-info/');
+        $query = $organizationId ? '?organization_id=' . $organizationId : '';
+        return $this->get('/api/company-info/' . $query);
     }
 
     public function saveCompanyInfo(array $payload, $file = null): array
@@ -308,15 +366,16 @@ class DjangoApi
                 $resp = $this->client->post('/api/company-info/', ['multipart' => $multipart]);
                 return json_decode((string) $resp->getBody(), true) ?: [];
             } catch (GuzzleException $e) {
-                return ['error' => $e->getMessage()];
+                return $this->handleGuzzleException($e);
             }
         }
         return $this->post('/api/company-info/', $payload);
     }
 
-    public function contextSettings(): array
+    public function contextSettings(?int $organizationId = null): array
     {
-        return $this->get('/api/context-settings/');
+        $query = $organizationId ? '?organization_id=' . $organizationId : '';
+        return $this->get('/api/context-settings/' . $query);
     }
 
     public function saveContextSettings(array $payload): array
@@ -347,7 +406,7 @@ class DjangoApi
                 'stream' => true,
             ]);
         } catch (GuzzleException $e) {
-            return ['error' => $e->getMessage()];
+            return $this->handleGuzzleException($e);
         }
     }
 
@@ -376,7 +435,7 @@ class DjangoApi
             
             return json_decode((string) $resp->getBody(), true) ?: [];
         } catch (GuzzleException $e) {
-            return ['error' => $e->getMessage()];
+            return $this->handleGuzzleException($e);
         }
     }
 
@@ -488,5 +547,114 @@ class DjangoApi
     public function validateDevice(string $deviceId): array
     {
         return $this->get("/api/devices/validate/?device_id=" . urlencode($deviceId));
+    }
+
+    // ============================================================================
+    // Organization User Management APIs
+    // ============================================================================
+
+    /**
+     * Get organization users
+     */
+    public function orgUsers(?int $organizationId = null): array
+    {
+        $query = $organizationId ? "?organization_id={$organizationId}" : '';
+        return $this->get('/api/org-users/' . $query);
+    }
+
+    /**
+     * Create new organization user
+     */
+    public function createOrgUser(array $payload): array
+    {
+        return $this->send('POST', '/api/org-users/', $payload);
+    }
+
+    /**
+     * Delete organization user
+     */
+    public function deleteOrgUser(int $id): array
+    {
+        return $this->send('DELETE', "/api/org-users/{$id}/", []);
+    }
+
+    /**
+     * Update organization user
+     */
+    public function updateOrgUser(int $id, array $payload): array
+    {
+        return $this->send('PUT', "/api/org-users/{$id}/", $payload);
+    }
+
+    // ============================================================================
+    // SaaS APIs: Audit Logs and Subscription Plans
+    // ============================================================================
+
+    /**
+     * Get audit logs with filters
+     */
+    public function auditLogs(array $query = []): array
+    {
+        $queryStr = http_build_query($query);
+        return $this->get('/api/audit-logs/' . ($queryStr ? '?' . $queryStr : ''));
+    }
+
+    /**
+     * Log an action (creates audit log entry)
+     */
+    public function logAction(array $payload): array
+    {
+        return $this->post('/api/log-action/', $payload);
+    }
+
+    /**
+     * Get available subscription plans
+     */
+    public function subscriptionPlans(): array
+    {
+        return $this->get('/api/subscription-plans/');
+    }
+
+    /**
+     * Alias for subscriptionPlans() - simpler name
+     */
+    public function plans(): array
+    {
+        return $this->subscriptionPlans();
+    }
+
+    // ============================================================================
+    // Data Export/Import
+    // ============================================================================
+
+    /**
+     * Export organization data (JSON format - for backups)
+     */
+    public function exportData(int $orgId, string $include = 'employees,attendance,shifts,holidays', ?int $month = null, ?int $year = null): array
+    {
+        $query = http_build_query(array_filter([
+            'organization_id' => $orgId,
+            'include' => $include,
+            'month' => $month,
+            'year' => $year,
+        ]));
+        return $this->get('/api/export-data/?' . $query);
+    }
+
+    /**
+     * Import organization data (JSON format - for backups)
+     */
+    public function importData(array $data): array
+    {
+        return $this->post('/api/import-data/', $data);
+    }
+
+    /**
+     * Get analytics data
+     */
+    public function analytics(?int $orgId = null): array
+    {
+        $query = $orgId ? '?organization_id=' . $orgId : '';
+        return $this->get('/api/analytics/' . $query);
     }
 }

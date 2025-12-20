@@ -30,11 +30,11 @@
                             <label for="api_server" class="form-label">Django Backend URL</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="api_server" name="api_server" 
-                                       value="{{ session('django_base_url', env('DJANGO_BASE_URL', 'http://127.0.0.1:9999')) }}"
-                                       placeholder="http://127.0.0.1:9999">
-                                <button type="submit" name="save_api_server" value="1" class="btn btn-success">Set</button>
+                                       value="{{ session('django_base_url', env('DJANGO_BASE_URL', 'http://127.0.0.1:8000')) }}"
+                                       placeholder="http://127.0.0.1:8000">
+                                <button type="submit" class="btn btn-primary btn-sm">Set</button>
                             </div>
-                            <div class="form-text">URL of the Django API backend (e.g., http://127.0.0.1:9999)</div>
+                            <div class="form-text">URL of the Django API backend (e.g., http://127.0.0.1:8000)</div>
                         </div>
                     </div>
 

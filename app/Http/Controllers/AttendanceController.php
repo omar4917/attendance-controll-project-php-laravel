@@ -3,15 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Services\DjangoApi;
+use App\Traits\HasOrganizationContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 
 class AttendanceController extends Controller
 {
+    use HasOrganizationContext;
+
     public function index(Request $request, DjangoApi $api)
     {
         $queryParams = $request->query();
+        
+        // Add organization filtering
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $queryParams['organization_id'] = $orgId;
+        }
         
         // Handle date filter (YYYY-MM) -> month/year
         if ($request->has('date')) {
@@ -34,8 +44,8 @@ class AttendanceController extends Controller
         $error = $data['error'] ?? null;
         $pdfUrls = $data['pdf_urls'] ?? [];
 
-        // fetch employees to enrich rows
-        $empData = $api->employees();
+        // fetch employees to enrich rows (with org filtering)
+        $empData = $api->employees($orgId);
         $empList = $empData['employees'] ?? [];
         $empMap = [];
         foreach ($empList as $e) {
@@ -175,6 +185,14 @@ class AttendanceController extends Controller
 
         $prev_qs = http_build_query($prevParams);
         $next_qs = http_build_query($nextParams);
+        
+        // For super admins, get list of organizations for batch downloads
+        $organizations = [];
+        $isSuperAdmin = session('is_superuser', false);
+        if ($isSuperAdmin) {
+            $orgsData = $api->organizations();
+            $organizations = $orgsData['organizations'] ?? [];
+        }
 
         return view('attendance.index', compact(
             'records',
@@ -195,7 +213,9 @@ class AttendanceController extends Controller
             'employeesForGrid',
             'prev_qs',
             'next_qs',
-            'pdfUrls'
+            'pdfUrls',
+            'organizations',
+            'isSuperAdmin'
         ));
     }
 
@@ -247,10 +267,18 @@ class AttendanceController extends Controller
     {
         $year = $request->input('year', Carbon::now()->year);
         $month = $request->input('month', Carbon::now()->month);
+        $orgId = $this->getOrganizationId();
+        $type = $request->input('type', 'attendance');
         
         // If triggered from the form button
         if ($request->has('export_data')) {
-            $response = $api->export(['year' => $year, 'month' => $month, 'export_data' => '1']);
+            $response = $api->export([
+                'year' => $year, 
+                'month' => $month, 
+                'export_data' => '1', 
+                'organization_id' => $orgId,
+                'type' => $type
+            ]);
             
             // Check if it's an error array
             if (is_array($response) && !empty($response['error'])) {
@@ -272,7 +300,10 @@ class AttendanceController extends Controller
                     return back()->with('error', $errorData['error'] ?? 'Export failed - server returned an error');
                 }
                 
-                $filename = "attendance_export_{$year}_{$month}.zip";
+                $filename = "{$type}_export_{$year}_{$month}.zip";
+                if ($type === 'employees') {
+                    $filename = "employees_export_" . date('Y-m-d') . ".zip";
+                }
                 
                 return response($body, 200, [
                     'Content-Type' => 'application/zip',
@@ -310,6 +341,84 @@ class AttendanceController extends Controller
         }
 
         return back()->with('success', 'Import successful');
+    }
+
+    /**
+     * Proxy PDF download from Django to fix Chrome cross-origin Content-Disposition issue
+     */
+    public function downloadPdf(Request $request, DjangoApi $api)
+    {
+        $type = $request->query('type', 'pdf'); // pdf, bulk, combined
+        $month = $request->query('month', Carbon::now()->month);
+        $year = $request->query('year', Carbon::now()->year);
+        $department = $request->query('department', '');
+        $designation = $request->query('designation', '');
+        $orgId = $request->query('organization_id', $this->getOrganizationId());
+        
+        // Build query string for Django
+        $queryParams = array_filter([
+            'month' => $month,
+            'year' => $year,
+            'department' => $department,
+            'designation' => $designation,
+            'organization_id' => $orgId,
+        ]);
+        $qs = http_build_query($queryParams);
+        
+        // Determine Django endpoint and filename
+        $djangoBase = rtrim(Session::get('django_base_url', config('django.base_url', 'http://localhost:8001')), '/');
+        
+        switch ($type) {
+            case 'bulk':
+                $endpoint = "/attendance-dashboard/pdf/bulk/?{$qs}";
+                $filename = "attendance-individual-{$year}-{$month}.zip";
+                $contentType = 'application/zip';
+                break;
+            case 'combined':
+                $endpoint = "/attendance-dashboard/pdf/combined/?{$qs}";
+                $filename = "attendance-combined-{$year}-{$month}.pdf";
+                $contentType = 'application/pdf';
+                break;
+            default:
+                $endpoint = "/attendance-dashboard/pdf/?{$qs}";
+                $filename = "attendance-{$year}-{$month}.pdf";
+                $contentType = 'application/pdf';
+        }
+        
+        // Log the export action
+        try {
+            $api->logAction([
+                'action' => 'export',
+                'resource_type' => 'attendance',
+                'organization_id' => $orgId,
+                'user_email' => Session::get('admin_email', Session::get('admin_user', 'unknown')),
+                'user_name' => Session::get('admin_name', Session::get('admin_user', 'unknown')),
+                'details' => [
+                    'type' => $type,
+                    'year' => $year,
+                    'month' => $month,
+                    'filename' => $filename,
+                    'source' => 'php_frontend'
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to log PDF export: ' . $e->getMessage());
+        }
+        
+        try {
+            $client = new \GuzzleHttp\Client(['verify' => false, 'timeout' => 60]);
+            $response = $client->get($djangoBase . $endpoint);
+            
+            $content = $response->getBody()->getContents();
+            
+            return response($content)
+                ->header('Content-Type', $contentType)
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Content-Length', strlen($content));
+        } catch (\Exception $e) {
+            \Log::error("PDF Download Error: " . $e->getMessage());
+            return back()->with('error', 'Failed to download PDF: ' . $e->getMessage());
+        }
     }
 
 }

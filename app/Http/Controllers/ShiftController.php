@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Services\DjangoApi;
+use App\Traits\HasOrganizationContext;
 use Illuminate\Http\Request;
 
 class ShiftController extends Controller
 {
+    use HasOrganizationContext;
+
     public function index(DjangoApi $api)
     {
-        $data = $api->shifts();
+        $orgId = $this->getOrganizationId();
+        $data = $api->shifts($orgId);
         $shifts = $data['shifts'] ?? ($data['data'] ?? []);
         $error = $data['error'] ?? null;
         return view('shifts.index', compact('shifts', 'error'));
@@ -21,6 +25,11 @@ class ShiftController extends Controller
         // Handle checkbox
         if (!isset($payload['is_active'])) {
             $payload['is_active'] = false;
+        }
+        // Add organization_id
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $payload['organization_id'] = $orgId;
         }
         
         $resp = $api->saveShift($payload);
@@ -37,6 +46,11 @@ class ShiftController extends Controller
         // Handle checkbox
         if (!isset($payload['is_active'])) {
             $payload['is_active'] = false;
+        }
+        // Add organization_id
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $payload['organization_id'] = $orgId;
         }
         
         $resp = $api->saveShift($payload);

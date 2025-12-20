@@ -213,10 +213,10 @@
         @endif
     </h1>
     <div>
-        <a href="{{ route('companies.index') }}" class="btn-back">
+        <a href="{{ route('organizations.index') }}" class="btn-back">
             <i class="bi bi-arrow-left me-1"></i>Back to List
         </a>
-        <a href="{{ route('companies.edit', $organization['id']) }}" class="btn-edit">
+        <a href="{{ route('organizations.edit', $organization['id']) }}" class="btn-edit">
             <i class="bi bi-pencil me-1"></i>Edit
         </a>
     </div>
@@ -302,7 +302,7 @@
 <!-- Devices Section -->
 <div class="section-header">
     <h3 class="section-title"><i class="bi bi-phone me-2"></i>Registered Devices</h3>
-    <a href="{{ route('companies.devices', $organization['id']) }}" class="btn-edit" style="font-size:0.8rem;">
+    <a href="{{ route('organizations.devices', $organization['id']) }}" class="btn-edit" style="font-size:0.8rem;">
         Manage Devices
     </a>
 </div>
@@ -336,7 +336,7 @@
     <div class="empty-devices">
         <i class="bi bi-phone" style="font-size:2rem; opacity:0.3;"></i>
         <p>No devices registered yet</p>
-        <a href="{{ route('companies.devices', $organization['id']) }}">Add devices</a>
+        <a href="{{ route('organizations.devices', $organization['id']) }}">Add devices</a>
     </div>
     @endforelse
 </div>
@@ -345,13 +345,13 @@
 <div style="margin-top:30px; padding:20px; background:#f8f9fa; border-radius:8px; border:1px solid #e9ecef;">
     <h4 style="margin-bottom:15px; font-weight:600;">Quick Actions</h4>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <a href="{{ route('companies.devices', $organization['id']) }}" class="btn-edit">
+        <a href="{{ route('organizations.devices', $organization['id']) }}" class="btn-edit">
             <i class="bi bi-phone me-1"></i>Manage Devices
         </a>
-        <a href="{{ route('companies.edit', $organization['id']) }}" class="btn-back">
+        <a href="{{ route('organizations.edit', $organization['id']) }}" class="btn-back">
             <i class="bi bi-pencil me-1"></i>Edit Company
         </a>
-        <form action="{{ route('companies.destroy', $organization['id']) }}" method="POST" style="display:inline;"
+        <form action="{{ route('organizations.destroy', $organization['id']) }}" method="POST" style="display:inline;"
               onsubmit="return confirm('Are you sure you want to delete this organization? This will delete all associated employees, attendance records, and devices!');">
             @csrf
             @method('DELETE')

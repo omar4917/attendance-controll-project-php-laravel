@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Companies')
+@section('title', 'Organizations')
 
 @push('head')
 <style>
@@ -158,9 +158,9 @@
 @section('content')
 <div class="page-header">
     <h1 class="page-title">
-        <i class="bi bi-building me-2"></i>Companies (Organizations)
+        <i class="bi bi-building me-2"></i>Organizations (Organizations)
     </h1>
-    <a href="{{ route('companies.create') }}" class="btn-add">
+    <a href="{{ route('organizations.create') }}" class="btn-add">
         <i class="bi bi-plus-circle me-1"></i>ADD COMPANY
     </a>
 </div>
@@ -185,7 +185,7 @@
 <div class="stats-row">
     <div class="stat-card">
         <div class="stat-value">{{ count($organizations) }}</div>
-        <div class="stat-label">Total Companies</div>
+        <div class="stat-label">Total Organizations</div>
     </div>
     <div class="stat-card">
         <div class="stat-value">{{ collect($organizations)->where('is_active', true)->count() }}</div>
@@ -203,8 +203,8 @@
 
 <!-- Search Bar -->
 <div class="action-bar">
-    <form action="{{ route('companies.index') }}" method="GET" style="display:flex; gap:10px; align-items:center;">
-        <input type="text" name="search" class="search-box" placeholder="Search companies..." value="{{ request('search') }}">
+    <form action="{{ route('organizations.index') }}" method="GET" style="display:flex; gap:10px; align-items:center;">
+        <input type="text" name="search" class="search-box" placeholder="Search organizations..." value="{{ request('search') }}">
         <select name="active" class="search-box" style="width:150px;">
             <option value="">All Status</option>
             <option value="yes" {{ request('active') === 'yes' ? 'selected' : '' }}>Active Only</option>
@@ -212,15 +212,16 @@
         </select>
         <button type="submit" class="btn-go">Filter</button>
         @if(request('search') || request('active'))
-            <a href="{{ route('companies.index') }}" class="btn-go" style="background:#6c757d;">Clear</a>
+            <a href="{{ route('organizations.index') }}" class="btn-go" style="background:#6c757d;">Clear</a>
         @endif
     </form>
 </div>
 
-<!-- Companies Table -->
+<!-- Organizations Table -->
 <table class="admin-table">
     <thead>
         <tr>
+            <th></th>
             <th>NAME</th>
             <th>SLUG</th>
             <th>EMPLOYEES</th>
@@ -234,8 +235,22 @@
     <tbody>
         @forelse($organizations as $org)
         <tr>
+            <td style="width:50px;">
+                @if(!empty($org['logo']))
+                <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;background:#f8f9fa;display:flex;align-items:center;justify-content:center;">
+                    <img src="{{ rtrim(Session::get('django_base_url', config('django.base_url', 'http://localhost:8001')), '/') . $org['logo'] }}" 
+                         alt="{{ $org['name'] }}" 
+                         style="width:100%;height:100%;object-fit:cover;"
+                         onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'bi bi-building\'></i>';">
+                </div>
+                @else
+                <div style="width:36px;height:36px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-building text-white"></i>
+                </div>
+                @endif
+            </td>
             <td>
-                <a href="{{ route('companies.show', $org['id']) }}">
+                <a href="{{ route('organizations.show', $org['id']) }}">
                     <strong>{{ $org['name'] }}</strong>
                 </a>
             </td>
@@ -268,16 +283,16 @@
                 <small>{{ date('M d, Y', strtotime($org['created_at'])) }}</small>
             </td>
             <td>
-                <a href="{{ route('companies.show', $org['id']) }}" title="View" style="margin-right:8px;">
+                <a href="{{ route('organizations.show', $org['id']) }}" title="View" style="margin-right:8px;">
                     <i class="bi bi-eye"></i>
                 </a>
-                <a href="{{ route('companies.devices', $org['id']) }}" title="Devices" style="margin-right:8px;">
+                <a href="{{ route('organizations.devices', $org['id']) }}" title="Devices" style="margin-right:8px;">
                     <i class="bi bi-phone"></i>
                 </a>
-                <a href="{{ route('companies.edit', $org['id']) }}" title="Edit" style="margin-right:8px;">
+                <a href="{{ route('organizations.edit', $org['id']) }}" title="Edit" style="margin-right:8px;">
                     <i class="bi bi-pencil"></i>
                 </a>
-                <form action="{{ route('companies.destroy', $org['id']) }}" method="POST" style="display:inline;" 
+                <form action="{{ route('organizations.destroy', $org['id']) }}" method="POST" style="display:inline;" 
                       onsubmit="return confirm('Delete this organization? This will also delete all associated data!');">
                     @csrf
                     @method('DELETE')
@@ -289,9 +304,9 @@
         </tr>
         @empty
         <tr>
-            <td colspan="8" style="text-align:center; padding: 40px; color: #666;">
+            <td colspan="9" style="text-align:center; padding: 40px; color: #666;">
                 <i class="bi bi-building" style="font-size:2rem; opacity:0.3;"></i><br>
-                No companies found. <a href="{{ route('companies.create') }}">Create your first company</a>.
+                No Organizations found. <a href="{{ route('organizations.create') }}">Create your first company</a>.
             </td>
         </tr>
         @endforelse
@@ -299,6 +314,6 @@
 </table>
 
 <div style="margin-top: 15px; color: #666; font-size: 0.9rem;">
-    {{ count($organizations) }} companies
+    {{ count($organizations) }} Organizations
 </div>
 @endsection

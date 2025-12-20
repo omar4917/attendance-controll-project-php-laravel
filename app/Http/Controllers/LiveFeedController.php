@@ -3,13 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Services\DjangoApi;
+use App\Traits\HasOrganizationContext;
 use Illuminate\Http\Request;
 
 class LiveFeedController extends Controller
 {
+    use HasOrganizationContext;
+
     public function index(Request $request, DjangoApi $api)
     {
-        $data = $api->livefeedList($request->query());
+        $query = $request->query();
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $query['organization_id'] = $orgId;
+        }
+        $data = $api->livefeedList($query);
         $images = $data['images'] ?? [];
         $summary = $data['summary'] ?? [];
         $meta = $data['meta'] ?? [];
@@ -21,6 +29,10 @@ class LiveFeedController extends Controller
     public function action(Request $request, DjangoApi $api)
     {
         $payload = $request->all();
+        $orgId = $this->getOrganizationId();
+        if ($orgId) {
+            $payload['organization_id'] = $orgId;
+        }
         $resp = $api->livefeedAction($payload);
         
         if (!empty($resp['error'])) {

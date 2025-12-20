@@ -3,33 +3,80 @@
 namespace App\Http\Controllers;
 
 use App\Services\DjangoApi;
+use App\Traits\HasOrganizationContext;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class AttendanceRecordController extends Controller
 {
+    use HasOrganizationContext;
+
     public function index(Request $request, DjangoApi $api)
     {
-        $filters = $request->only(['search', 'date', 'status', 'department', 'designation']);
+        $filters = $request->only(['search', 'date', 'status', 'department', 'designation', 'organization_id']);
         
-        // Fetch records with filters
-        $data = $api->attendanceList($filters);
-        $records = $data['attendance'] ?? [];
+        // Role detection
+        $userRole = \Session::get('user_role', 'org_admin');
+        $isSuperAdmin = $userRole === 'super_admin';
         
-        // Fetch employees for filter dropdowns (Departments/Designations)
-        $empData = $api->employees();
+        // For super admins, get list of organizations
+        $organizations = [];
+        $selectedOrgId = $request->input('organization_id');
+        $showOrgOverview = false; // Show organization cards for super admin
+        
+        if ($isSuperAdmin) {
+            $orgsData = $api->organizations();
+            $organizations = $orgsData['organizations'] ?? [];
+            
+            // If no org selected, show overview mode with org cards
+            if (empty($selectedOrgId)) {
+                $showOrgOverview = true;
+            }
+        }
+        
+        // Add organization filtering
+        $orgId = $selectedOrgId ?: $this->getOrganizationId();
+        if ($orgId) {
+            $filters['organization_id'] = $orgId;
+        }
+        
+        // Fetch records with filters (only if not in overview mode)
+        $records = [];
+        if (!$showOrgOverview) {
+            $data = $api->attendanceList($filters);
+            $records = $data['attendance'] ?? [];
+        }
+        
+        // Fetch employees for filter dropdowns (with org filtering)
+        $empData = $api->employees($orgId);
         $employees = $empData['employees'] ?? [];
         
         $departments = collect($employees)->pluck('department')->filter(fn($v) => !empty($v))->unique()->values()->all();
         $designations = collect($employees)->pluck('designation')->filter(fn($v) => !empty($v))->unique()->values()->all();
         
-        return view('attendance_records.index', compact('records', 'departments', 'designations'));
+        // Get selected org name for display
+        $selectedOrgName = null;
+        if ($selectedOrgId && !empty($organizations)) {
+            foreach ($organizations as $org) {
+                if ($org['id'] == $selectedOrgId) {
+                    $selectedOrgName = $org['name'];
+                    break;
+                }
+            }
+        }
+        
+        return view('attendance_records.index', compact(
+            'records', 'departments', 'designations', 
+            'isSuperAdmin', 'userRole', 'organizations',
+            'showOrgOverview', 'selectedOrgId', 'selectedOrgName'
+        ));
     }
 
     public function create(DjangoApi $api)
     {
-        // Fetch employees and shifts for the dropdown
-        $employeesData = $api->employees();
+        // Fetch employees and shifts for the dropdown (with org filtering)
+        $orgId = $this->getOrganizationId();
+        $employeesData = $api->employees($orgId);
         $employees = $employeesData['employees'] ?? [];
         
         $shiftsData = $api->shifts();
@@ -93,7 +140,8 @@ class AttendanceRecordController extends Controller
 
     public function edit($id, DjangoApi $api)
     {
-        $employeesData = $api->employees();
+        $orgId = $this->getOrganizationId();
+        $employeesData = $api->employees($orgId);
         $employees = $employeesData['employees'] ?? [];
         
         $shiftsData = $api->shifts();
@@ -176,11 +224,15 @@ class AttendanceRecordController extends Controller
 
     public function destroy($id, DjangoApi $api)
     {
+        \Log::info("DELETE ATTENDANCE: Attempting to delete record ID: {$id}");
         $resp = $api->deleteAttendance($id);
+        \Log::info("DELETE ATTENDANCE: API Response: " . json_encode($resp));
+        
         if (!empty($resp['error'])) {
-            return redirect()->back()->with('error', $resp['error']);
+            \Log::error("DELETE ATTENDANCE: Error: " . $resp['error']);
+            return redirect()->back()->with('error', 'Delete failed: ' . $resp['error']);
         }
-        return redirect()->route('attendance.index')->with('success', 'Record deleted');
+        return redirect()->back()->with('success', 'Record deleted successfully');
     }
 
     public function bulkAction(Request $request, DjangoApi $api)

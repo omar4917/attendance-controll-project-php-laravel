@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', isset($organization) ? 'Edit Company' : 'Create Company')
+@section('title', isset($organization) ? 'Edit Organization' : 'Create Organization')
 
 @push('head')
 <style>
@@ -122,7 +122,7 @@
 <div class="page-header">
     <h1 class="page-title">
         <i class="bi bi-building me-2"></i>
-        {{ isset($organization) ? 'Edit Company' : 'Create Company' }}
+        {{ isset($organization) ? 'Edit Organization' : 'Create Organization' }}
     </h1>
 </div>
 
@@ -133,7 +133,7 @@
 @endif
 
 <div class="form-card">
-    <form action="{{ isset($organization) ? route('companies.update', $organization['id']) : route('companies.store') }}" method="POST">
+    <form action="{{ isset($organization) ? route('organizations.update', $organization['id']) : route('organizations.store') }}" method="POST">
         @csrf
         @if(isset($organization))
             @method('PUT')
@@ -142,7 +142,7 @@
         <h3 class="section-title">Basic Information</h3>
         
         <div class="form-group">
-            <label class="form-label" for="name">Company Name *</label>
+            <label class="form-label" for="name">Organization Name *</label>
             <input type="text" class="form-control" id="name" name="name" 
                    value="{{ old('name', $organization['name'] ?? '') }}" required>
         </div>
@@ -178,23 +178,65 @@
             <textarea class="form-control" id="address" name="address" rows="3">{{ old('address', $organization['address'] ?? '') }}</textarea>
         </div>
 
-        <h3 class="section-title">Limits & Settings</h3>
+        <h3 class="section-title">Subscription Plan</h3>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label class="form-label" for="max_employees">Max Employees</label>
-                <input type="number" class="form-control" id="max_employees" name="max_employees" 
-                       value="{{ old('max_employees', $organization['max_employees'] ?? 100) }}" min="1">
-                <p class="form-help">License limit for this organization</p>
-            </div>
+        <div class="form-group">
+            <label class="form-label" for="plan_id">Plan</label>
+            <select class="form-control" id="plan_id" name="plan_id" onchange="toggleCustomLimits()" style="max-width:400px;">
+                @if(isset($plans) && count($plans) > 0)
+                @foreach($plans as $plan)
+                <option value="{{ $plan['id'] }}" 
+                        data-employees="{{ $plan['max_employees'] }}"
+                        data-devices="{{ $plan['max_devices'] }}"
+                        {{ (old('plan_id', $organization['plan_id'] ?? '') == $plan['id']) ? 'selected' : '' }}>
+                    {{ $plan['name'] }} ({{ $plan['max_employees'] }} employees, {{ $plan['max_devices'] }} devices)
+                </option>
+                @endforeach
+                @endif
+                <option value="custom" 
+                        {{ (old('plan_id', $organization['plan_id'] ?? '') == '' || old('plan_id', $organization['plan_id'] ?? '') === null) ? 'selected' : '' }}>
+                    ⚙️ Custom Plan (Set limits manually)
+                </option>
+            </select>
+        </div>
 
-            <div class="form-group">
-                <label class="form-label" for="max_devices">Max Devices</label>
-                <input type="number" class="form-control" id="max_devices" name="max_devices" 
-                       value="{{ old('max_devices', $organization['max_devices'] ?? 5) }}" min="1">
-                <p class="form-help">Maximum tablets/phones allowed</p>
+        <div id="custom-limits" style="display:none;">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="max_employees">Max Employees</label>
+                    <input type="number" class="form-control" id="max_employees" name="max_employees" 
+                           value="{{ old('max_employees', $organization['max_employees'] ?? 100) }}" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="max_devices">Max Devices</label>
+                    <input type="number" class="form-control" id="max_devices" name="max_devices" 
+                           value="{{ old('max_devices', $organization['max_devices'] ?? 5) }}" min="1">
+                </div>
             </div>
         </div>
+
+        <script>
+        function toggleCustomLimits() {
+            const select = document.getElementById('plan_id');
+            const customDiv = document.getElementById('custom-limits');
+            const option = select.options[select.selectedIndex];
+            
+            if (select.value === 'custom') {
+                customDiv.style.display = 'block';
+            } else {
+                customDiv.style.display = 'none';
+                // Auto-fill hidden fields with plan limits
+                const employees = option.getAttribute('data-employees');
+                const devices = option.getAttribute('data-devices');
+                if (employees && devices) {
+                    document.getElementById('max_employees').value = employees;
+                    document.getElementById('max_devices').value = devices;
+                }
+            }
+        }
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', toggleCustomLimits);
+        </script>
 
         <div class="form-group">
             <label class="form-check">
@@ -208,9 +250,9 @@
         <div style="margin-top:30px; padding-top:20px; border-top:1px solid var(--border-color, #badbcc);">
             <button type="submit" class="btn-submit">
                 <i class="bi bi-check-circle me-1"></i>
-                {{ isset($organization) ? 'Update Company' : 'Create Company' }}
+                {{ isset($organization) ? 'Update Organization' : 'Create Organization' }}
             </button>
-            <a href="{{ route('companies.index') }}" class="btn-cancel">Cancel</a>
+            <a href="{{ route('organizations.index') }}" class="btn-cancel">Cancel</a>
         </div>
     </form>
 </div>

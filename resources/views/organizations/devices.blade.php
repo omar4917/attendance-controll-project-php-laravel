@@ -186,7 +186,7 @@
         <p class="page-subtitle">{{ $organization['name'] }}</p>
     </div>
     <div>
-        <a href="{{ route('companies.show', $organization['id']) }}" class="btn-back">
+        <a href="{{ route('organizations.show', $organization['id']) }}" class="btn-back">
             <i class="bi bi-arrow-left me-1"></i>Back
         </a>
         <button type="button" class="btn-add" onclick="document.getElementById('addDeviceForm').classList.toggle('show')">
@@ -209,7 +209,7 @@
 <!-- Add Device Form -->
 <div id="addDeviceForm" class="add-device-form">
     <h4 style="margin-bottom:15px; font-weight:600;">Add New Device</h4>
-    <form action="{{ route('companies.devices.store', $organization['id']) }}" method="POST">
+    <form action="{{ route('organizations.devices.store', $organization['id']) }}" method="POST">
         @csrf
         <div class="form-row">
             <div class="form-group">
@@ -284,7 +284,7 @@
         </div>
 
         <div class="device-actions">
-            <form action="{{ route('companies.devices.update', [$organization['id'], $device['id']]) }}" method="POST" style="display:inline;">
+            <form action="{{ route('organizations.devices.update', [$organization['id'], $device['id']]) }}" method="POST" style="display:inline;">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="device_name" value="{{ $device['device_name'] }}">
@@ -301,7 +301,7 @@
                 @endif
             </form>
             
-            <form action="{{ route('companies.devices.destroy', [$organization['id'], $device['id']]) }}" method="POST" 
+            <form action="{{ route('organizations.devices.destroy', [$organization['id'], $device['id']]) }}" method="POST" 
                   style="display:inline;" onsubmit="return confirm('Delete this device?');">
                 @csrf
                 @method('DELETE')

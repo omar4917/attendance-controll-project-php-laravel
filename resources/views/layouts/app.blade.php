@@ -349,11 +349,11 @@
         }
 
         /* ============================================
-           ALERTS
+           ALERTS - Fixed visibility
            ============================================ */
         .alert-success {
             background: var(--bg-alternate);
-            color: var(--text-secondary);
+            color: var(--text-primary);
             border-color: var(--border-color);
         }
 
@@ -361,6 +361,166 @@
             background: #f8d7da;
             color: #721c24;
             border-color: #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffeeba;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-color: #bee5eb;
+        }
+
+        /* ============================================
+           BADGES - Ensure readable text
+           ============================================ */
+        .badge {
+            font-weight: 600;
+        }
+
+        .badge.bg-secondary {
+            background-color: var(--text-muted) !important;
+            color: #ffffff !important;
+        }
+
+        .badge.bg-success {
+            background-color: #198754 !important;
+            color: #ffffff !important;
+        }
+
+        .badge.bg-danger {
+            background-color: #dc3545 !important;
+            color: #ffffff !important;
+        }
+
+        .badge.bg-warning {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+        }
+
+        .badge.bg-info {
+            background-color: #0dcaf0 !important;
+            color: #212529 !important;
+        }
+
+        .badge.bg-primary {
+            background-color: var(--accent) !important;
+            color: var(--btn-primary-text) !important;
+        }
+
+        /* ============================================
+           TEXT HELPERS - Improved visibility
+           ============================================ */
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary) !important;
+        }
+
+        small, .small {
+            color: var(--text-muted);
+        }
+
+        /* Form labels visibility */
+        .form-label, label {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ============================================
+           DARK THEME - Extra visibility fixes
+           ============================================ */
+        [data-theme="dark-green"] .text-muted,
+        [data-theme="dark-green"] small,
+        [data-theme="dark-green"] .small {
+            color: #8ec5a4 !important;
+        }
+
+        [data-theme="dark-green"] .form-text,
+        [data-theme="dark-green"] .text-secondary {
+            color: #a8d4b8 !important;
+        }
+
+        [data-theme="dark-green"] .alert-success {
+            background: #1a3829;
+            color: #a8d4b8;
+            border-color: #2d543e;
+        }
+
+        [data-theme="dark-green"] .card-header {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark-green"] .list-group-item {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark-green"] .progress-bar {
+            color: #ffffff;
+        }
+
+        [data-theme="dark-green"] .table {
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--text-primary);
+        }
+
+        /* Progress bars - ensure text is visible */
+        .progress-bar {
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        /* Card headers */
+        .card-header {
+            background: var(--bg-header);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        /* Dropdowns */
+        .dropdown-menu {
+            background: var(--bg-card);
+            border-color: var(--border-color);
+        }
+
+        .dropdown-item {
+            color: var(--text-primary);
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        /* Pagination */
+        .page-link {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .page-link:hover {
+            background: var(--bg-hover);
+            color: var(--accent);
+        }
+
+        .page-item.active .page-link {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--btn-primary-text);
+        }
+
+        .page-item.disabled .page-link {
+            background: var(--bg-alternate);
+            color: var(--text-muted);
         }
     </style>
     @stack('head')
@@ -374,24 +534,31 @@
             <span>BaraBD</span>
         </a>
         <ul class="menu">
+            <li><a href="{{ route('analytics.index') }}" class="{{ request()->routeIs('analytics.*') ? 'active' : '' }}"><i class="bi bi-graph-up"></i> Analytics Dashboard</a></li>
             <li><a href="{{ route('attendance.index') }}"><i class="bi bi-calendar-check"></i> Attendance Dashboard</a></li>
             <li><a href="{{ route('attendance-records.index') }}"><i class="bi bi-list-check"></i> Attendance Records</a></li>
             <li><a href="{{ route('employees.index') }}"><i class="bi bi-people"></i> Employees</a></li>
             <li><a href="{{ route('livefeed.index') }}"><i class="bi bi-broadcast"></i> Live Feed</a></li>
             <li><a href="{{ route('shifts.index') }}"><i class="bi bi-clock"></i> Shifts</a></li>
-            <li><a href="{{ route('moderator.index') }}"><i class="bi bi-tags"></i> Moderator Labels</a></li>
             <li><a href="{{ route('salary.defaults') }}"><i class="bi bi-sliders"></i> Salary Defaults</a></li>
             <li><a href="{{ route('salary.index') }}"><i class="bi bi-cash-stack"></i> Salary Statistics</a></li>
             <li><a href="{{ route('holidays.index') }}"><i class="bi bi-calendar-heart"></i> Holidays</a></li>
             <li><a href="{{ route('reports.index') }}"><i class="bi bi-file-earmark-text"></i> Reports</a></li>
             <li><a href="{{ route('settings.voice_message') }}"><i class="bi bi-volume-up"></i> Voice & Message</a></li>
             <li><a href="{{ route('settings.context') }}"><i class="bi bi-gear"></i> Context Settings</a></li>
-            <li><a href="{{ route('settings.company') }}"><i class="bi bi-building-gear"></i> Company Info</a></li>
+            <li><a href="{{ route('settings.company') }}"><i class="bi bi-building-gear"></i> My Organization</a></li>
+            @if(in_array(session('user_role'), ['super_admin', 'org_main_admin', 'org_admin']))
+            <li><a href="{{ route('org-users.index') }}"><i class="bi bi-person-gear"></i> Manage Users</a></li>
+            @endif
+            @if(session('user_role') === 'super_admin')
             <li><a href="{{ route('settings.integration') }}"><i class="bi bi-plug"></i> Integration</a></li>
+            @endif
+            <li><a href="{{ route('audit.index') }}"><i class="bi bi-clock-history"></i> Audit Logs</a></li>
+            <li><a href="{{ route('export.index') }}"><i class="bi bi-arrow-down-up"></i> Export / Import</a></li>
             @if(session('user_role') === 'super_admin')
             <li style="border-top:1px solid var(--border-color); margin-top:10px; padding-top:10px;">
-                <a href="{{ route('companies.index') }}" class="{{ request()->routeIs('companies.*') ? 'active' : '' }}">
-                    <i class="bi bi-buildings"></i> Companies (Admin)
+                <a href="{{ route('organizations.index') }}" class="{{ request()->routeIs('organizations.*') ? 'active' : '' }}">
+                    <i class="bi bi-buildings"></i> Organizations
                 </a>
             </li>
             @endif
@@ -508,5 +675,6 @@
 </script>
 
 @stack('scripts')
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

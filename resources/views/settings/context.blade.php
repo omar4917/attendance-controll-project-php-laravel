@@ -155,7 +155,7 @@
 <div class="page-header">
     <div>
         <div class="page-title">Change context setting</div>
-        <div class="page-subtitle">Context Setting</div>
+        <div class="page-subtitle">Organization Configuration</div>
     </div>
     <a href="#" class="btn-history">HISTORY</a>
 </div>
@@ -169,6 +169,76 @@
 
 <form action="{{ route('settings.context.save') }}" method="POST">
     @csrf
+    
+    <!-- General Settings -->
+    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">General Settings</div>
+    
+    <div class="admin-form-row">
+        <label class="admin-form-label" for="timezone">Timezone</label>
+        <div class="admin-form-field">
+            <input class="form-control" type="text" id="timezone" name="timezone" value="{{ $data['timezone'] ?? 'Asia/Dhaka' }}" style="width:100%; padding:8px; border:1px solid #badbcc; border-radius:4px;">
+        </div>
+    </div>
+
+    <div class="admin-form-row">
+        <label class="admin-form-label" for="work_week_start">Work Week Start</label>
+        <div class="admin-form-field">
+            <select class="form-control" id="work_week_start" name="work_week_start" style="width:100%; padding:8px; border:1px solid #badbcc; border-radius:4px;">
+                @foreach([0=>'Sunday', 1=>'Monday', 2=>'Tuesday', 3=>'Wednesday', 4=>'Thursday', 5=>'Friday', 6=>'Saturday'] as $val => $label)
+                    <option value="{{ $val }}" {{ ($data['work_week_start'] ?? 0) == $val ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+
+    <!-- Biometrics -->
+    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">Biometrics</div>
+    
+    <div class="admin-form-row">
+        <label class="admin-form-label" for="liveness_threshold">Liveness Threshold</label>
+        <div class="admin-form-field">
+            <input class="form-control" type="number" step="0.01" min="0" max="1" id="liveness_threshold" name="liveness_threshold" value="{{ $data['liveness_threshold'] ?? 0.7 }}" style="width:100px; padding:8px; border:1px solid #badbcc; border-radius:4px;">
+             <span style="font-size:0.8em; color:#666; margin-left:10px;">(0.0 - 1.0)</span>
+        </div>
+    </div>
+    
+    <div class="admin-form-row">
+        <label class="admin-form-label" for="match_threshold">Match Threshold</label>
+        <div class="admin-form-field">
+            <input class="form-control" type="number" step="0.01" min="0" max="1" id="match_threshold" name="match_threshold" value="{{ $data['match_threshold'] ?? 0.8 }}" style="width:100px; padding:8px; border:1px solid #badbcc; border-radius:4px;">
+            <span style="font-size:0.8em; color:#666; margin-left:10px;">(0.0 - 1.0)</span>
+        </div>
+    </div>
+
+    <!-- Voice & Notifications -->
+    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">Voice & Notifications</div>
+
+    <div class="admin-form-row">
+        <label class="admin-form-label" for="default_voice_language">Voice Language</label>
+        <div class="admin-form-field">
+            <input class="form-control" type="text" id="default_voice_language" name="default_voice_language" value="{{ $data['default_voice_language'] ?? 'en' }}" style="width:100px; padding:8px; border:1px solid #badbcc; border-radius:4px;">
+        </div>
+    </div>
+
+    <div class="admin-form-row">
+         <div class="admin-form-field" style="display:flex; gap:20px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center;">
+                <input class="form-check-input" type="checkbox" id="voice_enabled" name="voice_enabled" {{ !empty($data['voice_enabled']) ? 'checked' : '' }}>
+                <label for="voice_enabled" style="margin-left:5px; font-weight:600; color:var(--text-main);">Voice Enabled (Org)</label>
+            </div>
+            <div style="display:flex; align-items:center;">
+                <input class="form-check-input" type="checkbox" id="email_on_late" name="email_on_late" {{ !empty($data['email_on_late']) ? 'checked' : '' }}>
+                <label for="email_on_late" style="margin-left:5px; font-weight:600; color:var(--text-main);">Email on Late</label>
+            </div>
+            <div style="display:flex; align-items:center;">
+                <input class="form-check-input" type="checkbox" id="email_on_absent" name="email_on_absent" {{ !empty($data['email_on_absent']) ? 'checked' : '' }}>
+                <label for="email_on_absent" style="margin-left:5px; font-weight:600; color:var(--text-main);">Email on Absent</label>
+            </div>
+         </div>
+    </div>
+
+    <!-- System Legacy -->
+    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">System Defaults (Legacy)</div>
     
     <div class="admin-form-row">
         <div class="admin-form-field" style="display:flex; align-items:center;">

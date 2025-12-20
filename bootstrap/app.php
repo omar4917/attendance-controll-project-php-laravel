@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'django.auth' => \App\Http\Middleware\DjangoAdminAuth::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
