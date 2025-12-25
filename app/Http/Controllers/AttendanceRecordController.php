@@ -13,7 +13,13 @@ class AttendanceRecordController extends Controller
 
     public function index(Request $request, DjangoApi $api)
     {
-        $filters = $request->only(['search', 'date', 'status', 'department', 'designation', 'organization_id']);
+        $filters = $request->only(['search', 'date', 'status', 'department', 'designation', 'organization_id', 'month_filter']);
+        
+        // If a month filter is provided (YYYY-MM), pass it as 'date' so Django treats it as a month scope
+        // strictly if no specific date is selected
+        if ($request->filled('month_filter') && !$request->filled('date')) {
+            $filters['date'] = $request->input('month_filter');
+        }
         
         // Role detection
         $userRole = \Session::get('user_role', 'org_admin');

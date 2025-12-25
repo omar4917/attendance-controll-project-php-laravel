@@ -320,6 +320,13 @@
                    style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border); cursor:pointer;"
                    onchange="this.form.submit()">
         </div>
+        
+        <div style="width:180px;">
+            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Month</label>
+            <input type="month" name="month_filter" class="form-control" value="{{ request('month_filter') }}" 
+                   style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border); cursor:pointer;"
+                   onchange="this.form.submit()">
+        </div>
 
         <div style="width:150px;">
             <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Status</label>
