@@ -88,23 +88,29 @@
     }
 
     .filter-bar select {
-        background: var(--input-bg);
-        border: 1px solid var(--input-border);
-        color: var(--input-text);
+        background: #ffffff;
+        border: 1px solid #ced4da;
+        color: #333333;
         padding: 6px 12px;
         border-radius: 4px;
         font-size: 12px;
         min-width: 120px;
     }
 
+    .filter-bar select option {
+        color: #333333;
+        background: #ffffff;
+    }
+
     .filter-bar .btn-filter {
-        background: var(--btn-primary);
-        color: white;
+        background: #198754 !important;
+        color: #ffffff !important;
         padding: 6px 20px;
         border: none;
         border-radius: 4px;
         cursor: pointer;
         font-size: 12px;
+        font-weight: 600;
     }
 
     .download-btn {
@@ -144,7 +150,7 @@
 
     .rules-box.bonus .header {
         background: var(--btn-primary);
-        color: white;
+        color: #1f2937; /* Dark gray for visibility */
     }
 
     .rules-box.fine .header {
@@ -183,20 +189,39 @@
     }
 
     .salary-table thead {
-        background: var(--btn-primary);
-        color: white;
+        background: var(--bg-header);
         position: sticky;
         top: 0;
         z-index: 10;
     }
 
     .salary-table th {
-        padding: 10px 6px;
+        padding: 12px 6px;
         text-align: center;
         font-weight: 600;
-        border-right: 1px solid rgba(255,255,255,0.2);
+        color: #1f2937; /* Dark gray for visibility */
+        border-bottom: 2px solid var(--border-color);
         white-space: nowrap;
         font-size: 10px;
+        text-transform: uppercase;
+    }
+
+    .salary-table th a.th-sortable {
+        color: #1f2937; /* Dark gray */
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        transition: color 0.2s;
+    }
+
+    .salary-table th a.th-sortable:hover {
+        color: var(--accent);
+    }
+
+    .salary-table th a.th-sortable.active {
+        color: var(--accent);
     }
 
     .salary-table th:last-child {
@@ -208,21 +233,21 @@
     }
 
     .salary-table tbody tr:nth-child(even) {
-        background: var(--bg-quaternary);
+        background: #f8f9fa;
     }
 
     .salary-table tbody tr:nth-child(odd) {
-        background: var(--bg-primary);
+        background: #ffffff;
     }
 
     .salary-table tbody tr:hover {
-        background: var(--bg-secondary);
+        background: #e9ecef;
     }
 
     .salary-table td {
         padding: 8px 6px;
-        border-right: 1px solid var(--border-color);
-        color: var(--text-primary);
+        border-right: 1px solid #dee2e6;
+        color: #333333 !important;
         text-align: center;
         white-space: nowrap;
     }
@@ -298,17 +323,6 @@
 
     <!-- Filters -->
     <form method="GET" class="filter-bar">
-        @if($isSuperAdmin ?? false)
-        <div>
-            <label><i class="bi bi-building"></i> Organization:</label>
-            <select name="organization_id" style="min-width:180px;" onchange="this.form.submit()">
-                <option value="">All Organizations</option>
-                @foreach($organizations ?? [] as $org)
-                    <option value="{{ $org['id'] }}" {{ request('organization_id') == $org['id'] ? 'selected' : '' }}>{{ $org['name'] }}</option>
-                @endforeach
-            </select>
-        </div>
-        @endif
         <div>
             <label>Month:</label>
             <select name="month">
@@ -341,66 +355,55 @@
 
     <!-- Download Button -->
     @php
-        $djangoUrl = rtrim(Session::get('django_base_url', config('django.base_url', env('DJANGO_BASE_URL', 'http://localhost:8001'))), '/');
-        $orgIdForPdf = session('organization_id');
-        $pdfUrl = $djangoUrl . '/salary-report/pdf/?month=' . ($month ?? date('n')) . '&year=' . ($year ?? date('Y'));
+        // Build Laravel route for salary PDF download (proxies through Laravel for user headers)
+        $pdfParams = [
+            'month' => $month ?? date('n'),
+            'year' => $year ?? date('Y'),
+        ];
+        
         if (!empty(request('department'))) {
-            $pdfUrl .= '&department=' . urlencode(request('department'));
+            $pdfParams['department'] = request('department');
         }
+        
+        $orgIdForPdf = $orgId ?? session('organization_id');
         if ($orgIdForPdf) {
-            $pdfUrl .= '&organization_id=' . $orgIdForPdf;
+            $pdfParams['organization_id'] = $orgIdForPdf;
         }
+        
+        $pdfUrl = route('reports.salary.pdf', $pdfParams);
     @endphp
     <a href="{{ $pdfUrl }}" target="_blank" class="download-btn" style="text-decoration:none; display:inline-block;">📥 Download PDF</a>
-
-    <!-- Rules Section -->
-    <div class="rules-section">
-        <div class="rules-box bonus">
-            <div class="header">📋 Bonus Rules</div>
-            <div class="content">
-                <ul>
-                    <li>Perfect Attendance: 1,000 BDT (0 late days)</li>
-                    <li>Manual Bonuses: Added by admin</li>
-                </ul>
-            </div>
-        </div>
-        <div class="rules-box fine">
-            <div class="header">⚠️ Fine Rules</div>
-            <div class="content">
-                <ul>
-                    <li>Late Fine: 1 day salary per 3 late days (Monthly Salary ÷ 30)</li>
-                    <li>Manual Fines: Added by admin</li>
-                </ul>
-            </div>
-        </div>
-    </div>
 
     @if(!empty($error))
         <div class="alert-error">API error: {{ $error }}</div>
     @endif
 
     <!-- Salary Table -->
+    @php
+        $currentSort = request('sort', 'employee_name');
+        $currentDir = request('dir', 'asc');
+    @endphp
     <div class="table-container">
         <table class="salary-table">
             <thead>
                 <tr>
                     <th>SN</th>
-                    <th>Employee</th>
-                    <th>Join Date</th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'employee_name', 'dir' => $currentSort == 'employee_name' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'employee_name' ? 'active' : '' }}">Employee {!! $currentSort == 'employee_name' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'joining_date', 'dir' => $currentSort == 'joining_date' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'joining_date' ? 'active' : '' }}">Join Date {!! $currentSort == 'joining_date' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
                     <th>Bank</th>
-                    <th>Basic</th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'basic_salary', 'dir' => $currentSort == 'basic_salary' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'basic_salary' ? 'active' : '' }}">Basic {!! $currentSort == 'basic_salary' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
                     <th>House Rent</th>
                     <th>Medical</th>
                     <th>Conv</th>
                     <th>Food</th>
                     <th>Other Allow</th>
-                    <th>Gross</th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'gross_salary', 'dir' => $currentSort == 'gross_salary' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'gross_salary' ? 'active' : '' }}">Gross {!! $currentSort == 'gross_salary' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
                     <th>WD</th>
                     <th>WKN</th>
                     <th>Leave</th>
                     <th>Holiday</th>
-                    <th>Att Day</th>
-                    <th>Late</th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'attendance_days', 'dir' => $currentSort == 'attendance_days' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'attendance_days' ? 'active' : '' }}">Att Day {!! $currentSort == 'attendance_days' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'late_days', 'dir' => $currentSort == 'late_days' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'late_days' ? 'active' : '' }}">Late {!! $currentSort == 'late_days' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
                     <th>OT Hrs</th>
                     <th>OT Rate</th>
                     <th>OT Amt</th>
@@ -409,7 +412,7 @@
                     <th>Other Deduct</th>
                     <th>Fine</th>
                     <th>TDS</th>
-                    <th>Payable</th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'final_salary', 'dir' => $currentSort == 'final_salary' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'final_salary' ? 'active' : '' }}">Payable {!! $currentSort == 'final_salary' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
                     <th>Signature</th>
                 </tr>
             </thead>
@@ -418,8 +421,19 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td class="employee-name">
-                        {{ $r['employee_name'] ?? $r['employee'] ?? $r['employee_id'] ?? '-' }}<br>
-                        <small class="employee-id">{{ $r['employee_id'] ?? '' }}</small>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            @if(!empty($r['face_image']))
+                                <img src="data:image/jpeg;base64,{{ $r['face_image'] }}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ccc;">
+                            @else
+                                <div style="width:30px; height:30px; border-radius:50%; background:var(--bg-tertiary); color:var(--text-primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">
+                                    {{ strtoupper(substr($r['employee_name'] ?? 'N', 0, 1)) }}
+                                </div>
+                            @endif
+                            <div>
+                                {{ $r['employee_name'] ?? $r['employee'] ?? $r['employee_id'] ?? '-' }}<br>
+                                <small class="employee-id">{{ $r['employee_id'] ?? '' }}</small>
+                            </div>
+                        </div>
                     </td>
                     <td>{{ $r['joining_date'] ?? $r['join_date'] ?? '-' }}</td>
                     <td>{{ $r['bank_info'] ?? $r['bank'] ?? '-' }}</td>

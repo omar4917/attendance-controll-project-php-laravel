@@ -116,31 +116,30 @@
     if (!selector) return;
     
     var downloadBtns = document.querySelectorAll('.pdf-download-btn');
-    var baseUrls = {
-        pdf: '{{ $pdfs["pdf"] ?? ($base."/attendance-dashboard/pdf/") }}',
-        bulk_pdf: '{{ $pdfs["bulk_pdf"] ?? ($base."/attendance-dashboard/pdf/bulk/") }}',
-        combined_pdf: '{{ $pdfs["combined_pdf"] ?? ($base."/attendance-dashboard/pdf/combined/") }}'
-    };
+    // Use Laravel route as base URL for proper proxy handling
+    var baseUrl = '{{ route("attendance.pdf") }}';
     
     selector.addEventListener('change', function() {
         var orgId = this.value;
-        var params = new URLSearchParams({
-            month: '{{ $month }}',
-            year: '{{ $year }}',
-            department: '{{ request("department") ?? "" }}',
-            designation: '{{ request("designation") ?? "" }}'
-        });
-        
-        if (orgId && orgId !== 'all') {
-            params.set('organization_id', orgId);
-        } else if (orgId === 'all') {
-            params.delete('organization_id');
-            params.set('batch', '1');
-        }
         
         downloadBtns.forEach(function(btn) {
             var type = btn.getAttribute('data-type');
-            btn.href = baseUrls[type] + '?' + params.toString();
+            var params = new URLSearchParams({
+                type: type === 'bulk_pdf' ? 'bulk' : (type === 'combined_pdf' ? 'combined' : 'pdf'),
+                month: '{{ $month }}',
+                year: '{{ $year }}',
+                department: '{{ request("department") ?? "" }}',
+                designation: '{{ request("designation") ?? "" }}'
+            });
+            
+            if (orgId && orgId !== 'all') {
+                params.set('organization_id', orgId);
+            } else if (orgId === 'all') {
+                params.delete('organization_id');
+                params.set('batch', '1');
+            }
+            
+            btn.href = baseUrl + '?' + params.toString();
         });
     });
 })();

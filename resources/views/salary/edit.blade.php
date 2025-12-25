@@ -69,7 +69,7 @@
 
     .section-header {
         background: var(--btn-primary);
-        color: white;
+        color: #1f2937; /* Dark gray for visibility */
         padding: 8px 15px;
         margin: 20px 0 10px 0;
         border-radius: 4px;
@@ -284,15 +284,9 @@
             <input type="number" name="on_leave" value="{{ $salary['on_leave'] ?? '' }}">
         </div>
 
-        <div class="form-row">
-            <label>Off season:</label>
-            <input type="number" name="off_season" value="{{ $salary['off_season'] ?? '' }}">
-        </div>
 
-        <div class="form-row">
-            <label>Net allowance:</label>
-            <input type="number" step="0.01" name="net_allowance" value="{{ $salary['net_allowance'] ?? '' }}">
-        </div>
+
+
 
         <!-- Adjustments -->
         <div class="section-header">Adjustments</div>
@@ -303,10 +297,12 @@
         </div>
 
         <div class="form-row">
-            <label>Deducted attendance:</label>
-            <input type="number" step="0.01" name="deducted_attendance" value="{{ $salary['deducted_attendance'] ?? '' }}">
-            <div class="help-text">Deducted amount for attendance policy violations</div>
+            <label>Required attendance percent:</label>
+            <input type="number" step="0.01" name="required_attendance_percent" value="{{ $salary['required_attendance_percent'] ?? '' }}">
+            <div class="help-text">Minimum attendance percentage required for bonus</div>
         </div>
+
+
 
         <div class="form-row">
             <label>Late fine:</label>
@@ -314,10 +310,12 @@
         </div>
 
         <div class="form-row">
-            <label>Late weekend:</label>
-            <input type="number" step="0.01" name="late_weekend" value="{{ $salary['late_weekend'] ?? '' }}">
-            <div class="help-text">Not used yet. Automatic calculation can be done based on configuration.</div>
+            <label>Late needed:</label>
+            <input type="number" name="late_needed" value="{{ $salary['late_needed'] ?? '' }}">
+            <div class="help-text">Number of late days to trigger one fine unit</div>
         </div>
+
+
 
         <div class="form-row">
             <label>Other deduction:</label>
@@ -330,11 +328,6 @@
         <div class="form-row">
             <label>Tax payment:</label>
             <input type="number" step="0.01" name="tds_percent" value="{{ $salary['tds_percent'] ?? $salary['tax_payment'] ?? '' }}">
-        </div>
-
-        <div class="form-row">
-            <label>Savings:</label>
-            <input type="number" step="0.01" name="stamp" value="{{ $salary['stamp'] ?? $salary['savings'] ?? '' }}">
         </div>
 
         <div class="form-row">

@@ -300,9 +300,21 @@ class AttendanceController extends Controller
                     return back()->with('error', $errorData['error'] ?? 'Export failed - server returned an error');
                 }
                 
-                $filename = "{$type}_export_{$year}_{$month}.zip";
+                // Get organization name for filename
+                $orgNameSafe = 'All';
+                if ($orgId) {
+                    try {
+                        $orgData = $api->organization((int)$orgId);
+                        $orgName = $orgData['name'] ?? ($orgData['organization']['name'] ?? 'Org');
+                        $orgNameSafe = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $orgName);
+                    } catch (\Exception $e) {
+                        $orgNameSafe = 'Org_' . $orgId;
+                    }
+                }
+
+                $filename = "{$type}_export_{$orgNameSafe}_{$year}_{$month}.zip";
                 if ($type === 'employees') {
-                    $filename = "employees_export_" . date('Y-m-d') . ".zip";
+                    $filename = "employees_export_{$orgNameSafe}_" . date('Y-m-d') . ".zip";
                 }
                 
                 return response($body, 200, [
@@ -355,6 +367,21 @@ class AttendanceController extends Controller
         $designation = $request->query('designation', '');
         $orgId = $request->query('organization_id', $this->getOrganizationId());
         
+        // Get organization name for filename
+        $orgNameSafe = '';
+        if ($orgId) {
+            try {
+                $orgData = $api->organization((int)$orgId);
+                $orgName = $orgData['name'] ?? ($orgData['organization']['name'] ?? '');
+                // Sanitize org name for filename
+                $orgNameSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $orgName);
+                $orgNameSafe = substr($orgNameSafe, 0, 30); // Limit length
+            } catch (\Exception $e) {
+                // Fallback - use org ID if name lookup fails
+                $orgNameSafe = '';
+            }
+        }
+        
         // Build query string for Django
         $queryParams = array_filter([
             'month' => $month,
@@ -368,20 +395,23 @@ class AttendanceController extends Controller
         // Determine Django endpoint and filename
         $djangoBase = rtrim(Session::get('django_base_url', config('django.base_url', 'http://localhost:8001')), '/');
         
+        // Build filename with org name if available
+        $orgSuffix = $orgNameSafe ? "-{$orgNameSafe}" : '';
+        
         switch ($type) {
             case 'bulk':
                 $endpoint = "/attendance-dashboard/pdf/bulk/?{$qs}";
-                $filename = "attendance-individual-{$year}-{$month}.zip";
+                $filename = "attendance-individual{$orgSuffix}-{$year}-{$month}.zip";
                 $contentType = 'application/zip';
                 break;
             case 'combined':
                 $endpoint = "/attendance-dashboard/pdf/combined/?{$qs}";
-                $filename = "attendance-combined-{$year}-{$month}.pdf";
+                $filename = "attendance-combined{$orgSuffix}-{$year}-{$month}.pdf";
                 $contentType = 'application/pdf';
                 break;
             default:
                 $endpoint = "/attendance-dashboard/pdf/?{$qs}";
-                $filename = "attendance-{$year}-{$month}.pdf";
+                $filename = "attendance{$orgSuffix}-{$year}-{$month}.pdf";
                 $contentType = 'application/pdf';
         }
         
@@ -417,6 +447,82 @@ class AttendanceController extends Controller
                 ->header('Content-Length', strlen($content));
         } catch (\Exception $e) {
             \Log::error("PDF Download Error: " . $e->getMessage());
+            return back()->with('error', 'Failed to download PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Download salary report PDF, proxied through Laravel to inject user headers for audit logging
+     */
+    public function downloadSalaryPdf(Request $request, DjangoApi $api)
+    {
+        $month = $request->query('month', Carbon::now()->month);
+        $year = $request->query('year', Carbon::now()->year);
+        $department = $request->query('department', '');
+        $employeeId = $request->query('employee_id', '');
+        $orgId = $request->query('organization_id', $this->getOrganizationId());
+        
+        // Get organization name for filename
+        $orgNameSafe = '';
+        if ($orgId) {
+            try {
+                $orgData = $api->organization((int)$orgId);
+                $orgName = $orgData['name'] ?? ($orgData['organization']['name'] ?? '');
+                $orgNameSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $orgName);
+                $orgNameSafe = substr($orgNameSafe, 0, 30);
+            } catch (\Exception $e) {
+                $orgNameSafe = '';
+            }
+        }
+        
+        // Build query string for Django
+        $queryParams = array_filter([
+            'month' => $month,
+            'year' => $year,
+            'department' => $department,
+            'employee_id' => $employeeId,
+            'organization_id' => $orgId,
+        ]);
+        $qs = http_build_query($queryParams);
+        
+        $djangoBase = rtrim(Session::get('django_base_url', config('django.base_url', 'http://localhost:8001')), '/');
+        $endpoint = "/salary-report/pdf/?{$qs}";
+        
+        $orgSuffix = $orgNameSafe ? "-{$orgNameSafe}" : '';
+        $filename = "salary-report{$orgSuffix}-{$year}-{$month}.pdf";
+        
+        try {
+            $client = new \GuzzleHttp\Client([
+                'verify' => false, 
+                'timeout' => 60,
+                'headers' => [
+                    'X-User-Email' => Session::get('admin_email', Session::get('admin_user', 'unknown')),
+                    'X-User-Name' => Session::get('admin_name', Session::get('admin_user', 'unknown')),
+                    'X-User-Role' => Session::get('user_role', 'org_viewer'),
+                    'X-Organization-Id' => $orgId,
+                ]
+            ]);
+            
+            \Log::info("Fetching salary PDF from: " . $djangoBase . $endpoint);
+            $response = $client->get($djangoBase . $endpoint);
+            
+            $content = $response->getBody()->getContents();
+            $contentType = $response->getHeaderLine('Content-Type');
+            
+            \Log::info("Salary PDF response - Size: " . strlen($content) . ", Content-Type: " . $contentType);
+            
+            // Check if response is valid PDF (starts with %PDF)
+            if (strlen($content) < 100 || !str_starts_with($content, '%PDF')) {
+                \Log::error("Invalid PDF response - Content: " . substr($content, 0, 500));
+                return back()->with('error', 'Django returned invalid PDF. Check Django logs.');
+            }
+            
+            return response($content)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Content-Length', strlen($content));
+        } catch (\Exception $e) {
+            \Log::error("Salary PDF Download Error: " . $e->getMessage());
             return back()->with('error', 'Failed to download PDF: ' . $e->getMessage());
         }
     }

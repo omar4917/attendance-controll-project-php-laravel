@@ -28,10 +28,8 @@ class AttendanceRecordController extends Controller
             $orgsData = $api->organizations();
             $organizations = $orgsData['organizations'] ?? [];
             
-            // If no org selected, show overview mode with org cards
-            if (empty($selectedOrgId)) {
-                $showOrgOverview = true;
-            }
+            // Organization cards are removed - use header dropdown only
+            // showOrgOverview always stays false
         }
         
         // Add organization filtering
@@ -45,6 +43,29 @@ class AttendanceRecordController extends Controller
         if (!$showOrgOverview) {
             $data = $api->attendanceList($filters);
             $records = $data['attendance'] ?? [];
+            
+            // Sorting
+            $sortField = $request->input('sort', 'date');
+            $sortDir = $request->input('dir', 'desc');
+            $validSortFields = ['employee_name', 'organization_name', 'date', 'checkin_time', 'checkout_time', 'status', 'late_duration', 'device_id'];
+            
+            if (in_array($sortField, $validSortFields) && !empty($records)) {
+                $records = collect($records)->sortBy(function ($rec) use ($sortField) {
+                    $value = $rec[$sortField] ?? '';
+                    // Handle late_duration sorting (format like "5:30" or "-")
+                    if ($sortField === 'late_duration') {
+                        if ($value === '-' || empty($value)) return 0;
+                        $parts = explode(':', $value);
+                        return (int) ($parts[0] ?? 0) * 60 + (int) ($parts[1] ?? 0);
+                    }
+                    // Handle date/time fields
+                    if (in_array($sortField, ['date', 'checkin_time', 'checkout_time'])) {
+                        return $value ?: '9999-99-99';
+                    }
+                    // String sorting (case-insensitive)
+                    return strtolower((string) $value);
+                }, SORT_REGULAR, $sortDir === 'desc')->values()->all();
+            }
         }
         
         // Fetch employees for filter dropdowns (with org filtering)
@@ -107,11 +128,13 @@ class AttendanceRecordController extends Controller
         }
 
         $files = [];
-        if ($request->hasFile('checkin_image')) {
-            $files['checkin_image'] = $request->file('checkin_image');
+        $checkinFile = $request->file('checkin_image');
+        if ($checkinFile && $checkinFile->isValid() && $checkinFile->getSize() > 0) {
+            $files['checkin_image'] = $checkinFile;
         }
-        if ($request->hasFile('checkout_image')) {
-            $files['checkout_image'] = $request->file('checkout_image');
+        $checkoutFile = $request->file('checkout_image');
+        if ($checkoutFile && $checkoutFile->isValid() && $checkoutFile->getSize() > 0) {
+            $files['checkout_image'] = $checkoutFile;
         }
 
         $resp = $api->upsertAttendance($payload, $files);
@@ -182,6 +205,13 @@ class AttendanceRecordController extends Controller
         ]);
         $payload['id'] = $id;
         
+        // Debug: Log the employee_id being sent
+        \Log::info('Attendance update payload: ', [
+            'employee_id' => $payload['employee_id'] ?? 'MISSING',
+            'date' => $payload['date'] ?? 'MISSING',
+            'all_payload' => $payload
+        ]);
+        
         // Handle checkbox - convert 0/1 to false/true strings
         $payload['is_status_override'] = $request->input('is_status_override') == '1' ? 'true' : 'false';
         
@@ -194,11 +224,23 @@ class AttendanceRecordController extends Controller
         }
 
         $files = [];
-        if ($request->hasFile('checkin_image')) {
-            $files['checkin_image'] = $request->file('checkin_image');
+        $checkinFile = $request->file('checkin_image');
+        $checkoutFile = $request->file('checkout_image');
+        
+        \Log::info("=== FILE DEBUG ===", [
+            'checkin_exists' => $checkinFile ? 'yes' : 'no',
+            'checkin_valid' => $checkinFile ? ($checkinFile->isValid() ? 'yes' : 'no') : 'n/a',
+            'checkin_size' => $checkinFile ? $checkinFile->getSize() : 0,
+            'checkout_exists' => $checkoutFile ? 'yes' : 'no',
+            'checkout_valid' => $checkoutFile ? ($checkoutFile->isValid() ? 'yes' : 'no') : 'n/a',
+            'checkout_size' => $checkoutFile ? $checkoutFile->getSize() : 0,
+        ]);
+        
+        if ($checkinFile && $checkinFile->isValid() && $checkinFile->getSize() > 0) {
+            $files['checkin_image'] = $checkinFile;
         }
-        if ($request->hasFile('checkout_image')) {
-            $files['checkout_image'] = $request->file('checkout_image');
+        if ($checkoutFile && $checkoutFile->isValid() && $checkoutFile->getSize() > 0) {
+            $files['checkout_image'] = $checkoutFile;
         }
 
         $resp = $api->upsertAttendance($payload, $files);

@@ -29,6 +29,24 @@ class OrganizationController extends Controller
         $organizations = $data['organizations'] ?? [];
         $error = $data['error'] ?? null;
         
+        // Sorting
+        $sortField = $request->input('sort', 'name');
+        $sortDir = $request->input('dir', 'asc');
+        $validSortFields = ['name', 'slug', 'employee_count', 'device_count', 'is_active', 'created_at'];
+        
+        if (in_array($sortField, $validSortFields) && !empty($organizations)) {
+            $organizations = collect($organizations)->sortBy(function ($org) use ($sortField) {
+                $value = $org[$sortField] ?? '';
+                if (in_array($sortField, ['employee_count', 'device_count'])) {
+                    return (int) $value;
+                }
+                if ($sortField === 'is_active') {
+                    return $value ? 1 : 0;
+                }
+                return strtolower((string) $value);
+            }, SORT_REGULAR, $sortDir === 'desc')->values()->all();
+        }
+        
         // Fetch plans for assignment dropdown
         $plansData = $api->plans();
         $plans = $plansData['plans'] ?? [];
@@ -63,6 +81,9 @@ class OrganizationController extends Controller
             'max_devices' => $request->input('max_devices', 5),
             'plan_id' => $request->input('plan_id') ?: null,
             'is_active' => $request->has('is_active'),
+            'admin_username' => $request->input('admin_username'),
+            'admin_email' => $request->input('admin_email'),
+            'admin_password' => $request->input('admin_password'),
         ];
         
         $resp = $api->createOrganization($payload);

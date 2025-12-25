@@ -83,8 +83,9 @@
     }
 
     .salary-table thead {
-        background: var(--btn-primary);
-        color: white;
+        background: var(--bg-header);
+        color: #1f2937; /* Dark gray for visibility */
+        border-bottom: 2px solid var(--border-color);
         position: sticky;
         top: 0;
         z-index: 10;
@@ -201,10 +202,62 @@
         <div class="alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="search-bar">
-        <input type="text" placeholder="🔍 Search" id="searchInput">
-        <button onclick="filterTable()">Search</button>
-    </div>
+    <form method="get" action="{{ route('salary.index') }}" class="search-bar" style="display:flex; gap:15px; align-items:flex-end; background:var(--bg-quaternary);">
+        <!-- Month Filter -->
+        <div style="flex:0 0 350px;">
+            <label style="font-size:11px; font-weight:700; display:block; margin-bottom:4px; text-transform:uppercase; color:var(--text-primary);">Month & Year</label>
+            @php
+                $dt = \Carbon\Carbon::createFromDate($year, $month, 1);
+                $prev = $dt->copy()->subMonth();
+                $next = $dt->copy()->addMonth();
+            @endphp
+            <div style="display:flex; gap:5px; align-items:center;">
+                <!-- Prev Arrow -->
+                <a href="{{ route('salary.index', ['month' => $prev->month, 'year' => $prev->year]) }}" 
+                   class="btn btn-sm btn-outline-secondary"
+                   style="padding:6px 12px; background:var(--input-bg); border:1px solid var(--border-color); border-radius:4px; color:var(--text-primary); text-decoration:none; font-weight:bold;">
+                    &larr;
+                </a>
+
+                <!-- Month Dropdown -->
+                <select name="month" onchange="this.form.submit()" 
+                        style="width:120px; padding:6px 10px; border:1px solid var(--border-color); border-radius:4px; font-size:13px; background:var(--input-bg); color:var(--text-primary);">
+                    @for($m=1; $m<=12; $m++)
+                        <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ date('F', mktime(0, 0, 0, $m, 1)) }}</option>
+                    @endfor
+                </select>
+
+                <!-- Year Dropdown -->
+                <select name="year" onchange="this.form.submit()" 
+                        style="width:80px; padding:6px 10px; border:1px solid var(--border-color); border-radius:4px; font-size:13px; background:var(--input-bg); color:var(--text-primary);">
+                    @for($y = date('Y') - 2; $y <= date('Y') + 2; $y++)
+                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+
+                <!-- Next Arrow -->
+                <a href="{{ route('salary.index', ['month' => $next->month, 'year' => $next->year]) }}" 
+                   class="btn btn-sm btn-outline-secondary"
+                   style="padding:6px 12px; background:var(--input-bg); border:1px solid var(--border-color); border-radius:4px; color:var(--text-primary); text-decoration:none; font-weight:bold;">
+                    &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- JS Search -->
+        <div style="flex:1;">
+            <label style="font-size:11px; font-weight:700; display:block; margin-bottom:4px; text-transform:uppercase; color:var(--text-primary);">Search Employee</label>
+            <div style="display:flex; gap:5px;">
+                <input type="text" placeholder="🔍 Search by name or ID..." id="searchInput" onkeyup="filterTable()" 
+                       style="width:100%; padding:6px 10px; border:1px solid var(--border-color); border-radius:4px; font-size:13px;">
+            </div>
+        </div>
+        
+        <!-- Reset -->
+        <div>
+            <a href="{{ route('salary.index') }}" style="padding:7px 15px; background:var(--bg-secondary); color:var(--text-primary); text-decoration:none; border-radius:4px; font-size:13px; border:1px solid var(--border-color); display:inline-block; height: 32px; line-height: 16px;">Reset</a>
+        </div>
+    </form>
 
     <div class="salary-table-container">
         <table class="salary-table" id="salaryTable">
@@ -225,7 +278,6 @@
                     <th>OTHER DED.</th>
                     <th>GROSS SALARY</th>
                     <th>PAYABLE</th>
-                    <th>STAMP</th>
                     <th style="text-align: center;">ACTIONS</th>
                 </tr>
             </thead>
@@ -242,9 +294,18 @@
                             </a>
                         </td>
                         <td>
-                            <a href="{{ route('salary.edit', $s['id'] ?? 0) }}" style="color: var(--text-primary); text-decoration: none;">
-                                {{ $s['employee_name'] ?? 'N/A' }}
-                            </a>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                @if(!empty($s['face_image']))
+                                    <img src="data:image/jpeg;base64,{{ $s['face_image'] }}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid var(--border-color);">
+                                @else
+                                    <div style="width:30px; height:30px; border-radius:50%; background:var(--bg-tertiary); color:var(--text-primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">
+                                        {{ strtoupper(substr($s['employee_name'] ?? 'N', 0, 1)) }}
+                                    </div>
+                                @endif
+                                <a href="{{ route('salary.edit', $s['id'] ?? 0) }}" style="color: var(--text-primary); text-decoration: none;">
+                                    {{ $s['employee_name'] ?? 'N/A' }}
+                                </a>
+                            </div>
                         </td>
                         <td>{{ $s['month'] ?? '-' }}</td>
                         <td>{{ $s['year'] ?? '-' }}</td>
@@ -255,7 +316,6 @@
                         <td class="amount">{{ number_format($s['other_deduction'] ?? $s['other_fine'] ?? 0, 2) }}</td>
                         <td class="amount">{{ number_format($s['gross_salary'] ?? 0, 2) }}</td>
                         <td class="amount">{{ number_format($s['payable'] ?? 0, 2) }}</td>
-                        <td class="amount">{{ number_format($s['stamp'] ?? $s['tax_payable'] ?? 0, 2) }}</td>
                         <td style="text-align: center;">
                             <a href="{{ route('salary.edit', $s['id'] ?? 0) }}" class="action-icon edit" title="Edit">
                                 <i class="bi bi-pencil-fill"></i>

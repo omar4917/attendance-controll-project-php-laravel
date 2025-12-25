@@ -10,13 +10,16 @@ class SalaryController extends Controller
 {
     use HasOrganizationContext;
 
-    public function index(DjangoApi $api)
+    public function index(Request $request, DjangoApi $api)
     {
         $orgId = $this->getOrganizationId();
-        $data = $api->salaryStatistics($orgId);
+        $month = $request->input('month', date('n'));
+        $year = $request->input('year', date('Y'));
+        
+        $data = $api->salaryStatistics($orgId, $month, $year);
         $stats = $data['statistics'] ?? ($data['data'] ?? []);
         $error = $data['error'] ?? null;
-        return view('salary.index', compact('stats', 'error'));
+        return view('salary.index', compact('stats', 'error', 'month', 'year'));
     }
 
     public function edit($id, DjangoApi $api)

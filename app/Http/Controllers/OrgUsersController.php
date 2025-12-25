@@ -13,7 +13,7 @@ class OrgUsersController extends Controller
     /**
      * List organization users
      */
-    public function index(DjangoApi $api)
+    public function index(Request $request, DjangoApi $api)
     {
         $role = session('user_role', '');
         
@@ -27,6 +27,17 @@ class OrgUsersController extends Controller
         
         $orgUsers = $response['org_users'] ?? [];
         $canManage = in_array($role, ['super_admin', 'org_main_admin']);
+        
+        // Sorting
+        $sortField = $request->input('sort', 'username');
+        $sortDir = $request->input('dir', 'asc');
+        $validSortFields = ['username', 'email', 'organization_name', 'first_name', 'role'];
+        
+        if (in_array($sortField, $validSortFields) && !empty($orgUsers)) {
+            $orgUsers = collect($orgUsers)->sortBy(function ($u) use ($sortField) {
+                return strtolower((string) ($u[$sortField] ?? ''));
+            }, SORT_REGULAR, $sortDir === 'desc')->values()->all();
+        }
         
         // If super_admin and viewing "All Organizations", get list of orgs for the "Add User" modal
         $organizations = [];

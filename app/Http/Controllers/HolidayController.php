@@ -10,12 +10,28 @@ class HolidayController extends Controller
 {
     use HasOrganizationContext;
 
-    public function index(DjangoApi $api)
+    public function index(Request $request, DjangoApi $api)
     {
         $orgId = $this->getOrganizationId();
         $data = $api->holidays($orgId);
         $holidays = $data['holidays'] ?? ($data['data'] ?? []);
         $error = $data['error'] ?? null;
+        
+        // Sorting
+        $sortField = $request->input('sort', 'start_date');
+        $sortDir = $request->input('dir', 'asc');
+        $validSortFields = ['name', 'start_date', 'end_date', 'is_active', 'is_government', 'created_at'];
+        
+        if (in_array($sortField, $validSortFields) && !empty($holidays)) {
+            $holidays = collect($holidays)->sortBy(function ($h) use ($sortField) {
+                $value = $h[$sortField] ?? '';
+                if (in_array($sortField, ['is_active', 'is_government'])) {
+                    return $value ? 1 : 0;
+                }
+                return strtolower((string) $value);
+            }, SORT_REGULAR, $sortDir === 'desc')->values()->all();
+        }
+        
         return view('holidays.index', compact('holidays', 'error'));
     }
 
@@ -39,7 +55,7 @@ class HolidayController extends Controller
 
     public function store(Request $request, DjangoApi $api)
     {
-        $payload = $request->only(['id','name','start_date','end_date','scope','is_active']);
+        $payload = $request->only(['id','name','start_date','end_date','scope','is_active','is_government']);
         $orgId = $this->getOrganizationId();
         if ($orgId) {
             $payload['organization_id'] = $orgId;
@@ -53,7 +69,7 @@ class HolidayController extends Controller
 
     public function update(Request $request, $id, DjangoApi $api)
     {
-        $payload = $request->only(['name','start_date','end_date','scope','is_active']);
+        $payload = $request->only(['name','start_date','end_date','scope','is_active','is_government']);
         $payload['id'] = $id;
         $orgId = $this->getOrganizationId();
         if ($orgId) {

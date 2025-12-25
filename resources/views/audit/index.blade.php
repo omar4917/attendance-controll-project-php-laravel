@@ -117,7 +117,7 @@
                         @forelse($logs as $log)
                         <tr>
                             <td class="text-nowrap">
-                                <small>{{ \Carbon\Carbon::parse($log['timestamp'])->format('M d, Y H:i:s') }}</small>
+                                <small>{{ \Carbon\Carbon::parse($log['timestamp'])->setTimezone('Asia/Dhaka')->format('M d, Y h:i:s A') }}</small>
                             </td>
                             <td>
                                 <strong>{{ $log['user_name'] ?: $log['user_email'] }}</strong>

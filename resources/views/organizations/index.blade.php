@@ -113,6 +113,23 @@
         text-decoration: underline;
     }
 
+    .th-sortable {
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+    .th-sortable:hover {
+        color: var(--accent-color, #198754);
+        text-decoration: none;
+    }
+    .th-sortable.active {
+        color: var(--accent-color, #198754);
+    }
+
     /* Status badges */
     .badge {
         padding: 4px 8px;
@@ -218,17 +235,47 @@
 </div>
 
 <!-- Organizations Table -->
+@php
+    $currentSort = request('sort', 'name');
+    $currentDir = request('dir', 'asc');
+    $toggleDir = $currentDir === 'asc' ? 'desc' : 'asc';
+    $sortParams = request()->except(['sort', 'dir']);
+@endphp
 <table class="admin-table">
     <thead>
         <tr>
             <th></th>
-            <th>NAME</th>
-            <th>SLUG</th>
-            <th>EMPLOYEES</th>
-            <th>DEVICES</th>
+            <th>
+                <a href="{{ route('organizations.index', array_merge($sortParams, ['sort' => 'name', 'dir' => $currentSort === 'name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'name' ? 'active' : '' }}">
+                    NAME {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
+            <th>
+                <a href="{{ route('organizations.index', array_merge($sortParams, ['sort' => 'slug', 'dir' => $currentSort === 'slug' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'slug' ? 'active' : '' }}">
+                    SLUG {!! $currentSort === 'slug' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
+            <th>
+                <a href="{{ route('organizations.index', array_merge($sortParams, ['sort' => 'employee_count', 'dir' => $currentSort === 'employee_count' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'employee_count' ? 'active' : '' }}">
+                    EMPLOYEES {!! $currentSort === 'employee_count' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
+            <th>
+                <a href="{{ route('organizations.index', array_merge($sortParams, ['sort' => 'device_count', 'dir' => $currentSort === 'device_count' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'device_count' ? 'active' : '' }}">
+                    DEVICES {!! $currentSort === 'device_count' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
             <th>CONTACT</th>
-            <th>STATUS</th>
-            <th>CREATED</th>
+            <th>
+                <a href="{{ route('organizations.index', array_merge($sortParams, ['sort' => 'is_active', 'dir' => $currentSort === 'is_active' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'is_active' ? 'active' : '' }}">
+                    STATUS {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
+            <th>
+                <a href="{{ route('organizations.index', array_merge($sortParams, ['sort' => 'created_at', 'dir' => $currentSort === 'created_at' ? $toggleDir : 'desc'])) }}" class="th-sortable {{ $currentSort === 'created_at' ? 'active' : '' }}">
+                    CREATED {!! $currentSort === 'created_at' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
             <th>ACTIONS</th>
         </tr>
     </thead>

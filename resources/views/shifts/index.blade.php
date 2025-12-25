@@ -36,6 +36,21 @@
     .admin-table tr:nth-child(even) {
         background: var(--bg-quaternary);
     }
+    .th-sortable {
+        color: var(--text-primary);
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+    .th-sortable:hover {
+        color: var(--btn-primary);
+    }
+    .th-sortable.active {
+        color: var(--btn-primary);
+    }
     
     .badge {
         padding: 4px 8px;
@@ -138,20 +153,44 @@
     </div>
 
     <div class="admin-table-container">
+        @php
+            $currentSort = request('sort', 'name');
+            $currentDir = request('dir', 'asc');
+            $toggleDir = $currentDir === 'asc' ? 'desc' : 'asc';
+            $sortParams = request()->except(['sort', 'dir']);
+        @endphp
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Time</th>
+                    <th>Owner</th>
+                    <th>
+                        <a href="{{ route('shifts.index', array_merge($sortParams, ['sort' => 'name', 'dir' => $currentSort === 'name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'name' ? 'active' : '' }}">
+                            Name {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ route('shifts.index', array_merge($sortParams, ['sort' => 'start', 'dir' => $currentSort === 'start' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'start' ? 'active' : '' }}">
+                            Time {!! $currentSort === 'start' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        </a>
+                    </th>
                     <th>Hours (H/P)</th>
-                    <th>Late (min)</th>
-                    <th>Active</th>
+                    <th>
+                        <a href="{{ route('shifts.index', array_merge($sortParams, ['sort' => 'allowed_late_minutes', 'dir' => $currentSort === 'allowed_late_minutes' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'allowed_late_minutes' ? 'active' : '' }}">
+                            Late (min) {!! $currentSort === 'allowed_late_minutes' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ route('shifts.index', array_merge($sortParams, ['sort' => 'is_active', 'dir' => $currentSort === 'is_active' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'is_active' ? 'active' : '' }}">
+                            Active {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        </a>
+                    </th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
             @forelse($shifts as $s)
                 <tr>
+                    <td>{{ $s['organization_name'] ?? 'Global' }}</td>
                     <td style="font-weight:600;">{{ $s['name'] }}</td>
                     <td>{{ $s['start'] }} - {{ $s['end'] }}</td>
                     <td>{{ $s['half_day_hours'] }} / {{ $s['present_hours'] }}</td>
@@ -175,7 +214,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-secondary);">No shifts found.</td></tr>
+                <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-secondary);">No shifts found.</td></tr>
             @endforelse
             </tbody>
         </table>

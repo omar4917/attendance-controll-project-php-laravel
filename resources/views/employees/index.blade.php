@@ -90,22 +90,22 @@
     }
 
     .btn-primary {
-        background: var(--accent);
-        color: var(--btn-primary-text);
+        background: #198754 !important;
+        color: #ffffff !important;
     }
 
     .btn-primary:hover {
-        background: var(--accent-hover);
+        background: #157347 !important;
     }
 
     .btn-secondary {
-        background: var(--bg-hover);
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
+        background: #f8f9fa !important;
+        color: #333333 !important;
+        border: 1px solid #dee2e6;
     }
 
     .btn-secondary:hover {
-        background: var(--border-color);
+        background: #e9ecef !important;
     }
 
     .btn-dark {
@@ -138,6 +138,24 @@
         font-size: 12px;
         text-transform: uppercase;
         border-bottom: 2px solid var(--border-color);
+    }
+
+    .th-sortable {
+        color: var(--text-primary);
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+
+    .th-sortable:hover {
+        color: var(--accent);
+    }
+
+    .th-sortable.active {
+        color: var(--accent);
     }
 
     .data-table td {
@@ -187,6 +205,18 @@
     }
 
     .link-primary:hover {
+        text-decoration: underline;
+    }
+
+    .link-filter {
+        color: var(--text-primary);
+        text-decoration: none;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .link-filter:hover {
+        color: var(--accent);
         text-decoration: underline;
     }
 
@@ -328,17 +358,54 @@
 </form>
 
 <!-- Table -->
+@php
+    $currentSort = request('sort', 'name');
+    $currentDir = request('dir', 'asc');
+    $toggleDir = $currentDir === 'asc' ? 'desc' : 'asc';
+    
+    // Build base URL with existing filters
+    $sortParams = request()->except(['sort', 'dir']);
+@endphp
 <div style="overflow-x:auto;">
     <table class="data-table">
         <thead>
             <tr>
                 <th style="width: 40px;">#</th>
-                <th>Employee ID</th>
-                <th>Name</th>
-                <th>Department</th>
-                <th>Designation</th>
-                <th>Monthly Salary</th>
-                <th>Is Active</th>
+                <th>
+                    <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'employee_id', 'dir' => $currentSort === 'employee_id' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'employee_id' ? 'active' : '' }}">
+                        Employee ID {!! $currentSort === 'employee_id' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'name', 'dir' => $currentSort === 'name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'name' ? 'active' : '' }}">
+                        Name {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'organization_name', 'dir' => $currentSort === 'organization_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'organization_name' ? 'active' : '' }}">
+                        Organization {!! $currentSort === 'organization_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'department', 'dir' => $currentSort === 'department' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'department' ? 'active' : '' }}">
+                        Department {!! $currentSort === 'department' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'designation', 'dir' => $currentSort === 'designation' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'designation' ? 'active' : '' }}">
+                        Designation {!! $currentSort === 'designation' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'monthly_salary', 'dir' => $currentSort === 'monthly_salary' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'monthly_salary' ? 'active' : '' }}">
+                        Monthly Salary {!! $currentSort === 'monthly_salary' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'is_active', 'dir' => $currentSort === 'is_active' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'is_active' ? 'active' : '' }}">
+                        Is Active {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
                 <th>Template Synced</th>
                 <th style="text-align:right;">Actions</th>
             </tr>
@@ -363,8 +430,33 @@
                         {{ $emp['name'] ?? '-' }}
                     </a>
                 </td>
-                <td>{{ $emp['department'] ?? '-' }}</td>
-                <td>{{ $emp['designation'] ?? '-' }}</td>
+                <td style="font-size:12px;">
+                    @if($emp['organization_name'] ?? null)
+                        <a href="{{ route('employees.index', ['organization_id' => $emp['organization_id'] ?? '']) }}" 
+                           class="link-filter" style="color:var(--accent);"
+                           title="Filter by this organization">{{ $emp['organization_name'] }}</a>
+                    @else
+                        -
+                    @endif
+                </td>
+                <td>
+                    @if($emp['department'] ?? null)
+                        <a href="{{ route('employees.index', ['department' => $emp['department']]) }}" 
+                           class="link-filter"
+                           title="Filter by this department">{{ $emp['department'] }}</a>
+                    @else
+                        -
+                    @endif
+                </td>
+                <td>
+                    @if($emp['designation'] ?? null)
+                        <a href="{{ route('employees.index', ['designation' => $emp['designation']]) }}" 
+                           class="link-filter"
+                           title="Filter by this designation">{{ $emp['designation'] }}</a>
+                    @else
+                        -
+                    @endif
+                </td>
                 <td>{{ number_format($emp['monthly_salary'] ?? 0, 2) }}</td>
                 <td style="text-align:center;">
                     @if(!empty($emp['is_active']))
@@ -387,7 +479,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">No employees found.</td>
+                <td colspan="10" style="text-align:center; padding: 40px; color: var(--text-muted);">No employees found.</td>
             </tr>
             @endforelse
         </tbody>

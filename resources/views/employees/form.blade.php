@@ -88,6 +88,28 @@
         <input type="hidden" name="popup" value="1">
     @endif
 
+    {{-- Organization Field --}}
+    <div class="form-group" style="margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid var(--border-color);">
+        <label>Organization *</label>
+        @if(($isSuperAdmin ?? false) && count($organizations ?? []) > 0)
+            {{-- Super Admin: Show searchable dropdown --}}
+            <select name="organization_id" id="emp-org-selector" required style="width:100%;">
+                <option value="">Select Organization...</option>
+                @foreach($organizations as $org)
+                    <option value="{{ $org['id'] }}" 
+                        {{ old('organization_id', $employee['organization_id'] ?? $orgId ?? '') == $org['id'] ? 'selected' : '' }}>
+                        {{ $org['name'] }}
+                    </option>
+                @endforeach
+            </select>
+        @else
+            {{-- Org Admin: Show read-only field --}}
+            <input type="hidden" name="organization_id" value="{{ $orgId ?? '' }}">
+            <input type="text" value="{{ $organizationName ?? 'Current Organization' }}" readonly 
+                   style="background:#eee; cursor:not-allowed;">
+        @endif
+    </div>
+
     <div class="grid-2">
         <div class="form-group">
             <label>Employee ID *</label>
@@ -156,13 +178,15 @@
     </div>
 
     <div class="form-group">
-        <label>Employee Image</label>
-        @if(!empty($employee['face_image']))
-            <div style="margin-bottom:5px;">
-                <img src="data:image/jpeg;base64,{{ $employee['face_image'] }}" style="height:50px; border-radius:4px;">
-            </div>
-        @endif
-        <input type="file" name="employee_image">
+        <label>Employee Image (Click image to adjust)</label>
+        <div style="margin-bottom:5px; cursor:pointer;" id="previewContainer" title="Click to calculate position">
+            @if(!empty($employee['face_image']))
+                <img id="previewImage" src="data:image/jpeg;base64,{{ $employee['face_image'] }}" style="height:100px; width:100px; object-fit:cover; border-radius:4px; border:1px solid #ccc;">
+            @else
+                 <img id="previewImage" src="https://via.placeholder.com/100?text=No+Image" style="height:100px; width:100px; object-fit:cover; border-radius:4px; border:1px solid #ccc; display:none;">
+            @endif
+        </div>
+        <input type="file" name="employee_image" id="inputImage" accept="image/*">
     </div>
 
     <div class="form-group">
@@ -172,4 +196,119 @@
 
     <button type="submit" class="btn-submit">SAVE</button>
 </form>
+
+<!-- Cropper Modal -->
+<div id="cropperModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:20px; border-radius:8px; width:90%; max-width:500px; max-height:90%; overflow:hidden; display:flex; flex-direction:column;">
+        <h3 style="margin-top:0;">Adjust Image</h3>
+        <div style="max-height:400px; overflow:hidden; margin-bottom:15px;">
+            <img id="imageToCrop" style="max-width:100%;">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" id="btnCancelCrop" style="padding:8px 16px; border:1px solid #ccc; background:#fff; border-radius:4px; cursor:pointer;">Cancel</button>
+            <button type="button" id="btnCrop" style="padding:8px 16px; border:none; background:var(--btn-primary); color:#fff; border-radius:4px; cursor:pointer;">Set Image</button>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+@push('scripts')
+<script>
+    let cropper;
+    const inputImage = document.getElementById('inputImage');
+    const modal = document.getElementById('cropperModal');
+    const image = document.getElementById('imageToCrop');
+    const btnCrop = document.getElementById('btnCrop');
+    const btnCancel = document.getElementById('btnCancelCrop');
+    const previewImage = document.getElementById('previewImage');
+    const previewContainer = document.getElementById('previewContainer');
+
+    // Handle File Input Change
+    inputImage.addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            // Check if this is a scripted event (our own set files) to avoid double modal?
+            // Actually, setting files via DataTransfer DOES NOT trigger 'change' event in most browsers.
+            // So this handles Manual Selection only.
+            
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                openCropper(evt.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Handle Click on Preview
+    previewContainer.addEventListener('click', function() {
+        if(previewImage && previewImage.src && previewImage.src.startsWith('data') || previewImage.src.startsWith('blob')) {
+             openCropper(previewImage.src);
+        }
+    });
+
+    function openCropper(src) {
+        image.src = src;
+        modal.style.display = 'flex';
+        if (cropper) {
+            cropper.destroy();
+        }
+        cropper = new Cropper(image, {
+            aspectRatio: 1, 
+            viewMode: 1,
+            minCropBoxWidth: 100,
+            minCropBoxHeight: 100,
+        });
+    }
+
+    btnCancel.addEventListener('click', function() {
+        modal.style.display = 'none';
+        // Do not clear. Just cancel editing.
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+    });
+
+    btnCrop.addEventListener('click', function() {
+        if (cropper) {
+            cropper.getCroppedCanvas({
+                width: 300,
+                height: 300,
+            }).toBlob(function(blob) {
+                // Update Preview
+                const url = URL.createObjectURL(blob);
+                previewImage.src = url;
+                previewImage.style.display = 'block';
+
+                // Assign to input
+                const newFile = new File([blob], "profile_cropped.jpg", { type: "image/jpeg" });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(newFile);
+                inputImage.files = dataTransfer.files;
+                
+                modal.style.display = 'none';
+            }, 'image/jpeg');
+        }
+    });
+</script>
+@endpush
+
+@if(($isSuperAdmin ?? false) && count($organizations ?? []) > 0)
+@push('scripts')
+<script>
+$(document).ready(function() {
+    if ($('#emp-org-selector').length) {
+        $('#emp-org-selector').select2({
+            placeholder: 'Search organization...',
+            allowClear: false,
+            width: '100%'
+        });
+    }
+});
+</script>
+@endpush
+@endif
 @endsection

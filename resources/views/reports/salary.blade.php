@@ -258,8 +258,19 @@
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>
-                            <div style="font-weight:bold;">{{ $row['employee_name'] }}</div>
-                            <div style="font-size:10px; color:#aaa;">{{ $row['employee_id'] }}</div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                @if(!empty($row['face_image']))
+                                    <img src="data:image/jpeg;base64,{{ $row['face_image'] }}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ccc;">
+                                @else
+                                    <div style="width:30px; height:30px; border-radius:50%; background:#6c757d; color:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">
+                                        {{ strtoupper(substr($row['employee_name'] ?? 'N', 0, 1)) }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <div style="font-weight:bold;">{{ $row['employee_name'] }}</div>
+                                    <div style="font-size:10px; color:#aaa;">{{ $row['employee_id'] }}</div>
+                                </div>
+                            </div>
                         </td>
                         <td>{{ $row['joining_date'] ?? '-' }}</td>
                         <td>{{ $row['bank_info'] ?? '-' }}</td>

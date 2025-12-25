@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Select2 for searchable dropdowns -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         /* ============================================
            THEME 1: LIGHT GREEN (Default)
@@ -485,6 +487,46 @@
             border-color: var(--border-color);
         }
 
+        /* Select2 dropdown styling - ensure visible text */
+        .select2-container--default .select2-selection--single {
+            background: #ffffff !important;
+            border: 1px solid #ced4da !important;
+            color: #333333 !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #333333 !important;
+        }
+
+        .select2-container--default .select2-results__option {
+            color: #333333 !important;
+        }
+
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            color: #333333 !important;
+            background: #ffffff !important;
+        }
+
+        /* Fix red-bordered validation inputs text color */
+        input[style*="border"][style*="red"],
+        input[style*="dc3545"],
+        .is-invalid,
+        .has-error input {
+            color: #333333 !important;
+            background: #ffffff !important;
+        }
+
+        /* All select elements should have visible text */
+        select {
+            color: #333333 !important;
+            background: #ffffff !important;
+        }
+
+        select option {
+            color: #333333 !important;
+            background: #ffffff !important;
+        }
+
         /* Dropdowns */
         .dropdown-menu {
             background: var(--bg-card);
@@ -535,26 +577,26 @@
         </a>
         <ul class="menu">
             <li><a href="{{ route('analytics.index') }}" class="{{ request()->routeIs('analytics.*') ? 'active' : '' }}"><i class="bi bi-graph-up"></i> Analytics Dashboard</a></li>
-            <li><a href="{{ route('attendance.index') }}"><i class="bi bi-calendar-check"></i> Attendance Dashboard</a></li>
-            <li><a href="{{ route('attendance-records.index') }}"><i class="bi bi-list-check"></i> Attendance Records</a></li>
-            <li><a href="{{ route('employees.index') }}"><i class="bi bi-people"></i> Employees</a></li>
-            <li><a href="{{ route('livefeed.index') }}"><i class="bi bi-broadcast"></i> Live Feed</a></li>
-            <li><a href="{{ route('shifts.index') }}"><i class="bi bi-clock"></i> Shifts</a></li>
-            <li><a href="{{ route('salary.defaults') }}"><i class="bi bi-sliders"></i> Salary Defaults</a></li>
-            <li><a href="{{ route('salary.index') }}"><i class="bi bi-cash-stack"></i> Salary Statistics</a></li>
-            <li><a href="{{ route('holidays.index') }}"><i class="bi bi-calendar-heart"></i> Holidays</a></li>
-            <li><a href="{{ route('reports.index') }}"><i class="bi bi-file-earmark-text"></i> Reports</a></li>
-            <li><a href="{{ route('settings.voice_message') }}"><i class="bi bi-volume-up"></i> Voice & Message</a></li>
-            <li><a href="{{ route('settings.context') }}"><i class="bi bi-gear"></i> Context Settings</a></li>
-            <li><a href="{{ route('settings.company') }}"><i class="bi bi-building-gear"></i> My Organization</a></li>
+            <li><a href="{{ route('attendance.index') }}" class="{{ request()->routeIs('attendance.*') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> Attendance Dashboard</a></li>
+            <li><a href="{{ route('attendance-records.index') }}" class="{{ request()->routeIs('attendance-records.*') ? 'active' : '' }}"><i class="bi bi-list-check"></i> Attendance Records</a></li>
+            <li><a href="{{ route('employees.index') }}" class="{{ request()->routeIs('employees.*') ? 'active' : '' }}"><i class="bi bi-people"></i> Employees</a></li>
+            <li><a href="{{ route('livefeed.index') }}" class="{{ request()->routeIs('livefeed.*') ? 'active' : '' }}"><i class="bi bi-broadcast"></i> Live Feed</a></li>
+            <li><a href="{{ route('shifts.index') }}" class="{{ request()->routeIs('shifts.*') ? 'active' : '' }}"><i class="bi bi-clock"></i> Shifts</a></li>
+            <li><a href="{{ route('salary.defaults') }}" class="{{ request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-sliders"></i> Salary Defaults</a></li>
+            <li><a href="{{ route('salary.index') }}" class="{{ request()->routeIs('salary.*') && !request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-cash-stack"></i> Salary Statistics</a></li>
+            <li><a href="{{ route('holidays.index') }}" class="{{ request()->routeIs('holidays.*') ? 'active' : '' }}"><i class="bi bi-calendar-heart"></i> Holidays</a></li>
+            <li><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> Reports</a></li>
+            <li><a href="{{ route('settings.voice_message') }}" class="{{ request()->routeIs('settings.voice_message') ? 'active' : '' }}"><i class="bi bi-volume-up"></i> Voice & Message</a></li>
+            <li><a href="{{ route('settings.context') }}" class="{{ request()->routeIs('settings.context') ? 'active' : '' }}"><i class="bi bi-gear"></i> Context Settings</a></li>
+            <li><a href="{{ route('settings.company') }}" class="{{ request()->routeIs('settings.company') ? 'active' : '' }}"><i class="bi bi-building-gear"></i> My Organization</a></li>
             @if(in_array(session('user_role'), ['super_admin', 'org_main_admin', 'org_admin']))
-            <li><a href="{{ route('org-users.index') }}"><i class="bi bi-person-gear"></i> Manage Users</a></li>
+            <li><a href="{{ route('org-users.index') }}" class="{{ request()->routeIs('org-users.*') ? 'active' : '' }}"><i class="bi bi-person-gear"></i> Manage Users</a></li>
             @endif
             @if(session('user_role') === 'super_admin')
-            <li><a href="{{ route('settings.integration') }}"><i class="bi bi-plug"></i> Integration</a></li>
+            <li><a href="{{ route('settings.integration') }}" class="{{ request()->routeIs('settings.integration') ? 'active' : '' }}"><i class="bi bi-plug"></i> Integration</a></li>
             @endif
-            <li><a href="{{ route('audit.index') }}"><i class="bi bi-clock-history"></i> Audit Logs</a></li>
-            <li><a href="{{ route('export.index') }}"><i class="bi bi-arrow-down-up"></i> Export / Import</a></li>
+            <li><a href="{{ route('audit.index') }}" class="{{ request()->routeIs('audit.*') ? 'active' : '' }}"><i class="bi bi-clock-history"></i> Audit Logs</a></li>
+            <li><a href="{{ route('export.index') }}" class="{{ request()->routeIs('export.*') ? 'active' : '' }}"><i class="bi bi-arrow-down-up"></i> Export / Import</a></li>
             @if(session('user_role') === 'super_admin')
             <li style="border-top:1px solid var(--border-color); margin-top:10px; padding-top:10px;">
                 <a href="{{ route('organizations.index') }}" class="{{ request()->routeIs('organizations.*') ? 'active' : '' }}">
@@ -571,11 +613,17 @@
             <div class="header-title">
                 Employee Management System
                 @if(session('user_role') === 'super_admin' && session('selected_organization_name'))
-                    <span style="font-size:0.8rem; font-weight:400; margin-left:10px; padding:4px 10px; background:var(--accent); color:white; border-radius:4px;">
+                    <span style="font-size:0.8rem; font-weight:400; margin-left:10px; padding:4px 10px; background:var(--accent); color:white; border-radius:4px; display:inline-flex; align-items:center; gap:6px;">
+                        @if(session('selected_organization_logo'))
+                            <img src="/media/{{ session('selected_organization_logo') }}" alt="Logo" style="height:20px; width:20px; border-radius:3px; object-fit:cover; background:white;">
+                        @endif
                         {{ session('selected_organization_name') }}
                     </span>
                 @elseif(session('organization_name'))
-                    <span style="font-size:0.8rem; font-weight:400; margin-left:10px; padding:4px 10px; background:var(--accent); color:white; border-radius:4px;">
+                    <span style="font-size:0.8rem; font-weight:400; margin-left:10px; padding:4px 10px; background:var(--accent); color:white; border-radius:4px; display:inline-flex; align-items:center; gap:6px;">
+                        @if(session('organization_logo'))
+                            <img src="/media/{{ session('organization_logo') }}" alt="Logo" style="height:20px; width:20px; border-radius:3px; object-fit:cover; background:white;">
+                        @endif
                         {{ session('organization_name') }}
                     </span>
                 @endif
@@ -583,9 +631,9 @@
             <div class="header-actions">
                 @if(session('user_role') === 'super_admin' && count(session('organizations', [])) > 0)
                 <!-- Organization Selector for Super Admin -->
-                <form action="{{ route('switch.organization') }}" method="POST" style="margin:0; display:flex; align-items:center; gap:8px;">
+                <form action="{{ route('switch.organization') }}" method="POST" id="org-switch-form" style="margin:0; display:flex; align-items:center; gap:8px;">
                     @csrf
-                    <select name="organization_id" onchange="this.form.submit()" style="padding:5px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); font-size:12px;">
+                    <select name="organization_id" id="org-selector" style="width:220px;" onchange="this.form.submit()">
                         <option value="all" {{ !session('selected_organization_id') ? 'selected' : '' }}>All Organizations</option>
                         @foreach(session('organizations', []) as $org)
                             <option value="{{ $org['id'] }}" {{ session('selected_organization_id') == $org['id'] ? 'selected' : '' }}>
@@ -621,7 +669,10 @@
             @yield('content')
         </main>
     </div>
+    </div>
 </div>
+
+@yield('modal')
 
 <script>
     // Theme Switcher Logic
@@ -676,5 +727,62 @@
 
 @stack('scripts')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize Select2 on organization dropdown
+    if ($('#org-selector').length) {
+        $('#org-selector').select2({
+            placeholder: 'Search organization...',
+            allowClear: false,
+            minimumResultsForSearch: 0, // Always show search
+            width: '220px'
+        }).on('change', function() {
+            $('#org-switch-form').submit();
+        });
+    }
+});
+</script>
+<style>
+/* Select2 Theme Styling */
+.select2-container--default .select2-selection--single {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    height: 32px;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--text-primary);
+    line-height: 30px;
+    font-size: 12px;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 30px;
+}
+.select2-dropdown {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    border-color: var(--input-border);
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--accent);
+    color: var(--btn-primary-text);
+}
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+}
+.select2-results__option {
+    color: var(--text-primary);
+    font-size: 12px;
+}
+</style>
 </body>
 </html>

@@ -10,12 +10,31 @@ class ShiftController extends Controller
 {
     use HasOrganizationContext;
 
-    public function index(DjangoApi $api)
+    public function index(Request $request, DjangoApi $api)
     {
         $orgId = $this->getOrganizationId();
         $data = $api->shifts($orgId);
         $shifts = $data['shifts'] ?? ($data['data'] ?? []);
         $error = $data['error'] ?? null;
+        
+        // Sorting
+        $sortField = $request->input('sort', 'name');
+        $sortDir = $request->input('dir', 'asc');
+        $validSortFields = ['name', 'start', 'allowed_late_minutes', 'is_active'];
+        
+        if (in_array($sortField, $validSortFields) && !empty($shifts)) {
+            $shifts = collect($shifts)->sortBy(function ($s) use ($sortField) {
+                $value = $s[$sortField] ?? '';
+                if ($sortField === 'allowed_late_minutes') {
+                    return (int) $value;
+                }
+                if ($sortField === 'is_active') {
+                    return $value ? 1 : 0;
+                }
+                return strtolower((string) $value);
+            }, SORT_REGULAR, $sortDir === 'desc')->values()->all();
+        }
+        
         return view('shifts.index', compact('shifts', 'error'));
     }
 

@@ -137,6 +137,7 @@ class AuthController extends Controller
             // Clear org selection - show all data
             Session::put('selected_organization_id', null);
             Session::put('selected_organization_name', 'All Organizations');
+            Session::put('selected_organization_logo', null);
         } else {
             // Find org in available list
             $organizations = Session::get('organizations', []);
@@ -145,6 +146,7 @@ class AuthController extends Controller
             if ($selectedOrg) {
                 Session::put('selected_organization_id', $selectedOrg['id']);
                 Session::put('selected_organization_name', $selectedOrg['name']);
+                Session::put('selected_organization_logo', $selectedOrg['logo'] ?? null);
             }
         }
 

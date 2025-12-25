@@ -15,7 +15,11 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\OrgUsersController;
+use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
+
+// Media proxy - serve Django media files through Laravel (no auth required)
+Route::get('/media/{path}', [MediaController::class, 'proxy'])->where('path', '.*')->name('media.proxy');
 
 // Auth routes (public)
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -46,6 +50,7 @@ Route::middleware(['web', 'django.auth'])->group(function () {
     Route::post('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
     Route::post('/attendance/import', [AttendanceController::class, 'import'])->name('attendance.import');
     Route::get('/attendance/pdf', [AttendanceController::class, 'downloadPdf'])->name('attendance.pdf');
+    Route::get('/reports/salary/pdf', [AttendanceController::class, 'downloadSalaryPdf'])->name('reports.salary.pdf');
     
     // Attendance Records (Manual CRUD)
     Route::get('/attendance-records', [AttendanceRecordController::class, 'index'])->name('attendance-records.index');

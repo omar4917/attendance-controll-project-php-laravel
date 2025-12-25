@@ -39,6 +39,21 @@
         font-size: 0.85rem;
         text-transform: uppercase;
     }
+    .th-sortable {
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: opacity 0.2s;
+    }
+    .th-sortable:hover {
+        opacity: 0.8;
+    }
+    .th-sortable.active {
+        font-weight: 700;
+    }
 
     .users-table td {
         padding: 12px 15px;
@@ -225,14 +240,40 @@
 @endif
 
 <div class="users-table">
+    @php
+        $currentSort = request('sort', 'username');
+        $currentDir = request('dir', 'asc');
+        $toggleDir = $currentDir === 'asc' ? 'desc' : 'asc';
+        $sortParams = request()->except(['sort', 'dir']);
+    @endphp
     <table>
         <thead>
             <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Organization</th>
-                <th>Name</th>
-                <th>Role</th>
+                <th>
+                    <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'username', 'dir' => $currentSort === 'username' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'username' ? 'active' : '' }}">
+                        Username {!! $currentSort === 'username' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'email', 'dir' => $currentSort === 'email' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'email' ? 'active' : '' }}">
+                        Email {!! $currentSort === 'email' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'organization_name', 'dir' => $currentSort === 'organization_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'organization_name' ? 'active' : '' }}">
+                        Organization {!! $currentSort === 'organization_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'first_name', 'dir' => $currentSort === 'first_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'first_name' ? 'active' : '' }}">
+                        Name {!! $currentSort === 'first_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'role', 'dir' => $currentSort === 'role' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'role' ? 'active' : '' }}">
+                        Role {!! $currentSort === 'role' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    </a>
+                </th>
                 <th>Created By</th>
                 @if($canManage)<th>Actions</th>@endif
             </tr>

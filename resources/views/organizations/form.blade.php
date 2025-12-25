@@ -178,6 +178,37 @@
             <textarea class="form-control" id="address" name="address" rows="3">{{ old('address', $organization['address'] ?? '') }}</textarea>
         </div>
 
+        @if(!isset($organization))
+        <h3 class="section-title">Main Organization Admin</h3>
+        <p class="form-help" style="margin-bottom:15px;">Create the primary administrator account for this organization.</p>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="admin_username">Admin Username</label>
+                <input type="text" class="form-control" id="admin_username" name="admin_username" 
+                       value="{{ old('admin_username') }}" placeholder="e.g. admin_company">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="admin_email">Admin Email</label>
+                <input type="email" class="form-control" id="admin_email" name="admin_email" 
+                       value="{{ old('admin_email') }}" placeholder="admin@company.com">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="admin_password">Admin Password</label>
+                <input type="password" class="form-control" id="admin_password" name="admin_password" placeholder="Min. 8 characters">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="admin_password_confirmation">Confirm Password</label>
+                <input type="password" class="form-control" id="admin_password_confirmation" name="admin_password_confirmation">
+            </div>
+        </div>
+        @endif
+
         <h3 class="section-title">Subscription Plan</h3>
 
         <div class="form-group">

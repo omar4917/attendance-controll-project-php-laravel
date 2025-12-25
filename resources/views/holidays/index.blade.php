@@ -139,6 +139,23 @@
         text-decoration: underline;
     }
 
+    .th-sortable {
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+    .th-sortable:hover {
+        color: var(--accent-color);
+        text-decoration: none;
+    }
+    .th-sortable.active {
+        color: var(--accent-color);
+    }
+
     /* Status Icons */
     .icon-yes { color: #198754; font-weight: bold; }
     .icon-no { color: #dc3545; font-weight: bold; }
@@ -165,20 +182,52 @@
     </form>
 </div>
 
+@php
+    $currentSort = request('sort', 'start_date');
+    $currentDir = request('dir', 'asc');
+    $toggleDir = $currentDir === 'asc' ? 'desc' : 'asc';
+    $sortParams = request()->except(['sort', 'dir']);
+@endphp
 <table class="admin-table">
     <thead>
         <tr>
-            <th>NAME</th>
-            <th>START DATE</th>
-            <th>END DATE</th>
-            <th>IS ACTIVE</th>
-            <th>IS GOVERNMENT</th>
-            <th>CREATED AT</th>
+            <th>OWNER</th>
+            <th>
+                <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'name', 'dir' => $currentSort === 'name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'name' ? 'active' : '' }}">
+                    NAME {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
+            <th>
+                <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'start_date', 'dir' => $currentSort === 'start_date' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'start_date' ? 'active' : '' }}">
+                    START DATE {!! $currentSort === 'start_date' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
+            <th>
+                <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'end_date', 'dir' => $currentSort === 'end_date' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'end_date' ? 'active' : '' }}">
+                    END DATE {!! $currentSort === 'end_date' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
+            <th>
+                <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'is_active', 'dir' => $currentSort === 'is_active' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'is_active' ? 'active' : '' }}">
+                    IS ACTIVE {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
+            <th>
+                <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'is_government', 'dir' => $currentSort === 'is_government' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'is_government' ? 'active' : '' }}">
+                    IS GOVERNMENT {!! $currentSort === 'is_government' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
+            <th>
+                <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'created_at', 'dir' => $currentSort === 'created_at' ? $toggleDir : 'desc'])) }}" class="th-sortable {{ $currentSort === 'created_at' ? 'active' : '' }}">
+                    CREATED AT {!! $currentSort === 'created_at' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                </a>
+            </th>
         </tr>
     </thead>
     <tbody>
         @forelse($holidays as $h)
         <tr>
+            <td>{{ $h['organization_name'] ?? 'Global' }}</td>
             <td><a href="{{ route('holidays.edit', $h['id'] ?? 0) }}">{{ $h['name'] ?? '-' }}</a></td>
             <td>{{ $h['start_date'] ?? '-' }}</td>
             <td>{{ $h['end_date'] ?? '-' }}</td>
@@ -200,7 +249,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="6" style="text-align:center; padding: 30px; color: #666;">No holidays found.</td>
+            <td colspan="7" style="text-align:center; padding: 30px; color: #666;">No holidays found.</td>
         </tr>
         @endforelse
     </tbody>
@@ -210,3 +259,88 @@
     {{ count($holidays) }} holidays
 </div>
 @endsection
+
+@section('modal')
+@if(request('action') == 'add')
+<div class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Add New Holiday</h3>
+            <a href="{{ route('holidays.index') }}" class="close-btn">×</a>
+        </div>
+        <form action="{{ route('holidays.store') }}" method="POST">
+            @csrf
+            
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" name="name" required placeholder="Holiday Name">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Start Date</label>
+                <input type="date" class="form-control" name="start_date" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">End Date</label>
+                <input type="date" class="form-control" name="end_date" required>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="new_is_active" name="is_active" value="1" checked>
+                <label class="form-check-label" for="new_is_active">Is Active</label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="new_is_government" name="is_government" value="1">
+                <label class="form-check-label" for="new_is_government">Is Government Holiday</label>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn-save">Create Holiday</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+@endsection
+
+@push('head')
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    .modal-box {
+        background: #fff;
+        padding: 25px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    .modal-header h3 { margin: 0; font-size: 1.25rem; }
+    .close-btn { font-size: 1.5rem; text-decoration: none; color: #666; cursor: pointer; }
+    
+    /* Reuse form styles from edit page if not global */
+    .form-group { margin-bottom: 15px; }
+    .form-label { display: block; font-weight: 600; margin-bottom: 5px; }
+    .form-control { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    .form-check { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .btn-save { background: #198754; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; width: 100%; }
+    .btn-save:hover { background: #157347; }
+</style>
+@endpush

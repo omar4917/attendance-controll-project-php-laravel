@@ -22,7 +22,7 @@ class DjangoApi
             Session::get('django_base_url') 
             ?: Cache::get('django_base_url')
             ?: env('DJANGO_BASE_URL') 
-            ?: 'http://127.0.0.1:8001', 
+            ?: 'http://127.0.0.1:8000', 
             '/'
         );
         $this->apiKey = config('django.api_key', env('DJANGO_API_KEY'));
@@ -190,9 +190,23 @@ class DjangoApi
 
     public function upsertAttendance(array $payload, $files = []): array
     {
-        $method = !empty($payload['id']) ? 'PUT' : 'POST';
+        // For multipart requests (files), we MUST use POST because Django doesn't parse
+        // multipart body for PUT requests into request.POST/request.FILES automatically.
+        // The View handles both POST and PUT and uses 'id' to distinguish update vs create.
+        if (!empty($files)) {
+            $method = 'POST';
+        } else {
+            $method = !empty($payload['id']) ? 'PUT' : 'POST';
+        }
+        \Log::info("=== UPSERT_ATTENDANCE called ===", [
+            'method' => $method,
+            'files_count' => count($files),
+            'files_empty' => empty($files),
+            'employee_id' => $payload['employee_id'] ?? 'MISSING'
+        ]);
         
         if (!empty($files)) {
+            \Log::info("=== UPSERT: Using MULTIPART path ===");
             try {
                 $multipart = [];
                 foreach ($files as $key => $file) {
@@ -202,18 +216,25 @@ class DjangoApi
                             'contents' => fopen($file->getPathname(), 'r'),
                             'filename' => $file->getClientOriginalName(),
                         ];
+                        \Log::info("Added file to multipart: {$key} = " . $file->getClientOriginalName());
                     }
                 }
                 foreach ($payload as $key => $value) {
-                    $multipart[] = ['name' => $key, 'contents' => $value];
+                    $multipart[] = ['name' => $key, 'contents' => (string) $value];
+                    \Log::info("Added field to multipart: {$key} = " . (strlen($value) > 50 ? substr($value, 0, 50) . '...' : $value));
                 }
+                \Log::info("Sending MULTIPART request to /api/attendance/ with " . count($multipart) . " parts");
                 $resp = $this->client->request($method, '/api/attendance/', ['multipart' => $multipart]);
-                return json_decode((string) $resp->getBody(), true) ?: [];
+                $body = (string) $resp->getBody();
+                \Log::info("MULTIPART response: " . $body);
+                return json_decode($body, true) ?: [];
             } catch (GuzzleException $e) {
+                \Log::error("MULTIPART request failed: " . $e->getMessage());
                 return $this->handleGuzzleException($e);
             }
         }
 
+        \Log::info("=== UPSERT: Using JSON/send path ===");
         return $this->send($method, '/api/attendance/', $payload);
     }
 
@@ -253,10 +274,15 @@ class DjangoApi
         return $this->post('/api/bulk-holidays-generate/', $payload);
     }
 
-    public function salaryStatistics(?int $organizationId = null): array
+    public function salaryStatistics(?int $organizationId = null, $month = null, $year = null): array
     {
-        $query = $organizationId ? '?organization_id=' . $organizationId : '';
-        return $this->get('/api/salary-statistics/' . $query);
+        $query = [];
+        if ($organizationId) $query['organization_id'] = $organizationId;
+        if ($month) $query['month'] = $month;
+        if ($year) $query['year'] = $year;
+        
+        $queryStr = http_build_query($query);
+        return $this->get('/api/salary-statistics/?' . $queryStr);
     }
 
     public function upsertSalaryStatistic(array $payload): array
@@ -281,9 +307,32 @@ class DjangoApi
         return $this->get('/api/salary-report-detailed/?' . $queryStr);
     }
 
-    public function upsertEmployee(array $payload): array
+    public function upsertEmployee(array $payload, $file = null): array
     {
-        $method = !empty($payload['id']) ? 'PUT' : 'POST';
+        // Always use POST because Guzzle/Django has issues with PUT + Multipart
+        // The backend handles update_or_create logic on POST requests
+        $method = 'POST';
+        
+        if ($file) {
+            try {
+                $multipart = [
+                    [
+                        'name' => 'employee_image',
+                        'contents' => fopen($file->getPathname(), 'r'),
+                        'filename' => $file->getClientOriginalName(),
+                    ]
+                ];
+                foreach ($payload as $key => $value) {
+                    $multipart[] = ['name' => $key, 'contents' => $value];
+                }
+                // Guzzle request with multipart
+                $resp = $this->client->request($method, '/api/employees/', ['multipart' => $multipart]);
+                return json_decode((string) $resp->getBody(), true) ?: [];
+            } catch (GuzzleException $e) {
+                return $this->handleGuzzleException($e);
+            }
+        }
+
         return $this->send($method, '/api/employees/', $payload);
     }
 

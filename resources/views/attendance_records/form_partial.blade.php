@@ -210,7 +210,7 @@
                 <label class="form-label" style="width: auto; margin-left: 20px;">Checkin image:</label>
                 <input type="file" name="checkin_image" class="form-control" style="width: 250px;">
                 @if(!empty($record['checkin_image']))
-                    <a href="{{ $record['checkin_image'] }}" target="_blank" style="font-size:12px;">View Current</a>
+                    <a href="{{ $record['checkin_image'] }}" target="_blank" style="font-size:12px;">{{ basename($record['checkin_image']) }}</a>
                 @else
                     <span style="font-size:12px; color:var(--text-secondary);">No file selected.</span>
                 @endif
@@ -224,7 +224,7 @@
                 <label class="form-label" style="width: auto; margin-left: 20px;">Checkout image:</label>
                 <input type="file" name="checkout_image" class="form-control" style="width: 250px;">
                 @if(!empty($record['checkout_image']))
-                    <a href="{{ $record['checkout_image'] }}" target="_blank" style="font-size:12px;">View Current</a>
+                    <a href="{{ $record['checkout_image'] }}" target="_blank" style="font-size:12px;">{{ basename($record['checkout_image']) }}</a>
                 @else
                     <span style="font-size:12px; color:var(--text-secondary);">No file selected.</span>
                 @endif

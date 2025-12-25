@@ -24,6 +24,21 @@
         border-bottom: 2px solid var(--border-header);
         white-space: nowrap;
     }
+    .th-sortable {
+        color: var(--text-primary);
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+    .th-sortable:hover {
+        color: var(--accent);
+    }
+    .th-sortable.active {
+        color: var(--accent);
+    }
     .admin-table td {
         padding: 12px;
         border-bottom: 1px solid var(--border-color);
@@ -359,18 +374,57 @@
             </div>
 
             <div class="admin-table-container">
+                @php
+                    $currentSort = request('sort', 'date');
+                    $currentDir = request('dir', 'desc');
+                    $toggleDir = $currentDir === 'asc' ? 'desc' : 'asc';
+                    $sortParams = request()->except(['sort', 'dir']);
+                @endphp
                 <table class="admin-table">
                     <thead>
                         <tr>
                             <th style="width: 40px;"><input type="checkbox" class="custom-checkbox" id="select-all"></th>
                             <th>#</th>
-                            <th>Employee</th>
-                            <th>Date</th>
-                            <th>Check-in Time</th>
-                            <th>Check-out Time</th>
-                            <th>Status</th>
-                            <th>Late (M:S)</th>
-                            <th>Device ID</th>
+                            <th>
+                                <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'employee_name', 'dir' => $currentSort === 'employee_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'employee_name' ? 'active' : '' }}">
+                                    Employee {!! $currentSort === 'employee_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'organization_name', 'dir' => $currentSort === 'organization_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'organization_name' ? 'active' : '' }}">
+                                    Organization {!! $currentSort === 'organization_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'date', 'dir' => $currentSort === 'date' ? $toggleDir : 'desc'])) }}" class="th-sortable {{ $currentSort === 'date' ? 'active' : '' }}">
+                                    Date {!! $currentSort === 'date' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'checkin_time', 'dir' => $currentSort === 'checkin_time' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'checkin_time' ? 'active' : '' }}">
+                                    Check-in Time {!! $currentSort === 'checkin_time' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'checkout_time', 'dir' => $currentSort === 'checkout_time' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'checkout_time' ? 'active' : '' }}">
+                                    Check-out Time {!! $currentSort === 'checkout_time' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'status', 'dir' => $currentSort === 'status' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'status' ? 'active' : '' }}">
+                                    Status {!! $currentSort === 'status' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'late_duration', 'dir' => $currentSort === 'late_duration' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'late_duration' ? 'active' : '' }}">
+                                    Late (M:S) {!! $currentSort === 'late_duration' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'device_id', 'dir' => $currentSort === 'device_id' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'device_id' ? 'active' : '' }}">
+                                    Device ID {!! $currentSort === 'device_id' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                </a>
+                            </th>
                             <th>Check-in Image</th>
                             <th>Check-out Image</th>
                             <th style="text-align:right;">Actions</th>
@@ -382,10 +436,22 @@
                                 <td><input type="checkbox" name="selected_ids[]" value="{{ $record['id'] }}" class="custom-checkbox record-checkbox"></td>
                                 <td>{{ $index + 1 }}</td>
                                 <td>
-                                    <a href="#" onclick="return openPopup('{{ route('attendance-records.edit', ['id' => $record['id'], 'popup' => 1]) }}');" style="text-decoration:none;">
-                                        <div style="font-weight:600; color: var(--text-primary);">{{ $record['employee_name'] ?? 'Unknown' }}</div>
-                                        <div style="font-size:12px; color:var(--text-secondary);">{{ $record['employee_id'] }}</div>
-                                    </a>
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        @if(!empty($record['face_image']))
+                                            <img src="data:image/jpeg;base64,{{ $record['face_image'] }}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--border-color);" alt="img">
+                                        @else
+                                            <div style="width:35px; height:35px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">
+                                                {{ strtoupper(substr($record['employee_name'] ?? 'N', 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <a href="#" onclick="return openPopup('{{ route('attendance-records.edit', ['id' => $record['id'], 'popup' => 1]) }}');" style="text-decoration:none;">
+                                            <div style="font-weight:600; color: var(--text-primary);">{{ $record['employee_name'] ?? 'Unknown' }}</div>
+                                            <div style="font-size:12px; color:var(--text-secondary);">{{ $record['employee_id'] }}</div>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td style="font-size:12px; color:var(--text-secondary);">
+                                    {{ $record['organization_name'] ?? '-' }}
                                 </td>
                             <td>
                                 @if($record['date'])
