@@ -13,13 +13,7 @@ class AttendanceRecordController extends Controller
 
     public function index(Request $request, DjangoApi $api)
     {
-        $filters = $request->only(['search', 'date', 'status', 'department', 'designation', 'organization_id', 'month_filter']);
-        
-        // If a month filter is provided (YYYY-MM), pass it as 'date' so Django treats it as a month scope
-        // strictly if no specific date is selected
-        if ($request->filled('month_filter') && !$request->filled('date')) {
-            $filters['date'] = $request->input('month_filter');
-        }
+        $filters = $request->only(['search', 'date', 'status', 'department', 'designation', 'organization_id', 'year', 'month']);
         
         // Role detection
         $userRole = \Session::get('user_role', 'org_admin');
@@ -46,9 +40,24 @@ class AttendanceRecordController extends Controller
         
         // Fetch records with filters (only if not in overview mode)
         $records = [];
+        $totalCount = 0;
+        $page = (int) $request->input('page', 1);
+        $limit = (int) $request->input('limit', 50); // Default items per page
+        
         if (!$showOrgOverview) {
+            $filters['page'] = $page;
+            $filters['limit'] = $limit;
+            
+            // Should we request ALL if date filter is set? User asked for pagination ("gmail arrow"), so probably pagination is preferred even for filtered range.
+            // But earlier he asked to show ALL. "2000 records showing".
+            // Let's stick to pagination for "gmail style".
+            // If they want ALL, we can add a "Show All" button later.
+            
             $data = $api->attendanceList($filters);
             $records = $data['attendance'] ?? [];
+            $totalCount = $data['total_count'] ?? count($records);
+            
+            $lastPage = max(1, ceil($totalCount / $limit));
             
             // Sorting
             $sortField = $request->input('sort', 'date');
@@ -95,7 +104,8 @@ class AttendanceRecordController extends Controller
         return view('attendance_records.index', compact(
             'records', 'departments', 'designations', 
             'isSuperAdmin', 'userRole', 'organizations',
-            'showOrgOverview', 'selectedOrgId', 'selectedOrgName'
+            'showOrgOverview', 'selectedOrgId', 'selectedOrgName',
+            'totalCount', 'page', 'lastPage', 'limit'
         ));
     }
 

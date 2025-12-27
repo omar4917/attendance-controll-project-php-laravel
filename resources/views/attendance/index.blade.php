@@ -78,105 +78,49 @@
     $pdfs = !empty($pdfUrls) ? $pdfUrls : ['pdf' => $base.'/attendance-dashboard/pdf/', 'bulk_pdf' => $base.'/attendance-dashboard/pdf/bulk/', 'combined_pdf' => $base.'/attendance-dashboard/pdf/combined/'];
 @endphp
 
-<!-- Actions Row (Nav + Downloads) -->
-<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:16px;">
-    <!-- Navigation -->
-    <div style="display:flex;gap:4px;">
-        <a href="?{{ $prev_qs }}" style="padding:8px 14px;border:1px solid var(--border-color);background:var(--bg-secondary);border-radius:4px;color:var(--text-primary);text-decoration:none;font-size:13px;font-weight:600;">&larr; Previous</a>
-        <a href="?{{ $next_qs }}" style="padding:8px 14px;border:1px solid var(--border-color);background:var(--bg-secondary);border-radius:4px;color:var(--text-primary);text-decoration:none;font-size:13px;font-weight:600;">Next &rarr;</a>
+<!-- Unified Action Bar -->
+<div class="unified-action-bar">
+    <!-- PDF Downloads Group -->
+    <div class="action-group">
+        <span class="action-label"><i class="bi bi-file-pdf"></i> PDF:</span>
+        <a href="{{ route('attendance.pdf', ['type' => 'pdf', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#198754;">Download PDF</a>
+        <a href="{{ route('attendance.pdf', ['type' => 'bulk', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#6f42c1;">Individual PDFs</a>
+        <a href="{{ route('attendance.pdf', ['type' => 'combined', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#fd7e14;">Combined PDF</a>
     </div>
-    
-    @if($isSuperAdmin ?? false)
-    <!-- Super Admin Org Selector -->
-    <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--bg-alternate);border-radius:4px;border:1px solid var(--border-color);">
-        <label style="font-weight:600;font-size:13px;color:var(--text-primary);white-space:nowrap;">📊 PDF for:</label>
-        <select id="pdf-org-selector" style="padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;font-size:13px;background:var(--input-bg);color:var(--text-primary);min-width:200px;">
-            <option value="{{ $orgId ?? '' }}">Current Organization</option>
-            <option value="all">🗂️ All Organizations (Batch)</option>
-            @foreach($organizations ?? [] as $org)
-                <option value="{{ $org['id'] }}">{{ $org['name'] }}</option>
-            @endforeach
-        </select>
+
+    @if(session('user_role') !== 'org_viewer')
+    <div class="divider-vertical"></div>
+
+    <!-- Export Group -->
+    <div class="action-group">
+        <form action="{{ route('attendance.export') }}" method="POST" target="_blank" style="margin:0;display:flex;align-items:center;gap:8px;">
+            @csrf
+            <input type="hidden" name="month" value="{{ $month }}">
+            <input type="hidden" name="year" value="{{ $year }}">
+            <span class="action-label"><i class="bi bi-box-arrow-up"></i> Backup:</span>
+            <button type="submit" name="export_data" value="1" class="btn-action-primary" style="background:#0d6efd;">Export ZIP</button>
+        </form>
     </div>
+
+    <div class="divider-vertical"></div>
+
+    <!-- Import Group -->
+    <form action="{{ route('attendance.import') }}" method="POST" enctype="multipart/form-data" class="action-group" style="margin:0;">
+        @csrf
+        <input type="hidden" name="month" value="{{ $month }}">
+        <input type="hidden" name="year" value="{{ $year }}">
+        <span class="action-label"><i class="bi bi-cloud-upload"></i> Import:</span>
+        <input type="file" name="import_file" class="action-input-file" style="max-width:180px;">
+        <button type="submit" class="btn-action-secondary">Upload</button>
+    </form>
     @endif
-    
-    <!-- Downloads (via Laravel proxy for Chrome compatibility) -->
-    <div style="display:flex;gap:6px;">
-        <a href="{{ route('attendance.pdf', ['type' => 'pdf', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="pdf-download-btn" data-type="pdf" style="padding:8px 14px;background:#198754;color:#fff;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;border:none;">Download PDF</a>
-        <a href="{{ route('attendance.pdf', ['type' => 'bulk', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="pdf-download-btn" data-type="bulk_pdf" style="padding:8px 14px;background:#6f42c1;color:#fff;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;border:none;">Download Individual PDFs (ZIP)</a>
-        <a href="{{ route('attendance.pdf', ['type' => 'combined', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="pdf-download-btn" data-type="combined_pdf" style="padding:8px 14px;background:#fd7e14;color:#fff;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;border:none;">Download Combined Detailed PDF</a>
-    </div>
 </div>
 
-@if($isSuperAdmin ?? false)
-<script>
-// Update PDF download links when organization selector changes
-(function() {
-    var selector = document.getElementById('pdf-org-selector');
-    if (!selector) return;
-    
-    var downloadBtns = document.querySelectorAll('.pdf-download-btn');
-    // Use Laravel route as base URL for proper proxy handling
-    var baseUrl = '{{ route("attendance.pdf") }}';
-    
-    selector.addEventListener('change', function() {
-        var orgId = this.value;
-        
-        downloadBtns.forEach(function(btn) {
-            var type = btn.getAttribute('data-type');
-            var params = new URLSearchParams({
-                type: type === 'bulk_pdf' ? 'bulk' : (type === 'combined_pdf' ? 'combined' : 'pdf'),
-                month: '{{ $month }}',
-                year: '{{ $year }}',
-                department: '{{ request("department") ?? "" }}',
-                designation: '{{ request("designation") ?? "" }}'
-            });
-            
-            if (orgId && orgId !== 'all') {
-                params.set('organization_id', orgId);
-            } else if (orgId === 'all') {
-                params.delete('organization_id');
-                params.set('batch', '1');
-            }
-            
-            btn.href = baseUrl + '?' + params.toString();
-        });
-    });
-})();
-</script>
-@endif
 
-@if(session('user_role') !== 'org_viewer')
-<!-- Import/Export Section -->
-<div style="background:var(--bg-secondary);padding:12px;border-radius:8px;border:1px solid var(--border-color);margin-bottom:20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:15px;">
-    <!-- Export -->
-    <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-weight:600;font-size:14px;color:var(--text-primary);">📦 Export:</span>
-        <form action="{{ route('attendance.export') }}" method="POST" target="_blank" style="margin:0;">
-            @csrf
-            <input type="hidden" name="month" value="{{ $month }}">
-            <input type="hidden" name="year" value="{{ $year }}">
-            <button type="submit" name="export_data" value="1" style="padding:6px 12px;background:#0d6efd;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;">Export ZIP (with Images)</button>
-        </form>
-    </div>
-    
-    <!-- Import -->
-    <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-weight:600;font-size:14px;color:var(--text-primary);">📥 Import:</span>
-        <form action="{{ route('attendance.import') }}" method="POST" enctype="multipart/form-data" style="display:flex;align-items:center;gap:6px;margin:0;">
-            @csrf
-            <input type="hidden" name="month" value="{{ $month }}">
-            <input type="hidden" name="year" value="{{ $year }}">
-            <input type="file" name="import_file" style="font-size:13px;padding:4px;border:1px solid var(--border-color);border-radius:4px;background:var(--input-bg);color:var(--text-primary);">
-            <button type="submit" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;">Upload</button>
-        </form>
-    </div>
-</div>
-@endif
 
 <!-- Dashboard Title & Search -->
 <div style="margin-bottom:15px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:10px;">
         <div>
             @if($isSuperAdmin ?? false)
             <h3 style="margin:0;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
@@ -192,9 +136,12 @@
             <small class="text-muted">Your organization's attendance</small>
             @endif
         </div>
-        <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
-            <span>&#9728;&#65039;</span> Theme
-        </button>
+        
+        <!-- Navigation Arrows (inline with title) -->
+        <div style="display:flex;gap:4px;">
+            <a href="?{{ $prev_qs }}" class="btn-action-secondary" title="Previous Month">&larr; Previous</a>
+            <a href="?{{ $next_qs }}" class="btn-action-secondary" title="Next Month">Next &rarr;</a>
+        </div>
     </div>
     
     <div style="display:flex;align-items:center;gap:8px;">
@@ -232,13 +179,13 @@
             </div>
           </th>
         @endforeach
-        <th scope="col" class="attend-data">Total Present</th>
+        <th scope="col" class="attend-data">Total<br>Present</th>
         <th scope="col" class="attend-data">Late</th>
-        <th scope="col" class="attend-data">On Leave</th>
+        <th scope="col" class="attend-data">On<br>Leave</th>
         <th scope="col" class="attend-data">Holiday</th>
         <th scope="col" class="attend-data">Absent</th>
-        <th scope="col" class="attend-data">Half Day</th>
-        <th scope="col" class="attend-data">Early Leave</th>
+        <th scope="col" class="attend-data">Half<br>Day</th>
+        <th scope="col" class="attend-data">Early<br>Leave</th>
       </tr>
     </thead>
     <tbody>

@@ -45,6 +45,7 @@ class ExportController extends Controller
         $exportMode = $request->input('export_mode', 'single'); // single, all, selected
         $selectedOrgs = $request->input('selected_orgs', []);
         
+        
         $include = $request->input('include', ['employees', 'attendance', 'shifts', 'holidays']);
         if (is_array($include)) {
             $include = implode(',', $include);

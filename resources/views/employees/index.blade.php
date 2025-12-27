@@ -283,30 +283,37 @@
     <div class="alert alert-danger" style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:12px; border-radius:6px; margin-bottom:15px;">{{ session('error') }}</div>
 @endif
 
-<!-- Top Controls -->
-<div class="controls-bar">
-    <!-- Export -->
-    <form action="{{ route('attendance.export') }}" method="POST" style="display:flex; align-items:center; gap:10px;">
+<!-- Unified Action Bar -->
+<div class="unified-action-bar">
+    <!-- Export Group -->
+    <form action="{{ route('attendance.export') }}" method="POST" class="action-group" style="margin:0;">
         @csrf
         <input type="hidden" name="year" value="{{ date('Y') }}">
         <input type="hidden" name="month" value="{{ date('m') }}">
         <input type="hidden" name="export_data" value="1">
         <input type="hidden" name="type" value="employees">
-        <span style="font-weight:600; color:var(--text-primary);">Export:</span>
-        <button type="submit" class="btn-action btn-secondary">Export ZIP (with Images)</button>
+        
+        <span class="action-label"><i class="bi bi-file-earmark-arrow-down"></i> Export:</span>
+        <button type="submit" class="btn-action-primary" style="background:#0d6efd;">Export ZIP (with Images)</button>
     </form>
 
-    <!-- Import & Add -->
-    <div style="display:flex; align-items:center; gap:10px;">
-        <form action="{{ route('attendance.import') }}" method="POST" enctype="multipart/form-data" style="display:flex; align-items:center; gap:5px;">
-            @csrf
-            <span style="font-weight:600; color:var(--text-primary);">Import:</span>
-            <input type="file" name="import_file" class="filter-input" style="width:auto; padding:5px;">
-            <button type="submit" class="btn-action btn-secondary">Import</button>
-        </form>
-        
-        <a href="#" class="btn-action btn-warning">Update Database</a>
-        <a href="#" onclick="return openPopup('{{ route('employees.create', ['popup' => 1]) }}');" class="btn-action btn-dark">ADD EMPLOYEE</a>
+    <div class="divider-vertical"></div>
+
+    <!-- Import Group -->
+    <form action="{{ route('attendance.import') }}" method="POST" enctype="multipart/form-data" class="action-group" style="margin:0;">
+        @csrf
+        <span class="action-label"><i class="bi bi-cloud-upload"></i> Import:</span>
+        <input type="file" name="import_file" class="action-input-file" style="max-width:200px;">
+        <button type="submit" class="btn-action-secondary">Upload</button>
+    </form>
+
+    <div class="divider-vertical"></div>
+
+    <!-- Add Employee -->
+    <div class="action-group">
+        <a href="#" onclick="return openPopup('{{ route('employees.create', ['popup' => 1]) }}');" class="btn-action-primary" style="background:#212529;">
+            <i class="bi bi-person-plus"></i> ADD EMPLOYEE
+        </a>
     </div>
 </div>
 
@@ -366,6 +373,48 @@
     // Build base URL with existing filters
     $sortParams = request()->except(['sort', 'dir']);
 @endphp
+    <!-- Top Pagination -->
+    <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-end; gap: 15px; color: var(--text-secondary); font-size: 13px; font-weight: 600;">
+        <div>
+            Showing {{ (($page ?? 1) - 1) * ($perPage ?? 50) + 1 }} - {{ min(($page ?? 1) * ($perPage ?? 50), $totalCount ?? count($employees)) }} of {{ $totalCount ?? count($employees) }} records
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <select onchange="window.location.href='{{ request()->fullUrlWithQuery(['limit' => '']) }}'.replace('limit=', 'limit=' + this.value).replace('&page={{ $page ?? 1 }}', '&page=1')" 
+                    class="form-select form-select-sm" 
+                    style="width: auto; height: 28px; font-size: 12px; padding: 2px 8px;">
+                @foreach([50, 75, 100, 200] as $l)
+                    <option value="{{ $l }}" {{ ($perPage ?? 50) == $l ? 'selected' : '' }}>{{ $l }}</option>
+                @endforeach
+            </select>
+
+            {{-- Prev Arrow --}}
+            @if(($page ?? 1) > 1)
+                <a href="{{ request()->fullUrlWithQuery(['page' => ($page ?? 1) - 1]) }}" 
+                   class="btn btn-sm btn-light border" 
+                   style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            @else
+                <button class="btn btn-sm btn-light border" disabled style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5;">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            @endif
+
+            {{-- Next Arrow --}}
+            @if(($page ?? 1) < ($lastPage ?? 1))
+                <a href="{{ request()->fullUrlWithQuery(['page' => ($page ?? 1) + 1]) }}" 
+                   class="btn btn-sm btn-light border" 
+                   style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            @else
+                <button class="btn btn-sm btn-light border" disabled style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5;">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            @endif
+        </div>
+    </div>
 <div style="overflow-x:auto;">
     <table class="data-table">
         <thead>
@@ -413,7 +462,7 @@
         <tbody>
             @forelse($employees as $index => $emp)
             <tr>
-                <td style="text-align:center;">{{ $loop->iteration }}</td>
+                <td style="text-align:center;">{{ (($page ?? 1) - 1) * 50 + $loop->iteration }}</td>
                 <td>
                     @php $img = $emp['face_image'] ?? null; @endphp
                     @if($img)
@@ -485,8 +534,40 @@
         </tbody>
     </table>
     
-    <div class="results-count">
-        {{ count($employees) }} employees
+    <div style="margin-top: 15px; display: flex; align-items: center; justify-content: space-between; color: var(--text-secondary); font-size: 13px; font-weight: 600;">
+        <div style="margin-top: 15px; display: flex; align-items: center; justify-content: space-between; color: var(--text-secondary); font-size: 13px; font-weight: 600;">
+            <div>
+                Showing {{ (($page ?? 1) - 1) * 50 + 1 }} - {{ min(($page ?? 1) * 50, $totalCount ?? count($employees)) }} of {{ $totalCount ?? count($employees) }} employees
+            </div>
+            
+            <div style="display: flex; gap: 5px;">
+                {{-- Prev Arrow --}}
+                @if(($page ?? 1) > 1)
+                    <a href="{{ request()->fullUrlWithQuery(['page' => ($page ?? 1) - 1]) }}" 
+                       class="btn btn-sm btn-light border" 
+                       style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                @else
+                    <button class="btn btn-sm btn-light border" disabled style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5;">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                @endif
+
+                {{-- Next Arrow --}}
+                @if(($page ?? 1) < ($lastPage ?? 1))
+                    <a href="{{ request()->fullUrlWithQuery(['page' => ($page ?? 1) + 1]) }}" 
+                       class="btn btn-sm btn-light border" 
+                       style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                @else
+                    <button class="btn btn-sm btn-light border" disabled style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5;">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                @endif
+            </div>
+        </div>
     </div>
 </div>
 

@@ -353,9 +353,9 @@
         <button type="submit" class="btn-filter">Filter</button>
     </form>
 
-    <!-- Download Button -->
+    <!-- Unified Action Bar -->
     @php
-        // Build Laravel route for salary PDF download (proxies through Laravel for user headers)
+        // Build Laravel route for salary PDF download
         $pdfParams = [
             'month' => $month ?? date('n'),
             'year' => $year ?? date('Y'),
@@ -372,7 +372,12 @@
         
         $pdfUrl = route('reports.salary.pdf', $pdfParams);
     @endphp
-    <a href="{{ $pdfUrl }}" target="_blank" class="download-btn" style="text-decoration:none; display:inline-block;">📥 Download PDF</a>
+    <div class="unified-action-bar" style="margin-bottom:15px;">
+        <div class="action-group">
+            <span class="action-label"><i class="bi bi-file-pdf"></i> Download:</span>
+            <a href="{{ $pdfUrl }}" target="_blank" class="btn-action-primary" style="background:#198754;"><i class="bi bi-download"></i> Salary Report PDF</a>
+        </div>
+    </div>
 
     @if(!empty($error))
         <div class="alert-error">API error: {{ $error }}</div>

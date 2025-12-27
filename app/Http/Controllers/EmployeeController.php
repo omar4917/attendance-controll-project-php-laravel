@@ -68,6 +68,14 @@ class EmployeeController extends Controller
             }, SORT_REGULAR, $sortDir === 'desc')->values()->all();
         }
 
+        // Pagination
+        $page = (int) $request->input('page', 1);
+        $perPage = (int) $request->input('limit', 50);
+        $totalCount = count($employees);
+        $lastPage = max(1, ceil($totalCount / $perPage));
+        
+        $employees = array_slice($employees, ($page - 1) * $perPage, $perPage);
+
         $editing = [
             'employee_id' => $request->query('employee_id'),
             'name' => $request->query('name'),
@@ -79,7 +87,7 @@ class EmployeeController extends Controller
         
         $organizationName = $this->getOrganizationName();
         
-        return view('employees.index', compact('employees', 'error', 'editing', 'departments', 'designations', 'organizationName'));
+        return view('employees.index', compact('employees', 'error', 'editing', 'departments', 'designations', 'organizationName', 'totalCount', 'page', 'lastPage', 'perPage'));
     }
 
     public function create(DjangoApi $api)
@@ -95,7 +103,13 @@ class EmployeeController extends Controller
             $organizations = $orgsData['organizations'] ?? [];
         }
         
-        return view('employees.form', compact('orgId', 'organizationName', 'isSuperAdmin', 'organizations'));
+        // Get existing departments and designations for dropdown
+        $data = $api->employees($isSuperAdmin ? null : $orgId);
+        $employees = $data['employees'] ?? [];
+        $departments = collect($employees)->pluck('department')->filter()->unique()->sort()->values()->all();
+        $designations = collect($employees)->pluck('designation')->filter()->unique()->sort()->values()->all();
+        
+        return view('employees.form', compact('orgId', 'organizationName', 'isSuperAdmin', 'organizations', 'departments', 'designations'));
     }
 
     public function edit($id, DjangoApi $api)
@@ -119,7 +133,11 @@ class EmployeeController extends Controller
             return redirect()->route('employees.index')->with('error', 'Employee not found');
         }
         
-        return view('employees.form', compact('employee', 'orgId', 'organizationName', 'isSuperAdmin', 'organizations'));
+        // Get existing departments and designations for dropdown
+        $departments = collect($employees)->pluck('department')->filter()->unique()->sort()->values()->all();
+        $designations = collect($employees)->pluck('designation')->filter()->unique()->sort()->values()->all();
+        
+        return view('employees.form', compact('employee', 'orgId', 'organizationName', 'isSuperAdmin', 'organizations', 'departments', 'designations'));
     }
 
     public function store(Request $request, DjangoApi $api)

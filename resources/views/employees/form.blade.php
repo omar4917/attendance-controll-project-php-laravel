@@ -135,11 +135,27 @@
     <div class="grid-2">
         <div class="form-group">
             <label>Department</label>
-            <input type="text" name="department" value="{{ old('department', $employee['department'] ?? '') }}">
+            <div class="dropdown-container" style="position: relative;">
+                <input type="text" name="department" id="departmentInput" value="{{ old('department', $employee['department'] ?? '') }}" autocomplete="off" style="padding-right: 30px;" onclick="toggleDropdown('departmentDropdown')">
+                <span class="dropdown-toggle-btn" onclick="event.stopPropagation(); toggleDropdown('departmentDropdown')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666;">▼</span>
+                <div id="departmentDropdown" class="custom-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                    @foreach($departments ?? [] as $dept)
+                        <div class="dropdown-item" onclick="selectItem('departmentInput', '{{ $dept }}', 'departmentDropdown')" style="padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 13px; transition: background 0.2s;">{{ $dept }}</div>
+                    @endforeach
+                </div>
+            </div>
         </div>
         <div class="form-group">
             <label>Designation</label>
-            <input type="text" name="designation" value="{{ old('designation', $employee['designation'] ?? '') }}">
+            <div class="dropdown-container" style="position: relative;">
+                <input type="text" name="designation" id="designationInput" value="{{ old('designation', $employee['designation'] ?? '') }}" autocomplete="off" style="padding-right: 30px;" onclick="toggleDropdown('designationDropdown')">
+                <span class="dropdown-toggle-btn" onclick="event.stopPropagation(); toggleDropdown('designationDropdown')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666;">▼</span>
+                <div id="designationDropdown" class="custom-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                    @foreach($designations ?? [] as $desig)
+                        <div class="dropdown-item" onclick="selectItem('designationInput', '{{ $desig }}', 'designationDropdown')" style="padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 13px; transition: background 0.2s;">{{ $desig }}</div>
+                    @endforeach
+                </div>
+            </div>
         </div>
     </div>
 
@@ -296,10 +312,10 @@
 </script>
 @endpush
 
-@if(($isSuperAdmin ?? false) && count($organizations ?? []) > 0)
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Organization selector (for super admin)
     if ($('#emp-org-selector').length) {
         $('#emp-org-selector').select2({
             placeholder: 'Search organization...',
@@ -308,7 +324,47 @@ $(document).ready(function() {
         });
     }
 });
+
+// Custom dropdown functions for Department and Designation
+function toggleDropdown(dropdownId) {
+    var dropdown = document.getElementById(dropdownId);
+    var isHidden = dropdown.style.display === 'none';
+    
+    // Close all other dropdowns first
+    document.querySelectorAll('.custom-dropdown').forEach(function(d) {
+        d.style.display = 'none';
+    });
+    
+    // Toggle this dropdown
+    dropdown.style.display = isHidden ? 'block' : 'none';
+}
+
+function selectItem(inputId, value, dropdownId) {
+    document.getElementById(inputId).value = value;
+    document.getElementById(dropdownId).style.display = 'none';
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+    // If click is outside the entire relative container, close dropdowns
+    if (!e.target.closest('.dropdown-container')) {
+        document.querySelectorAll('.custom-dropdown').forEach(function(d) {
+            d.style.display = 'none';
+        });
+    }
+});
+
+// Add hover styles dynamically
+document.addEventListener('mouseover', function(e) {
+    if (e.target.classList.contains('dropdown-item')) {
+        e.target.style.background = '#f5f5f5';
+    }
+});
+document.addEventListener('mouseout', function(e) {
+    if (e.target.classList.contains('dropdown-item')) {
+        e.target.style.background = 'transparent';
+    }
+});
 </script>
 @endpush
-@endif
 @endsection

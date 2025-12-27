@@ -303,15 +303,15 @@
     {{-- ============================================================== --}}
 
     <!-- Filter Bar -->
-    <form method="GET" action="{{ route('attendance-records.index') }}" style="background:var(--bg-quaternary); padding:15px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:flex-end;">
+    <form method="GET" action="{{ route('attendance-records.index') }}" style="background:var(--bg-card); padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid var(--border-color); display:flex; flex-wrap:wrap; gap:15px; align-items:flex-end;">
         
         @if($isSuperAdmin ?? false)
         <input type="hidden" name="organization_id" value="{{ $selectedOrgId }}">
         @endif
         
-        <div style="flex:1; min-width:200px;">
+        <div style="flex:1; min-width:250px;">
             <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Search</label>
-            <input type="text" name="search" class="form-control" placeholder="Search by name or ID..." value="{{ request('search') }}" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or ID..." class="form-control" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);">
         </div>
 
         <div style="width:180px;">
@@ -321,24 +321,37 @@
                    onchange="this.form.submit()">
         </div>
         
-        <div style="width:180px;">
-            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Month</label>
-            <input type="month" name="month_filter" class="form-control" value="{{ request('month_filter') }}" 
-                   style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border); cursor:pointer;"
-                   onchange="this.form.submit()">
+        <div style="width:100px;">
+            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Year</label>
+            <select name="year" class="form-select" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);" onchange="this.form.submit()">
+                <option value="All" {{ request('year') == 'All' ? 'selected' : '' }}>All</option>
+                @for($y = 2020; $y <= date('Y') + 1; $y++)
+                    <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                @endfor
+            </select>
         </div>
 
-        <div style="width:150px;">
+        <div style="width:120px;">
+            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Month</label>
+            <select name="month" class="form-select" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);" onchange="this.form.submit()">
+                <option value="All" {{ request('month') == 'All' ? 'selected' : '' }}>All</option>
+                @foreach(range(1, 12) as $m)
+                    <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>{{ date('F', mktime(0, 0, 0, $m, 1)) }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div style="width:140px;">
             <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Status</label>
             <select name="status" class="form-select" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);" onchange="this.form.submit()">
                 <option value="All" {{ request('status') == 'All' ? 'selected' : '' }}>All</option>
-                @foreach(['Present', 'Late', 'Early Leave', 'Absent', 'Half Day', 'On Leave', 'Holiday', 'Pending', 'Off Day'] as $st)
+                @foreach(['Present', 'Late', 'Late Check-in', 'Early Leave', 'Absent', 'Half Day', 'On Leave', 'Holiday', 'Pending', 'Off Day'] as $st)
                     <option value="{{ $st }}" {{ request('status') == $st ? 'selected' : '' }}>{{ $st }}</option>
                 @endforeach
             </select>
         </div>
 
-        <div style="width:180px;">
+        <div style="width:150px;">
             <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Department</label>
             <select name="department" class="form-select" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);" onchange="this.form.submit()">
                 <option value="All" {{ request('department') == 'All' ? 'selected' : '' }}>All</option>
@@ -348,7 +361,7 @@
             </select>
         </div>
 
-        <div style="width:180px;">
+        <div style="width:150px;">
             <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Designation</label>
             <select name="designation" class="form-select" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);" onchange="this.form.submit()">
                 <option value="All" {{ request('designation') == 'All' ? 'selected' : '' }}>All</option>
@@ -378,6 +391,49 @@
                 </select>
                 <button type="button" onclick="submitBulkAction()" class="btn btn-primary" style="padding:4px 12px; font-size:13px; background:var(--btn-primary); border:none; color:#fff;">Go</button>
                 <span id="selected-count" style="font-size:13px; color:var(--text-secondary); margin-left:10px;">0 of {{ count($records) }} selected</span>
+            </div>
+
+            <!-- Top Pagination -->
+            <div style="margin-bottom: 15px; display: flex; align-items: center; justify-content: flex-end; gap: 15px; color: var(--text-secondary); font-size: 13px; font-weight: 600;">
+                <div>
+                    Showing {{ (($page ?? 1) - 1) * ($limit ?? 50) + 1 }} - {{ min(($page ?? 1) * ($limit ?? 50), $totalCount ?? count($records)) }} of {{ $totalCount ?? count($records) }} records
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <select onchange="window.location.href='{{ request()->fullUrlWithQuery(['limit' => '']) }}'.replace('limit=', 'limit=' + this.value).replace('&page={{ $page ?? 1 }}', '&page=1')" 
+                            class="form-select form-select-sm" 
+                            style="width: auto; height: 28px; font-size: 12px; padding: 2px 8px;">
+                        @foreach([50, 75, 100, 200] as $l)
+                            <option value="{{ $l }}" {{ ($limit ?? 50) == $l ? 'selected' : '' }}>{{ $l }}</option>
+                        @endforeach
+                    </select>
+
+                    {{-- Prev Arrow --}}
+                    @if(($page ?? 1) > 1)
+                        <a href="{{ request()->fullUrlWithQuery(['page' => ($page ?? 1) - 1]) }}" 
+                           class="btn btn-sm btn-light border" 
+                           style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    @else
+                        <button class="btn btn-sm btn-light border" disabled style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5;">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    @endif
+
+                    {{-- Next Arrow --}}
+                    @if(($page ?? 1) < ($lastPage ?? 1))
+                        <a href="{{ request()->fullUrlWithQuery(['page' => ($page ?? 1) + 1]) }}" 
+                           class="btn btn-sm btn-light border" 
+                           style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    @else
+                        <button class="btn btn-sm btn-light border" disabled style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5;">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    @endif
+                </div>
             </div>
 
             <div class="admin-table-container">
@@ -528,8 +584,39 @@
             </table>
         </div>
         
-        <div style="margin-top: 15px; color: var(--text-secondary); font-size: 13px;">
-            Showing {{ count($records) }} records.
+        <div style="margin-top: 15px; display: flex; align-items: center; justify-content: space-between; color: var(--text-secondary); font-size: 13px; font-weight: 600;">
+            <div>
+                 Showing {{ (($page ?? 1) - 1) * 50 + 1 }} - {{ min(($page ?? 1) * 50, $totalCount ?? count($records)) }} of {{ $totalCount ?? count($records) }} records
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="display: flex; gap: 5px;">
+                {{-- Prev Arrow --}}
+                @if(($page ?? 1) > 1)
+                    <a href="{{ request()->fullUrlWithQuery(['page' => ($page ?? 1) - 1]) }}" 
+                       class="btn btn-sm btn-light border" 
+                       style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                @else
+                    <button class="btn btn-sm btn-light border" disabled style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5;">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                @endif
+
+                {{-- Next Arrow --}}
+                @if(($page ?? 1) < ($lastPage ?? 1))
+                    <a href="{{ request()->fullUrlWithQuery(['page' => ($page ?? 1) + 1]) }}" 
+                       class="btn btn-sm btn-light border" 
+                       style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                @else
+                    <button class="btn btn-sm btn-light border" disabled style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5;">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                @endif
+            </div>
         </div>
         </div>
     </div>

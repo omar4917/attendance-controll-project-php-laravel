@@ -564,7 +564,124 @@
             background: var(--bg-alternate);
             color: var(--text-muted);
         }
+        .unified-action-bar {
+            background: var(--bg-header);
+            border: 1px solid var(--border-color);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px var(--shadow);
+            flex-wrap: wrap;
+            transition: all 0.3s ease;
+        }
+
+        .action-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .action-label {
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-select, .action-input-file {
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .action-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--shadow);
+        }
+
+        .btn-action-primary {
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+            padding: 9px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-action-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn-action-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-action-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action-secondary:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .divider-vertical {
+            width: 1px;
+            height: 30px;
+            background: var(--border-color);
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .unified-action-bar {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            .divider-vertical {
+                display: none;
+            }
+            .action-group {
+                justify-content: space-between;
+            }
+        }
     </style>
+
     @stack('head')
 </head>
 <body>
@@ -581,14 +698,18 @@
             <li><a href="{{ route('attendance-records.index') }}" class="{{ request()->routeIs('attendance-records.*') ? 'active' : '' }}"><i class="bi bi-list-check"></i> Attendance Records</a></li>
             <li><a href="{{ route('employees.index') }}" class="{{ request()->routeIs('employees.*') ? 'active' : '' }}"><i class="bi bi-people"></i> Employees</a></li>
             <li><a href="{{ route('livefeed.index') }}" class="{{ request()->routeIs('livefeed.*') ? 'active' : '' }}"><i class="bi bi-broadcast"></i> Live Feed</a></li>
+            @if(session('user_role') !== 'super_admin')
             <li><a href="{{ route('shifts.index') }}" class="{{ request()->routeIs('shifts.*') ? 'active' : '' }}"><i class="bi bi-clock"></i> Shifts</a></li>
             <li><a href="{{ route('salary.defaults') }}" class="{{ request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-sliders"></i> Salary Defaults</a></li>
             <li><a href="{{ route('salary.index') }}" class="{{ request()->routeIs('salary.*') && !request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-cash-stack"></i> Salary Statistics</a></li>
             <li><a href="{{ route('holidays.index') }}" class="{{ request()->routeIs('holidays.*') ? 'active' : '' }}"><i class="bi bi-calendar-heart"></i> Holidays</a></li>
+            @endif
             <li><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> Reports</a></li>
+            @if(session('user_role') !== 'super_admin')
             <li><a href="{{ route('settings.voice_message') }}" class="{{ request()->routeIs('settings.voice_message') ? 'active' : '' }}"><i class="bi bi-volume-up"></i> Voice & Message</a></li>
             <li><a href="{{ route('settings.context') }}" class="{{ request()->routeIs('settings.context') ? 'active' : '' }}"><i class="bi bi-gear"></i> Context Settings</a></li>
             <li><a href="{{ route('settings.company') }}" class="{{ request()->routeIs('settings.company') ? 'active' : '' }}"><i class="bi bi-building-gear"></i> My Organization</a></li>
+            @endif
             @if(in_array(session('user_role'), ['super_admin', 'org_main_admin', 'org_admin']))
             <li><a href="{{ route('org-users.index') }}" class="{{ request()->routeIs('org-users.*') ? 'active' : '' }}"><i class="bi bi-person-gear"></i> Manage Users</a></li>
             @endif
@@ -644,13 +765,7 @@
                 </form>
                 @endif
 
-                <!-- Theme Switcher -->
-                <div class="theme-switcher">
-                    <span class="theme-label">Theme:</span>
-                    <button class="theme-btn theme-btn-green" data-theme="light-green" title="Light Green"></button>
-                    <button class="theme-btn theme-btn-dark" data-theme="dark-green" title="Dark Green"></button>
-                    <button class="theme-btn theme-btn-blue" data-theme="ocean-blue" title="Ocean Blue"></button>
-                </div>
+
                 
                 @if(session('admin_user'))
                     <span class="user-info">
