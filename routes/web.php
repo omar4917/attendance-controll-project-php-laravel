@@ -27,6 +27,15 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/switch-organization', [AuthController::class, 'switchOrganization'])->name('switch.organization');
 
+// Language switch route
+Route::get('/language/{locale}', function ($locale) {
+    if (in_array($locale, ['en', 'bn', 'hi', 'es'])) {
+        session(['locale' => $locale]);
+        app()->setLocale($locale);
+    }
+    return redirect()->back();
+})->name('language.switch');
+
 Route::redirect('/', '/attendance');
 
 // Protected routes - require Django admin authentication

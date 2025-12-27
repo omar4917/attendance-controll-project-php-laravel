@@ -765,8 +765,16 @@
                 </form>
                 @endif
 
+                <!-- Language Switcher -->
+                <div style="position:relative;">
+                    <select id="lang-selector" style="padding:6px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); font-size:13px; cursor:pointer;" onchange="window.location.href='{{ url('language') }}/' + this.value">
+                        <option value="en" {{ app()->getLocale() == 'en' ? 'selected' : '' }}>🇺🇸 English</option>
+                        <option value="bn" {{ app()->getLocale() == 'bn' ? 'selected' : '' }}>🇧🇩 বাংলা</option>
+                        <option value="hi" {{ app()->getLocale() == 'hi' ? 'selected' : '' }}>🇮🇳 हिंदी</option>
+                        <option value="es" {{ app()->getLocale() == 'es' ? 'selected' : '' }}>🇪🇸 Español</option>
+                    </select>
+                </div>
 
-                
                 @if(session('admin_user'))
                     <span class="user-info">
                         {{ session('admin_user') }}
