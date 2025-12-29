@@ -41,12 +41,12 @@
 <form method="get" action="{{ route('attendance.index') }}" style="background:var(--bg-quaternary); padding:20px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:20px; display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end;">
     
     <div style="width:200px;">
-        <label style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:8px; display:block;">Date</label>
+        <label style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:8px; display:block;">{{ __('messages.date') }}</label>
         <input type="month" name="date" class="form-control" value="{{ request('date', $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT)) }}" style="background:#fff; color:var(--text-primary); border:1px solid #ced4da; width: 100%; padding: 8px 12px; border-radius: 6px;">
     </div>
 
     <div style="width:200px;">
-        <label style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:8px; display:block;">Department</label>
+        <label style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:8px; display:block;">{{ __('messages.department') }}</label>
         <select name="department" class="form-select" style="background:#fff; color:var(--text-primary); border:1px solid #ced4da; width: 100%; padding: 8px 12px; border-radius: 6px;" onchange="this.form.submit()">
             <option value="">All</option>
             @foreach($departments as $dept)
@@ -56,7 +56,7 @@
     </div>
 
     <div style="width:200px;">
-        <label style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:8px; display:block;">Designation</label>
+        <label style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:8px; display:block;">{{ __('messages.designation') }}</label>
         <select name="designation" class="form-select" style="background:#fff; color:var(--text-primary); border:1px solid #ced4da; width: 100%; padding: 8px 12px; border-radius: 6px;" onchange="this.form.submit()">
             <option value="">All</option>
             @foreach($designations as $desig)
@@ -66,8 +66,8 @@
     </div>
 
     <div style="display:flex; gap:10px;">
-        <button type="submit" style="padding:8px 24px; background:#198754; color:#fff; border:none; border-radius:6px; font-weight:700; font-size:16px; cursor:pointer;">Filter</button>
-        <a href="{{ route('attendance.index') }}" style="padding:8px 24px; background:#c3e6cb; color:#0f5132; text-decoration:none; border-radius:6px; font-weight:700; font-size:16px; border:1px solid #badbcc;">Reset</a>
+        <button type="submit" style="padding:8px 24px; background:#198754; color:#fff; border:none; border-radius:6px; font-weight:700; font-size:16px; cursor:pointer;">{{ __('messages.filter') }}</button>
+        <a href="{{ route('attendance.index') }}" style="padding:8px 24px; background:#c3e6cb; color:#0f5132; text-decoration:none; border-radius:6px; font-weight:700; font-size:16px; border:1px solid #badbcc;">{{ __('messages.cancel') }}</a>
     </div>
 </form>
 
@@ -83,9 +83,9 @@
     <!-- PDF Downloads Group -->
     <div class="action-group">
         <span class="action-label"><i class="bi bi-file-pdf"></i> PDF:</span>
-        <a href="{{ route('attendance.pdf', ['type' => 'pdf', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#198754;">Download PDF</a>
-        <a href="{{ route('attendance.pdf', ['type' => 'bulk', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#6f42c1;">Individual PDFs</a>
-        <a href="{{ route('attendance.pdf', ['type' => 'combined', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#fd7e14;">Combined PDF</a>
+        <a href="{{ route('attendance.pdf', ['type' => 'pdf', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#198754;">{{ __('messages.download_pdf') }}</a>
+        <a href="{{ route('attendance.pdf', ['type' => 'bulk', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#6f42c1;">{{ __('messages.individual_pdfs') }}</a>
+        <a href="{{ route('attendance.pdf', ['type' => 'combined', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#fd7e14;">{{ __('messages.combined_pdf') }}</a>
     </div>
 
     @if(session('user_role') !== 'org_viewer')
@@ -97,8 +97,8 @@
             @csrf
             <input type="hidden" name="month" value="{{ $month }}">
             <input type="hidden" name="year" value="{{ $year }}">
-            <span class="action-label"><i class="bi bi-box-arrow-up"></i> Backup:</span>
-            <button type="submit" name="export_data" value="1" class="btn-action-primary" style="background:#0d6efd;">Export ZIP</button>
+            <span class="action-label"><i class="bi bi-box-arrow-up"></i> {{ __('messages.export') }}:</span>
+            <button type="submit" name="export_data" value="1" class="btn-action-primary" style="background:#0d6efd;">{{ __('messages.export') }} ZIP</button>
         </form>
     </div>
 
@@ -109,9 +109,9 @@
         @csrf
         <input type="hidden" name="month" value="{{ $month }}">
         <input type="hidden" name="year" value="{{ $year }}">
-        <span class="action-label"><i class="bi bi-cloud-upload"></i> Import:</span>
+        <span class="action-label"><i class="bi bi-cloud-upload"></i> {{ __('messages.import') }}:</span>
         <input type="file" name="import_file" class="action-input-file" style="max-width:180px;">
-        <button type="submit" class="btn-action-secondary">Upload</button>
+        <button type="submit" class="btn-action-secondary">{{ __('messages.upload') }}</button>
     </form>
     @endif
 </div>
@@ -131,7 +131,7 @@
             @else
             <h3 style="margin:0;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height:24px;" onerror="this.style.display='none'" />
-                Attendance Dashboard – {{ $month }}/{{ $year }}
+                {{ __('messages.attendance_dashboard') }} – {{ $month }}/{{ $year }}
             </h3>
             <small class="text-muted">Your organization's attendance</small>
             @endif
@@ -139,27 +139,27 @@
         
         <!-- Navigation Arrows (inline with title) -->
         <div style="display:flex;gap:4px;">
-            <a href="?{{ $prev_qs }}" class="btn-action-secondary" title="Previous Month">&larr; Previous</a>
-            <a href="?{{ $next_qs }}" class="btn-action-secondary" title="Next Month">Next &rarr;</a>
+            <a href="?{{ $prev_qs }}" class="btn-action-secondary" title="{{ __('messages.previous') }}">&larr; {{ __('messages.previous') }}</a>
+            <a href="?{{ $next_qs }}" class="btn-action-secondary" title="{{ __('messages.next') }}">{{ __('messages.next') }} &rarr;</a>
         </div>
     </div>
     
     <div style="display:flex;align-items:center;gap:8px;">
-        <label for="att-search" style="font-weight:600;font-size:13px;color:var(--text-primary);">Quick search:</label>
-        <input id="att-search" type="text" placeholder="Search by name, ID, designation" style="padding:6px 10px;border-radius:4px;border:1px solid var(--border-color);min-width:280px;font-size:13px;background:var(--input-bg);color:var(--text-primary);">
-        <span style="font-size:12px;color:var(--text-secondary);">Tip: drag to select text for copy.</span>
+        <label for="att-search" style="font-weight:600;font-size:13px;color:var(--text-primary);">{{ __('messages.quick_search') }}:</label>
+        <input id="att-search" type="text" placeholder="{{ __('messages.search_placeholder') }}" style="padding:6px 10px;border-radius:4px;border:1px solid var(--border-color);min-width:280px;font-size:13px;background:var(--input-bg);color:var(--text-primary);">
+        <span style="font-size:12px;color:var(--text-secondary);">{{ __('messages.drag_to_select') }}</span>
     </div>
 </div>
 
 <!-- Legend -->
 <div style="margin-bottom:10px; padding:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:4px; display:flex; flex-wrap:wrap; gap:15px; font-size:12px; color:var(--text-primary);">
-    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/present.png') }}" width="16" height="16"> <span>Present</span></div>
-    <div style="display:flex;align-items:center;gap:5px;"><span style="color:#ff3333;font-weight:900;font-size:14px;">!</span> <span>Late</span></div>
-    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/absent.png') }}" width="16" height="16"> <span>Absent</span></div>
-    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/on_leave.png') }}" width="16" height="16"> <span>On Leave</span></div>
-    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/holidays.png') }}" width="16" height="16"> <span>Holiday</span></div>
-    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/half_day.png') }}" width="16" height="16"> <span>Half Day</span></div>
-    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/early_leave.png') }}" width="16" height="16"> <span>Early Leave</span></div>
+    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/present.png') }}" width="16" height="16"> <span>{{ __('messages.present') }}</span></div>
+    <div style="display:flex;align-items:center;gap:5px;"><span style="color:#ff3333;font-weight:900;font-size:14px;">!</span> <span>{{ __('messages.late') }}</span></div>
+    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/absent.png') }}" width="16" height="16"> <span>{{ __('messages.absent') }}</span></div>
+    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/on_leave.png') }}" width="16" height="16"> <span>{{ __('messages.on_leave') }}</span></div>
+    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/holidays.png') }}" width="16" height="16"> <span>{{ __('messages.holiday') }}</span></div>
+    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/half_day.png') }}" width="16" height="16"> <span>{{ __('messages.half_day') }}</span></div>
+    <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/early_leave.png') }}" width="16" height="16"> <span>{{ __('messages.early_leave') }}</span></div>
     <div style="display:flex;align-items:center;gap:5px;"><img src="{{ asset('icons/off_day.png') }}" width="16" height="16"> <span>Off Day</span></div>
 </div>
 
@@ -169,8 +169,8 @@
     <thead>
       <tr style="background-color:#393737">
         <th scope="col" style="width:35px;">#</th>
-        <th style="z-index: 30 !important;" scope="col">Employee</th>
-        <th scope="col">Designation</th>
+        <th style="z-index: 30 !important;" scope="col">{{ __('messages.employee') }}</th>
+        <th scope="col">{{ __('messages.designation') }}</th>
         @foreach($daysForGrid as $day)
           <th scope="col" title="{{ $day['full'] }}">
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.4;padding:4px 0;">
@@ -179,13 +179,13 @@
             </div>
           </th>
         @endforeach
-        <th scope="col" class="attend-data">Total<br>Present</th>
-        <th scope="col" class="attend-data">Late</th>
-        <th scope="col" class="attend-data">On<br>Leave</th>
-        <th scope="col" class="attend-data">Holiday</th>
-        <th scope="col" class="attend-data">Absent</th>
-        <th scope="col" class="attend-data">Half<br>Day</th>
-        <th scope="col" class="attend-data">Early<br>Leave</th>
+        <th scope="col" class="attend-data">{!! preg_replace('/\s+/', '<br>', __('messages.total_present')) !!}</th>
+        <th scope="col" class="attend-data">{{ __('messages.late') }}</th>
+        <th scope="col" class="attend-data">{!! preg_replace('/\s+/', '<br>', __('messages.on_leave')) !!}</th>
+        <th scope="col" class="attend-data">{{ __('messages.holiday') }}</th>
+        <th scope="col" class="attend-data">{{ __('messages.absent') }}</th>
+        <th scope="col" class="attend-data">{!! preg_replace('/\s+/', '<br>', __('messages.half_day')) !!}</th>
+        <th scope="col" class="attend-data">{!! preg_replace('/\s+/', '<br>', __('messages.early_leave')) !!}</th>
       </tr>
     </thead>
     <tbody>
@@ -250,8 +250,8 @@
                             'employee_id' => $emp['employee_id'],
                             'date' => $day['full'], // Use the column date
                             'status' => $st['status'],
-                            'checkin_time' => !empty($st['checkin_time']) ? \Carbon\Carbon::parse($st['checkin_time'])->format('H:i') : '',
-                            'checkout_time' => !empty($st['checkout_time']) ? \Carbon\Carbon::parse($st['checkout_time'])->format('H:i') : '',
+                            'checkin_time' => !empty($st['checkin_time']) ? \Carbon\Carbon::parse($st['checkin_time'])->timezone('Asia/Dhaka')->format('H:i') : '',
+                            'checkout_time' => !empty($st['checkout_time']) ? \Carbon\Carbon::parse($st['checkout_time'])->timezone('Asia/Dhaka')->format('H:i') : '',
                             'popup' => 1,
                         ];
                     @endphp

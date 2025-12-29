@@ -132,7 +132,7 @@
     
     @if(isset($record))
         <div style="margin-bottom: 20px; font-size: 14px; font-weight: 600;">
-            {{ $record['employee_id'] }} | IN: {{ $record['checkin_time'] ? \Carbon\Carbon::parse($record['checkin_time'])->format('Y-m-d h:i A') : '-' }} | OUT: {{ $record['checkout_time'] ? \Carbon\Carbon::parse($record['checkout_time'])->format('Y-m-d h:i A') : '-' }}
+            {{ $record['employee_id'] }} | IN: {{ $record['checkin_time'] ? \Carbon\Carbon::parse($record['checkin_time'])->timezone('Asia/Dhaka')->format('Y-m-d h:i A') : '-' }} | OUT: {{ $record['checkout_time'] ? \Carbon\Carbon::parse($record['checkout_time'])->timezone('Asia/Dhaka')->format('Y-m-d h:i A') : '-' }}
         </div>
     @endif
 
@@ -157,7 +157,7 @@
         <div class="form-row">
             <label class="form-label">Employee:</label>
             <div class="form-input-container">
-                <select name="employee_id" class="form-select" style="width: 300px;" required>
+                <select name="employee_id" id="employee_select" class="form-select" style="width: 300px;" required>
                     <option value="">---------</option>
                     @foreach($employees as $emp)
                         <option value="{{ $emp['employee_id'] }}" {{ (old('employee_id', $record['employee_id'] ?? '') == $emp['employee_id']) ? 'selected' : '' }}>
@@ -206,7 +206,7 @@
         <div class="form-row">
             <label class="form-label">Checkin time:</label>
             <div class="form-input-container">
-                <input type="time" name="checkin_time" class="form-control" style="width: 150px;" value="{{ old('checkin_time', !empty($record['checkin_time']) ? \Carbon\Carbon::parse($record['checkin_time'])->format('H:i') : '') }}">
+                <input type="time" name="checkin_time" class="form-control" style="width: 150px;" value="{{ old('checkin_time', !empty($record['checkin_time']) ? \Carbon\Carbon::parse($record['checkin_time'])->timezone('Asia/Dhaka')->format('H:i') : '') }}">
                 <label class="form-label" style="width: auto; margin-left: 20px;">Checkin image:</label>
                 <input type="file" name="checkin_image" class="form-control" style="width: 250px;">
                 @if(!empty($record['checkin_image']))
@@ -220,7 +220,7 @@
         <div class="form-row">
             <label class="form-label">Checkout time:</label>
             <div class="form-input-container">
-                <input type="time" name="checkout_time" class="form-control" style="width: 150px;" value="{{ old('checkout_time', !empty($record['checkout_time']) ? \Carbon\Carbon::parse($record['checkout_time'])->format('H:i') : '') }}">
+                <input type="time" name="checkout_time" class="form-control" style="width: 150px;" value="{{ old('checkout_time', !empty($record['checkout_time']) ? \Carbon\Carbon::parse($record['checkout_time'])->timezone('Asia/Dhaka')->format('H:i') : '') }}">
                 <label class="form-label" style="width: auto; margin-left: 20px;">Checkout image:</label>
                 <input type="file" name="checkout_image" class="form-control" style="width: 250px;">
                 @if(!empty($record['checkout_image']))
@@ -339,6 +339,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.value !== originalStatus) {
                 setOverrideEnabled(true);
             }
+        });
+    }
+    
+    // Initialize Select2 for searchable employee dropdown
+    if (typeof $ !== 'undefined' && $.fn.select2) {
+        $('#employee_select').select2({
+            placeholder: 'Search employee...',
+            allowClear: true,
+            width: '300px'
         });
     }
 });

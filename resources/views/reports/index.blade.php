@@ -350,7 +350,7 @@
                 @endforeach
             </select>
         </div>
-        <button type="submit" class="btn-filter">Filter</button>
+        <button type="submit" class="btn-filter">{{ __('messages.filter') }}</button>
     </form>
 
     <!-- Unified Action Bar -->
@@ -374,8 +374,8 @@
     @endphp
     <div class="unified-action-bar" style="margin-bottom:15px;">
         <div class="action-group">
-            <span class="action-label"><i class="bi bi-file-pdf"></i> Download:</span>
-            <a href="{{ $pdfUrl }}" target="_blank" class="btn-action-primary" style="background:#198754;"><i class="bi bi-download"></i> Salary Report PDF</a>
+            <span class="action-label"><i class="bi bi-file-pdf"></i> {{ __('messages.download') }}:</span>
+            <a href="{{ $pdfUrl }}" target="_blank" class="btn-action-primary" style="background:#198754;"><i class="bi bi-download"></i> {{ __('messages.salary_report') }} PDF</a>
         </div>
     </div>
 
@@ -393,10 +393,10 @@
             <thead>
                 <tr>
                     <th>SN</th>
-                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'employee_name', 'dir' => $currentSort == 'employee_name' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'employee_name' ? 'active' : '' }}">Employee {!! $currentSort == 'employee_name' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
-                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'joining_date', 'dir' => $currentSort == 'joining_date' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'joining_date' ? 'active' : '' }}">Join Date {!! $currentSort == 'joining_date' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
-                    <th>Bank</th>
-                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'basic_salary', 'dir' => $currentSort == 'basic_salary' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'basic_salary' ? 'active' : '' }}">Basic {!! $currentSort == 'basic_salary' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'employee_name', 'dir' => $currentSort == 'employee_name' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'employee_name' ? 'active' : '' }}">{{ __('messages.employee') }} {!! $currentSort == 'employee_name' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'joining_date', 'dir' => $currentSort == 'joining_date' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'joining_date' ? 'active' : '' }}">{{ __('messages.joining_date') }} {!! $currentSort == 'joining_date' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
+                    <th>{{ __('messages.bank_account') }}</th>
+                    <th><a href="{{ request()->fullUrlWithQuery(['sort' => 'basic_salary', 'dir' => $currentSort == 'basic_salary' && $currentDir == 'asc' ? 'desc' : 'asc']) }}" class="th-sortable {{ $currentSort == 'basic_salary' ? 'active' : '' }}">{{ __('messages.salary') }} {!! $currentSort == 'basic_salary' ? ($currentDir == 'asc' ? '▲' : '▼') : '' !!}</a></th>
                     <th>House Rent</th>
                     <th>Medical</th>
                     <th>Conv</th>

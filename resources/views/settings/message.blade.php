@@ -214,10 +214,10 @@
 <div class="settings-card">
     <div class="settings-header">
         <div>
-            <div style="font-size: 18px; color: var(--text-secondary); margin-bottom: 5px;">Change voice and text message settings</div>
-            <h1 class="settings-title">Voice & Message Settings</h1>
+            <div style="font-size: 18px; color: var(--text-secondary); margin-bottom: 5px;">{{ __('messages.change') }} {{ strtolower(__('messages.voice_message_settings')) }}</div>
+            <h1 class="settings-title">{{ __('messages.voice_message_settings') }}</h1>
         </div>
-        <a href="#" class="btn-history">HISTORY</a>
+        <a href="#" class="btn-history">{{ __('messages.history') }}</a>
     </div>
 
     @if(!empty($error))
@@ -239,47 +239,47 @@
         @csrf
         
         <!-- TEXT MESSAGE SETTINGS -->
-        <div class="section-header-bar" style="margin-top: 0;">Text Message Settings</div>
+        <div class="section-header-bar" style="margin-top: 0;">{{ __('messages.text_message_settings') }}</div>
         
         <div class="form-group">
-            <label class="form-label">Checkin text:</label>
+            <label class="form-label">{{ __('messages.checkin_text') }}:</label>
             <input name="checkin_text" value="{{ $text['checkin_text'] ?? '' }}" class="form-input">
         </div>
 
         <div class="form-group">
-            <label class="form-label">Checkout text:</label>
+            <label class="form-label">{{ __('messages.checkout_text') }}:</label>
             <input name="checkout_text" value="{{ $text['checkout_text'] ?? '' }}" class="form-input">
         </div>
 
         <div class="form-group">
-            <label class="form-label">Checkin interval seconds:</label>
+            <label class="form-label">{{ __('messages.check_in') }} {{ __('messages.interval_seconds') }}:</label>
             <input name="checkin_interval_seconds" type="number" value="{{ $text['checkin_interval_seconds'] ?? '' }}" class="form-input" style="width: 80px;">
         </div>
 
         <div class="form-group">
-            <label class="form-label">Checkout interval seconds:</label>
+            <label class="form-label">{{ __('messages.check_out') }} {{ __('messages.interval_seconds') }}:</label>
             <input name="checkout_interval_seconds" type="number" value="{{ $text['checkout_interval_seconds'] ?? '' }}" class="form-input" style="width: 80px;">
         </div>
 
         <div class="form-group">
             <div class="checkbox-wrapper">
                 <input type="checkbox" name="checkin_active" value="1" {{ ($text['checkin_active'] ?? false) ? 'checked' : '' }} class="checkbox-input">
-                <label class="form-label" style="margin:0;">Checkin active</label>
+                <label class="form-label" style="margin:0;">{{ __('messages.checkin_active') }}</label>
             </div>
         </div>
 
         <div class="form-group">
             <div class="checkbox-wrapper">
                 <input type="checkbox" name="checkout_active" value="1" {{ ($text['checkout_active'] ?? false) ? 'checked' : '' }} class="checkbox-input">
-                <label class="form-label" style="margin:0;">Checkout active</label>
+                <label class="form-label" style="margin:0;">{{ __('messages.checkout_active') }}</label>
             </div>
         </div>
 
         <!-- VOICE SETTINGS -->
-        <div class="section-header-bar">Voice Settings</div>
+        <div class="section-header-bar">{{ __('messages.voice_settings') }}</div>
         
         <div class="form-group">
-            <label class="form-label">Default language:</label>
+            <label class="form-label">{{ __('messages.voice_language') }}:</label>
             <div>
                 <input name="default_language" value="{{ $voice['default_language'] ?? '' }}" class="form-input">
                 <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Primary TTS locale (e.g., en-US, bn-BD).</div>
@@ -295,7 +295,7 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Speech rate:</label>
+            <label class="form-label">{{ __('messages.speech_rate') }}:</label>
             <div>
                 <input name="speech_rate" type="number" step="0.1" value="{{ $voice['speech_rate'] ?? '' }}" class="form-input" style="width: 80px;">
                 <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">TTS speech rate (1.0 = normal).</div>
@@ -303,7 +303,7 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Pitch:</label>
+            <label class="form-label">{{ __('messages.pitch') }}:</label>
             <div>
                 <input name="pitch" type="number" step="0.1" value="{{ $voice['pitch'] ?? '' }}" class="form-input" style="width: 80px;">
                 <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">TTS pitch (1.0 = normal).</div>
@@ -311,7 +311,7 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Voice mode:</label>
+            <label class="form-label">{{ __('messages.voice_mode') }}:</label>
             <div>
                 <select name="voice_mode" class="form-input" style="width: 150px;">
                     <option value="Female Clear" {{ ($voice['voice_mode'] ?? '') == 'Female Clear' ? 'selected' : '' }}>Female Clear</option>
@@ -322,7 +322,7 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Voice repeat delay seconds:</label>
+            <label class="form-label">{{ __('messages.repeat_delay') }}:</label>
             <div>
                 <input name="voice_repeat_delay_seconds" type="number" step="0.1" value="{{ $voice['voice_repeat_delay_seconds'] ?? '' }}" class="form-input" style="width: 80px;">
                 <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Delay in seconds between repeated voice prompts.</div>
@@ -332,14 +332,14 @@
         <div class="form-group">
             <div class="checkbox-wrapper">
                 <input type="checkbox" name="voice_message_active" value="1" {{ ($voice['voice_message_active'] ?? false) ? 'checked' : '' }} class="checkbox-input">
-                <label class="form-label" style="margin:0;">Voice active</label>
+                <label class="form-label" style="margin:0;">{{ __('messages.voice_active') }}</label>
             </div>
         </div>
 
-        <div class="section-header-bar">Name Format</div>
+        <div class="section-header-bar">{{ __('messages.name_format') }}</div>
 
         <div class="form-group">
-            <label class="form-label">Name format:</label>
+            <label class="form-label">{{ __('messages.name_format') }}:</label>
             <div>
                 <select name="name_format" class="form-input" style="width: 150px;">
                     <option value="Full Name" {{ ($voice['name_format'] ?? '') == 'Full Name' ? 'selected' : '' }}>Full Name</option>
@@ -350,7 +350,7 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Custom name template:</label>
+            <label class="form-label">{{ __('messages.custom_template') }}:</label>
             <div>
                 <input name="custom_name_template" value="{{ $voice['custom_name_template'] ?? '' }}" class="form-input">
                 <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Use {first}, {last}, {full} placeholders when name_format is custom.</div>
@@ -362,9 +362,9 @@
         </div>
 
         <!-- Overrides Sections -->
-        <h3 class="section-title">Voice name overrides</h3>
+        <h3 class="section-title">{{ __('messages.voice') }} {{ __('messages.name') }} {{ __('messages.overrides') }}</h3>
         <table class="light-table">
-            <thead><tr><th>EMPLOYEE</th><th>LANGUAGE CODE</th><th>SPOKEN NAME</th><th>DELETE</th></tr></thead>
+            <thead><tr><th>{{ strtoupper(__('messages.employee')) }}</th><th>LANGUAGE CODE</th><th>{{ strtoupper(__('messages.spoken_name')) }}</th><th>{{ strtoupper(__('messages.delete')) }}</th></tr></thead>
             <tbody>
             @foreach($nameOverrides as $idx => $o)
                 <tr>
@@ -400,11 +400,11 @@
             </tr>
             </tbody>
         </table>
-        <button type="button" class="btn-add-override">Add voice name override</button>
+        <button type="button" class="btn-add-override">{{ __('messages.add_override') }}</button>
 
-        <h3 class="section-title">Voice phrase overrides</h3>
+        <h3 class="section-title">{{ __('messages.voice') }} {{ __('messages.phrase') }} {{ __('messages.overrides') }}</h3>
         <table class="light-table">
-            <thead><tr><th>LANGUAGE CODE</th><th>CHECKIN PHRASE</th><th>CHECKOUT PHRASE</th><th>ACTIVE</th><th>DELETE</th></tr></thead>
+            <thead><tr><th>LANGUAGE CODE</th><th>{{ strtoupper(__('messages.checkin_text')) }}</th><th>{{ strtoupper(__('messages.checkout_text')) }}</th><th>ACTIVE</th><th>{{ strtoupper(__('messages.delete')) }}</th></tr></thead>
             <tbody>
             @foreach($phraseOverrides as $idx => $p)
                 <tr>
@@ -426,11 +426,11 @@
             </tr>
             </tbody>
         </table>
-        <button type="button" class="btn-add-override">Add voice phrase override</button>
+        <button type="button" class="btn-add-override">{{ __('messages.add_override') }}</button>
         
         <h3 class="section-title">Voice preferences</h3>
         <table class="light-table">
-            <thead><tr><th>EMPLOYEE</th><th>LANGUAGE CODE</th><th>DELETE</th></tr></thead>
+            <thead><tr><th>{{ strtoupper(__('messages.employee')) }}</th><th>LANGUAGE CODE</th><th>{{ strtoupper(__('messages.delete')) }}</th></tr></thead>
             <tbody>
             @foreach($prefs as $idx => $pref)
                 <tr>
@@ -464,12 +464,12 @@
             </tr>
             </tbody>
         </table>
-        <button type="button" class="btn-add-override">Add voice preference</button>
+        <button type="button" class="btn-add-override">{{ __('messages.add_override') }}</button>
 
         <div class="action-bar">
-            <button type="submit" class="btn-save">SAVE</button>
-            <button type="submit" class="btn-save">Save and continue editing</button>
-            <button type="button" class="btn-delete">Delete</button>
+            <button type="submit" class="btn-save">{{ __('messages.save') }}</button>
+            <button type="submit" class="btn-save">{{ __('messages.save_and_continue') }}</button>
+            <button type="button" class="btn-delete">{{ __('messages.delete') }}</button>
         </div>
     </form>
 </div>

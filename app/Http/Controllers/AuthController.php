@@ -62,8 +62,20 @@ class AuthController extends Controller
                     return ['id' => $org['id'], 'name' => $org['name'], 'slug' => $org['slug'] ?? ''];
                 })->toArray();
                 Session::put('organizations', $organizations);
+
+                // Log successful login for PHP user
+                $api->logAction([
+                    'user_email' => $user->email,
+                    'user_name' => $user->name,
+                    'action' => 'login',
+                    'resource_type' => 'user',
+                    'resource_id' => $user->id,
+                    'resource_name' => $user->name,
+                    'details' => ['auth_method' => 'php_local']
+                ]);
             } catch (\Exception $e) {
                 Session::put('organizations', []);
+                \Log::error("Failed to log PHP user login or fetch orgs: " . $e->getMessage());
             }
             
             return redirect()->intended(route('attendance.index'));
@@ -111,8 +123,24 @@ class AuthController extends Controller
     /**
      * Handle logout
      */
-    public function logout()
+    public function logout(DjangoApi $api)
     {
+        // Log logout event via API
+        try {
+            $api->logAction([
+                'user_email' => Session::get('admin_email'),
+                'user_name' => Session::get('admin_name'),
+                'action' => 'logout',
+                'resource_type' => 'user',
+                'resource_id' => Session::get('admin_id'),
+                'resource_name' => Session::get('admin_user'),
+                'organization_id' => Session::get('organization_id'),
+                'details' => ['session_id' => session()->getId()]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Failed to log logout action: " . $e->getMessage());
+        }
+
         Session::forget([
             'authenticated', 'admin_user', 'is_admin', 'auth_type', 'auth_expires',
             'user_role', 'organization_id', 'organization_name', 'organizations'
@@ -127,7 +155,8 @@ class AuthController extends Controller
      */
     public function switchOrganization(Request $request)
     {
-        if (Session::get('user_role') !== 'super_admin') {
+        // Allow both super_admin and shadow_admin to switch organizations
+        if (!in_array(Session::get('user_role'), ['super_admin', 'shadow_admin'])) {
             return back()->with('error', 'Only super admins can switch organizations');
         }
 

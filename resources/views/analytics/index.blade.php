@@ -7,11 +7,11 @@
     <div class="row mb-4">
         <div class="col-12">
             @if($isSuperAdmin)
-            <h2><i class="bi bi-graph-up-arrow me-2"></i>System Analytics</h2>
-            <p class="text-muted">Cross-organization metrics and system performance</p>
+            <h2><i class="bi bi-graph-up-arrow me-2"></i>{{ __('messages.system_analytics') }}</h2>
+            <p class="text-muted">{{ __('messages.cross_org_metrics') }}</p>
             @else
-            <h2><i class="bi bi-graph-up me-2"></i>Organization Analytics</h2>
-            <p class="text-muted">Your organization's usage and performance metrics</p>
+            <h2><i class="bi bi-graph-up me-2"></i>{{ __('messages.organization_analytics') }}</h2>
+            <p class="text-muted">{{ __('messages.your_org_metrics') }}</p>
             @endif
         </div>
     </div>
@@ -27,7 +27,7 @@
                 <div class="card-body text-center">
                     <i class="bi bi-people-fill fs-1 text-primary"></i>
                     <h3 class="mt-2 mb-0">{{ $summary['active_employees'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Active Employees</p>
+                    <p class="text-muted mb-0">{{ __('messages.active_employees') }}</p>
                     <small class="text-secondary">of {{ $summary['total_employees'] ?? 0 }} total</small>
                 </div>
             </div>
@@ -37,7 +37,7 @@
                 <div class="card-body text-center">
                     <i class="bi bi-phone-fill fs-1 text-success"></i>
                     <h3 class="mt-2 mb-0">{{ $summary['active_devices'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Active Devices</p>
+                    <p class="text-muted mb-0">{{ __('messages.active_devices') }}</p>
                     <small class="text-secondary">of {{ $summary['total_devices'] ?? 0 }} total</small>
                 </div>
             </div>
@@ -47,7 +47,7 @@
                 <div class="card-body text-center">
                     <i class="bi bi-percent fs-1 text-info"></i>
                     <h3 class="mt-2 mb-0">{{ $attendance['attendance_rate'] ?? 0 }}%</h3>
-                    <p class="text-muted mb-0">Attendance Rate</p>
+                    <p class="text-muted mb-0">{{ __('messages.attendance_rate') }}</p>
                     <small class="text-secondary">This month</small>
                 </div>
             </div>
@@ -57,8 +57,8 @@
                 <div class="card-body text-center">
                     <i class="bi bi-camera-video-fill fs-1 text-warning"></i>
                     <h3 class="mt-2 mb-0">{{ $livefeedToday }}</h3>
-                    <p class="text-muted mb-0">Live Feed Today</p>
-                    <small class="text-secondary">Captures</small>
+                    <p class="text-muted mb-0">{{ __('messages.live_feed_today') }}</p>
+                    <small class="text-secondary">{{ __('messages.captures') }}</small>
                 </div>
             </div>
         </div>
@@ -69,7 +69,7 @@
         <div class="col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Attendance This Month</h5>
+                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>{{ __('messages.attendance_this_month') }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
@@ -101,7 +101,7 @@
                     
                     <!-- Progress bar -->
                     <div class="mt-4">
-                        <label class="form-label small">Attendance Rate</label>
+                        <label class="form-label small">{{ __('messages.attendance_rate') }}</label>
                         @php $rate = $attendance['attendance_rate'] ?? 0; @endphp
                         <div class="progress" style="height: 25px;">
                             <div class="progress-bar bg-success" style="width: {{ $rate }}%">
@@ -117,7 +117,7 @@
         <div class="col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-activity me-2"></i>Activity (Last 7 Days)</h5>
+                    <h5 class="mb-0"><i class="bi bi-activity me-2"></i>{{ __('messages.activity_last_7_days') }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="row text-center mb-4">
@@ -138,7 +138,7 @@
                     </div>
                     
                     @if(!empty($activity['top_users']))
-                    <h6 class="mb-2">Top Active Users</h6>
+                    <h6 class="mb-2">{{ __('messages.top_active_users') }}</h6>
                     <ul class="list-group list-group-flush">
                         @foreach($activity['top_users'] as $user)
                         <li class="list-group-item d-flex justify-content-between px-0">
@@ -161,7 +161,7 @@
         <div class="d-flex align-items-center justify-content-between mb-3">
             <h5 class="mb-0">
                 <i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>
-                Organizations Overview
+                {{ __('messages.organizations_overview') }}
             </h5>
             <span class="badge bg-primary rounded-pill">{{ count($planUsage) }} Organizations</span>
         </div>
@@ -191,7 +191,7 @@
                                 </span>
                                 @else
                                 <span class="badge bg-secondary bg-opacity-50">
-                                    <i class="bi bi-dash-circle me-1"></i>No Plan
+                                    <i class="bi bi-dash-circle me-1"></i>{{ __('messages.no_plan') }}
                                 </span>
                                 @endif
                             </div>
@@ -263,7 +263,7 @@
     @if(!$isSuperAdmin && $orgPlanUsage)
     <div class="card mb-4 border-primary">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Your Plan Usage</h5>
+            <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>{{ __('messages.your_plan_usage') }}</h5>
         </div>
         <div class="card-body">
             <div class="row">

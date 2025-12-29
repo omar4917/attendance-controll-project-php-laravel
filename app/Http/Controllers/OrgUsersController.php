@@ -18,7 +18,7 @@ class OrgUsersController extends Controller
         $role = session('user_role', '');
         
         // Only org_main_admin and org_admin can access this page
-        if (!in_array($role, ['super_admin', 'org_main_admin', 'org_admin'])) {
+        if (!in_array($role, ['super_admin', 'shadow_admin', 'org_main_admin', 'org_admin'])) {
             return redirect()->route('employees.index')->with('error', 'Access denied');
         }
         
@@ -26,7 +26,7 @@ class OrgUsersController extends Controller
         $response = $api->orgUsers($orgId);
         
         $orgUsers = $response['org_users'] ?? [];
-        $canManage = in_array($role, ['super_admin', 'org_main_admin']);
+        $canManage = in_array($role, ['super_admin', 'shadow_admin', 'org_main_admin']);
         
         // Sorting
         $sortField = $request->input('sort', 'username');
@@ -41,7 +41,7 @@ class OrgUsersController extends Controller
         
         // If super_admin and viewing "All Organizations", get list of orgs for the "Add User" modal
         $organizations = [];
-        if ($role === 'super_admin' && !$orgId) {
+        if (in_array($role, ['super_admin', 'shadow_admin']) && !$orgId) {
             $organizationsResponse = $api->organizations();
             $organizations = $organizationsResponse['organizations'] ?? [];
         }
@@ -57,7 +57,7 @@ class OrgUsersController extends Controller
         $role = session('user_role', '');
         
         // Only org_main_admin can create users
-        if (!in_array($role, ['super_admin', 'org_main_admin'])) {
+        if (!in_array($role, ['super_admin', 'shadow_admin', 'org_main_admin'])) {
             return redirect()->back()->with('error', 'Only main admins can create users');
         }
         
@@ -94,7 +94,7 @@ class OrgUsersController extends Controller
         $role = session('user_role', '');
         
         // Only org_main_admin can update users
-        if (!in_array($role, ['super_admin', 'org_main_admin'])) {
+        if (!in_array($role, ['super_admin', 'shadow_admin', 'org_main_admin'])) {
             return redirect()->back()->with('error', 'Only main admins can update users');
         }
         
@@ -128,7 +128,7 @@ class OrgUsersController extends Controller
         $role = session('user_role', '');
         
         // Only org_main_admin can delete users
-        if (!in_array($role, ['super_admin', 'org_main_admin'])) {
+        if (!in_array($role, ['super_admin', 'shadow_admin', 'org_main_admin'])) {
             return redirect()->back()->with('error', 'Only main admins can delete users');
         }
         

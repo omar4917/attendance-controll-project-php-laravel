@@ -26,7 +26,7 @@ trait HasOrganizationContext
     {
         $role = Session::get('user_role', 'org_admin');
         
-        if ($role === 'super_admin') {
+        if (in_array($role, ['super_admin', 'shadow_admin'])) {
             // Super admins can view all or select specific org
             $selectedOrgId = Session::get('selected_organization_id');
             return $selectedOrgId ? (int) $selectedOrgId : null;
@@ -42,7 +42,7 @@ trait HasOrganizationContext
      */
     protected function isSuperAdmin(): bool
     {
-        return Session::get('user_role') === 'super_admin';
+        return in_array(Session::get('user_role'), ['super_admin', 'shadow_admin']);
     }
 
     /**
@@ -56,7 +56,7 @@ trait HasOrganizationContext
     /**
      * Get organization name for display
      */
-    protected function getOrganizationName(): string
+    protected function getOrganizationName(): ?string
     {
         if ($this->isSuperAdmin()) {
             return Session::get('selected_organization_name', 'All Organizations');

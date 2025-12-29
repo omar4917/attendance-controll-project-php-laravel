@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Attendance Record</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         :root {
             /* Light Theme (Fresh Light Green) - Default */
@@ -40,9 +42,46 @@
             margin: 0;
             border-radius: 0;
         }
+        /* Select2 customization */
+        .select2-container--default .select2-selection--single {
+            height: 36px;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 34px;
+            color: var(--input-text);
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 34px;
+        }
+        .select2-dropdown {
+            border-color: var(--input-border);
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--primary);
+        }
     </style>
 </head>
 <body>
     @include('attendance_records.form_partial')
+    
+    <!-- jQuery (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#employee_select').select2({
+                placeholder: 'Type to search employee...',
+                allowClear: true,
+                width: '300px'
+            });
+        });
+    </script>
 </body>
 </html>

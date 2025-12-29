@@ -18,7 +18,7 @@ class AnalyticsController extends Controller
     {
         $orgId = $this->getOrganizationId();
         $userRole = \Session::get('user_role', 'org_admin');
-        $isSuperAdmin = $userRole === 'super_admin';
+        $isSuperAdmin = in_array($userRole, ['super_admin', 'shadow_admin']);
         
         $data = $api->analytics($orgId);
         

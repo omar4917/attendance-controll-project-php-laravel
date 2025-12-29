@@ -23,7 +23,7 @@ class ReportController extends Controller
         
         // Role detection
         $userRole = \Session::get('user_role', 'org_admin');
-        $isSuperAdmin = $userRole === 'super_admin';
+        $isSuperAdmin = in_array($userRole, ['super_admin', 'shadow_admin']);
         
         // Add organization filtering
         // Use session value from header dropdown (selected_organization_id)

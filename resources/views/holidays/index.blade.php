@@ -164,8 +164,8 @@
 
 @section('content')
 <div class="page-header">
-    <h1 class="page-title">Holidays</h1>
-    <a href="{{ route('holidays.index', ['action' => 'add']) }}" class="btn-add">ADD HOLIDAY</a>
+    <h1 class="page-title">{{ __('messages.holidays') }}</h1>
+    <a href="{{ route('holidays.index', ['action' => 'add']) }}" class="btn-add">{{ __('messages.add_holiday') }}</a>
 </div>
 
 @if(session('success'))
@@ -177,8 +177,8 @@
 
 <div class="action-bar">
     <form action="{{ route('holidays.index') }}" method="GET" style="display:flex; gap:0;">
-        <input type="text" name="search" class="search-box" placeholder="Search holidays..." value="{{ request('search') }}">
-        <button type="submit" class="btn-go">Search</button>
+        <input type="text" name="search" class="search-box" placeholder="{{ __('messages.search_holidays') }}" value="{{ request('search') }}">
+        <button type="submit" class="btn-go">{{ __('messages.search') }}</button>
     </form>
 </div>
 
@@ -191,35 +191,35 @@
 <table class="admin-table">
     <thead>
         <tr>
-            <th>OWNER</th>
+            <th>{{ __('messages.owner') }}</th>
             <th>
                 <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'name', 'dir' => $currentSort === 'name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'name' ? 'active' : '' }}">
-                    NAME {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    {{ __('messages.name') }} {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                 </a>
             </th>
             <th>
                 <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'start_date', 'dir' => $currentSort === 'start_date' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'start_date' ? 'active' : '' }}">
-                    START DATE {!! $currentSort === 'start_date' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    {{ __('messages.start_date') }} {!! $currentSort === 'start_date' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                 </a>
             </th>
             <th>
                 <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'end_date', 'dir' => $currentSort === 'end_date' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'end_date' ? 'active' : '' }}">
-                    END DATE {!! $currentSort === 'end_date' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    {{ __('messages.end_date') }} {!! $currentSort === 'end_date' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                 </a>
             </th>
             <th>
                 <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'is_active', 'dir' => $currentSort === 'is_active' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'is_active' ? 'active' : '' }}">
-                    IS ACTIVE {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    {{ __('messages.is_active') }} {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                 </a>
             </th>
             <th>
                 <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'is_government', 'dir' => $currentSort === 'is_government' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'is_government' ? 'active' : '' }}">
-                    IS GOVERNMENT {!! $currentSort === 'is_government' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    {{ __('messages.is_government') }} {!! $currentSort === 'is_government' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                 </a>
             </th>
             <th>
                 <a href="{{ route('holidays.index', array_merge($sortParams, ['sort' => 'created_at', 'dir' => $currentSort === 'created_at' ? $toggleDir : 'desc'])) }}" class="th-sortable {{ $currentSort === 'created_at' ? 'active' : '' }}">
-                    CREATED AT {!! $currentSort === 'created_at' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                    {{ __('messages.created_at') }} {!! $currentSort === 'created_at' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                 </a>
             </th>
         </tr>
@@ -249,14 +249,14 @@
         </tr>
         @empty
         <tr>
-            <td colspan="7" style="text-align:center; padding: 30px; color: #666;">No holidays found.</td>
+            <td colspan="7" style="text-align:center; padding: 30px; color: #666;">{{ __('messages.no_holidays_found') }}</td>
         </tr>
         @endforelse
     </tbody>
 </table>
 
 <div style="margin-top: 15px; color: #666; font-size: 0.9rem;">
-    {{ count($holidays) }} holidays
+    {{ count($holidays) }} {{ strtolower(__('messages.holidays')) }}
 </div>
 @endsection
 
@@ -265,39 +265,39 @@
 <div class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
-            <h3>Add New Holiday</h3>
+            <h3>{{ __('messages.add_holiday') }}</h3>
             <a href="{{ route('holidays.index') }}" class="close-btn">×</a>
         </div>
         <form action="{{ route('holidays.store') }}" method="POST">
             @csrf
             
             <div class="form-group">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" name="name" required placeholder="Holiday Name">
+                <label class="form-label">{{ __('messages.name') }}</label>
+                <input type="text" class="form-control" name="name" required placeholder="{{ __('messages.name') }}">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Start Date</label>
+                <label class="form-label">{{ __('messages.start_date') }}</label>
                 <input type="date" class="form-control" name="start_date" required>
             </div>
 
             <div class="form-group">
-                <label class="form-label">End Date</label>
+                <label class="form-label">{{ __('messages.end_date') }}</label>
                 <input type="date" class="form-control" name="end_date" required>
             </div>
 
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="new_is_active" name="is_active" value="1" checked>
-                <label class="form-check-label" for="new_is_active">Is Active</label>
+                <label class="form-check-label" for="new_is_active">{{ __('messages.is_active') }}</label>
             </div>
 
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="new_is_government" name="is_government" value="1">
-                <label class="form-check-label" for="new_is_government">Is Government Holiday</label>
+                <label class="form-check-label" for="new_is_government">{{ __('messages.is_government') }}</label>
             </div>
 
             <div class="modal-footer">
-                <button type="submit" class="btn-save">Create Holiday</button>
+                <button type="submit" class="btn-save">{{ __('messages.add_holiday') }}</button>
             </div>
         </form>
     </div>

@@ -154,10 +154,10 @@
 @section('content')
 <div class="page-header">
     <div>
-        <div class="page-title">Change context setting</div>
-        <div class="page-subtitle">Organization Configuration</div>
+        <div class="page-title">{{ __('messages.context_settings') }}</div>
+        <div class="page-subtitle">{{ __('messages.organization_config') }}</div>
     </div>
-    <a href="#" class="btn-history">HISTORY</a>
+    <a href="#" class="btn-history">{{ __('messages.history') }}</a>
 </div>
 
 @if(session('success'))
@@ -171,17 +171,17 @@
     @csrf
     
     <!-- General Settings -->
-    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">General Settings</div>
+    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">{{ __('messages.general_settings') }}</div>
     
     <div class="admin-form-row">
-        <label class="admin-form-label" for="timezone">Timezone</label>
+        <label class="admin-form-label" for="timezone">{{ __('messages.timezone') }}</label>
         <div class="admin-form-field">
             <input class="form-control" type="text" id="timezone" name="timezone" value="{{ $data['timezone'] ?? 'Asia/Dhaka' }}" style="width:100%; padding:8px; border:1px solid #badbcc; border-radius:4px;">
         </div>
     </div>
 
     <div class="admin-form-row">
-        <label class="admin-form-label" for="work_week_start">Work Week Start</label>
+        <label class="admin-form-label" for="work_week_start">{{ __('messages.work_week_start') }}</label>
         <div class="admin-form-field">
             <select class="form-control" id="work_week_start" name="work_week_start" style="width:100%; padding:8px; border:1px solid #badbcc; border-radius:4px;">
                 @foreach([0=>'Sunday', 1=>'Monday', 2=>'Tuesday', 3=>'Wednesday', 4=>'Thursday', 5=>'Friday', 6=>'Saturday'] as $val => $label)
@@ -192,10 +192,10 @@
     </div>
 
     <!-- Biometrics -->
-    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">Biometrics</div>
+    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">{{ __('messages.biometrics') }}</div>
     
     <div class="admin-form-row">
-        <label class="admin-form-label" for="liveness_threshold">Liveness Threshold</label>
+        <label class="admin-form-label" for="liveness_threshold">{{ __('messages.liveness_threshold') }}</label>
         <div class="admin-form-field">
             <input class="form-control" type="number" step="0.01" min="0" max="1" id="liveness_threshold" name="liveness_threshold" value="{{ $data['liveness_threshold'] ?? 0.7 }}" style="width:100px; padding:8px; border:1px solid #badbcc; border-radius:4px;">
              <span style="font-size:0.8em; color:#666; margin-left:10px;">(0.0 - 1.0)</span>
@@ -203,7 +203,7 @@
     </div>
     
     <div class="admin-form-row">
-        <label class="admin-form-label" for="match_threshold">Match Threshold</label>
+        <label class="admin-form-label" for="match_threshold">{{ __('messages.match_threshold') }}</label>
         <div class="admin-form-field">
             <input class="form-control" type="number" step="0.01" min="0" max="1" id="match_threshold" name="match_threshold" value="{{ $data['match_threshold'] ?? 0.8 }}" style="width:100px; padding:8px; border:1px solid #badbcc; border-radius:4px;">
             <span style="font-size:0.8em; color:#666; margin-left:10px;">(0.0 - 1.0)</span>
@@ -211,10 +211,10 @@
     </div>
 
     <!-- Voice & Notifications -->
-    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">Voice & Notifications</div>
+    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">{{ __('messages.voice_notifications') }}</div>
 
     <div class="admin-form-row">
-        <label class="admin-form-label" for="default_voice_language">Voice Language</label>
+        <label class="admin-form-label" for="default_voice_language">{{ __('messages.voice_language') }}</label>
         <div class="admin-form-field">
             <input class="form-control" type="text" id="default_voice_language" name="default_voice_language" value="{{ $data['default_voice_language'] ?? 'en' }}" style="width:100px; padding:8px; border:1px solid #badbcc; border-radius:4px;">
         </div>
@@ -224,21 +224,21 @@
          <div class="admin-form-field" style="display:flex; gap:20px; flex-wrap:wrap;">
             <div style="display:flex; align-items:center;">
                 <input class="form-check-input" type="checkbox" id="voice_enabled" name="voice_enabled" {{ !empty($data['voice_enabled']) ? 'checked' : '' }}>
-                <label for="voice_enabled" style="margin-left:5px; font-weight:600; color:var(--text-main);">Voice Enabled (Org)</label>
+                <label for="voice_enabled" style="margin-left:5px; font-weight:600; color:var(--text-main);">{{ __('messages.voice_enabled') }} (Org)</label>
             </div>
             <div style="display:flex; align-items:center;">
                 <input class="form-check-input" type="checkbox" id="email_on_late" name="email_on_late" {{ !empty($data['email_on_late']) ? 'checked' : '' }}>
-                <label for="email_on_late" style="margin-left:5px; font-weight:600; color:var(--text-main);">Email on Late</label>
+                <label for="email_on_late" style="margin-left:5px; font-weight:600; color:var(--text-main);">{{ __('messages.email_on_late') }}</label>
             </div>
             <div style="display:flex; align-items:center;">
                 <input class="form-check-input" type="checkbox" id="email_on_absent" name="email_on_absent" {{ !empty($data['email_on_absent']) ? 'checked' : '' }}>
-                <label for="email_on_absent" style="margin-left:5px; font-weight:600; color:var(--text-main);">Email on Absent</label>
+                <label for="email_on_absent" style="margin-left:5px; font-weight:600; color:var(--text-main);">{{ __('messages.email_on_absent') }}</label>
             </div>
          </div>
     </div>
 
     <!-- System Legacy -->
-    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">System Defaults (Legacy)</div>
+    <div style="margin: 20px 0 10px; font-weight:600; color:var(--text-muted); border-bottom:1px solid #d1e7dd; padding-bottom:5px;">{{ __('messages.system_defaults') }} (Legacy)</div>
     
     <div class="admin-form-row">
         <div class="admin-form-field" style="display:flex; align-items:center;">
@@ -252,7 +252,7 @@
         <div class="admin-form-field" style="display:flex; align-items:center;">
             <input class="form-check-input" type="checkbox" id="voice_message_active" name="voice_message_active" 
                 {{ !empty($data['voice_message_active']) ? 'checked' : '' }}>
-            <label class="admin-form-label" for="voice_message_active" style="margin-left:10px; width:auto;">Voice message active</label>
+            <label class="admin-form-label" for="voice_message_active" style="margin-left:10px; width:auto;">{{ __('messages.voice_active') }}</label>
         </div>
     </div>
 
@@ -265,10 +265,10 @@
 
     <div class="bottom-bar">
         <div style="display:flex; gap:10px;">
-            <button type="submit" class="btn-save">SAVE</button>
-            <button type="submit" name="continue" value="1" class="btn-save">Save and continue editing</button>
+            <button type="submit" class="btn-save">{{ __('messages.save') }}</button>
+            <button type="submit" name="continue" value="1" class="btn-save">{{ __('messages.save_and_continue') }}</button>
         </div>
-        <button type="button" class="btn-delete">Delete</button>
+        <button type="button" class="btn-delete">{{ __('messages.delete') }}</button>
     </div>
 </form>
 @endsection

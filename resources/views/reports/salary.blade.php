@@ -165,10 +165,10 @@
 <div class="salary-report-container">
     <div class="page-header">
         <div>
-            <h1 class="page-title">Salary Report - {{ $monthName }}</h1>
-            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">Data generated instantly from database</div>
+            <h1 class="page-title">{{ __('messages.salary_report') }} - {{ $monthName }}</h1>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">{{ __('messages.data_generated_instantly') }}</div>
         </div>
-        <a href="{{ route('reports.index') }}" style="color: #0d6efd; text-decoration: none; font-size: 13px;">← Back to Admin</a>
+        <a href="{{ route('reports.index') }}" style="color: #0d6efd; text-decoration: none; font-size: 13px;">← {{ __('messages.back_to_admin') }}</a>
     </div>
 
     @if(!empty($error))
@@ -176,21 +176,21 @@
     @endif
 
     <form method="GET" class="filter-bar">
-        <span class="filter-label">Month:</span>
+        <span class="filter-label">{{ __('messages.month') }}:</span>
         <select name="month" class="filter-select">
             @foreach($months as $m)
                 <option value="{{ $m }}" {{ request('month', date('n')) == $m ? 'selected' : '' }}>{{ date('F', mktime(0, 0, 0, $m, 1)) }}</option>
             @endforeach
         </select>
 
-        <span class="filter-label">Year:</span>
+        <span class="filter-label">{{ __('messages.year') }}:</span>
         <select name="year" class="filter-select">
             @foreach($years as $y)
                 <option value="{{ $y }}" {{ request('year', date('Y')) == $y ? 'selected' : '' }}>{{ $y }}</option>
             @endforeach
         </select>
 
-        <span class="filter-label">Department:</span>
+        <span class="filter-label">{{ __('messages.department') }}:</span>
         <select name="department" class="filter-select">
             <option value="">All Departments</option>
             @foreach($departments as $dept)
@@ -198,24 +198,24 @@
             @endforeach
         </select>
 
-        <button type="submit" class="btn-filter">Filter</button>
+        <button type="submit" class="btn-filter">{{ __('messages.filter') }}</button>
     </form>
 
-    <a href="#" class="btn-download">Download PDF</a>
+    <a href="#" class="btn-download">{{ __('messages.download_pdf') }}</a>
 
     <div class="rules-container">
         <div class="rule-box">
-            <div class="rule-title">⚠️ Bonus Rules</div>
+            <div class="rule-title">⚠️ {{ __('messages.bonus_rules') }}</div>
             <ul class="rule-list">
-                <li>• Perfect Attendance: {{ $defaults['attendance_bonus'] ?? '0' }} BDT (0 late days)</li>
-                <li>• Manual Bonus: Added by admin</li>
+                <li>• {{ __('messages.perfect_attendance') }}: {{ $defaults['attendance_bonus'] ?? '0' }} BDT (0 {{ __('messages.late') }})</li>
+                <li>• {{ __('messages.manual_bonus') }}: Added by admin</li>
             </ul>
         </div>
         <div class="rule-box">
-            <div class="rule-title">⚠️ Fine Rules</div>
+            <div class="rule-title">⚠️ {{ __('messages.fine_rules') }}</div>
             <ul class="rule-list">
-                <li>• Late Fine: 1 day salary per {{ $defaults['late_needed'] ?? '3' }} late days (Monthly Salary ÷ 30)</li>
-                <li>• Manual Fines: Added by admin</li>
+                <li>• {{ __('messages.late_fine_rule') }}: 1 day per {{ $defaults['late_needed'] ?? '3' }} late days</li>
+                <li>• {{ __('messages.manual_fines') }}: Added by admin</li>
             </ul>
         </div>
     </div>
@@ -225,32 +225,32 @@
             <thead>
                 <tr>
                     <th>SN</th>
-                    <th>Employee</th>
-                    <th>Join Date</th>
-                    <th>Bank</th>
-                    <th class="text-right">Basic</th>
-                    <th class="text-right">House Rent</th>
-                    <th class="text-right">Medical</th>
-                    <th class="text-right">Conv</th>
-                    <th class="text-right">Food</th>
-                    <th class="text-right">Other Allow</th>
-                    <th class="text-right">Gross</th>
-                    <th class="text-center">WD</th>
-                    <th class="text-center">WKN</th>
-                    <th class="text-center">Leave</th>
-                    <th class="text-center">Holiday</th>
-                    <th class="text-center">Att Day</th>
-                    <th class="text-center">Late</th>
-                    <th class="text-right">OT Hrs</th>
-                    <th class="text-right">OT Rate</th>
-                    <th class="text-right">OT Amt</th>
-                    <th class="text-right">HD Allow</th>
-                    <th class="text-right">Att Bonus</th>
-                    <th class="text-right">Other Deduct</th>
-                    <th class="text-right">Fine</th>
-                    <th class="text-right">TDS</th>
-                    <th class="text-right col-highlight">Payable</th>
-                    <th>Signature</th>
+                    <th>{{ __('messages.employee') }}</th>
+                    <th>{{ __('messages.join_date') }}</th>
+                    <th>{{ __('messages.bank') }}</th>
+                    <th class="text-right">{{ __('messages.basic_salary') }}</th>
+                    <th class="text-right">{{ __('messages.house_rent') }}</th>
+                    <th class="text-right">{{ __('messages.medical') }}</th>
+                    <th class="text-right">{{ __('messages.conv') }}</th>
+                    <th class="text-right">{{ __('messages.food') }}</th>
+                    <th class="text-right">{{ __('messages.other_allow') }}</th>
+                    <th class="text-right">{{ __('messages.gross_salary') }}</th>
+                    <th class="text-center">{{ __('messages.wd') }}</th>
+                    <th class="text-center">{{ __('messages.wkn') }}</th>
+                    <th class="text-center">{{ __('messages.leave') }}</th>
+                    <th class="text-center">{{ __('messages.holiday') }}</th>
+                    <th class="text-center">{{ __('messages.att_day') }}</th>
+                    <th class="text-center">{{ __('messages.late') }}</th>
+                    <th class="text-right">{{ __('messages.ot_hrs') }}</th>
+                    <th class="text-right">{{ __('messages.ot_rate') }}</th>
+                    <th class="text-right">{{ __('messages.ot_amt') }}</th>
+                    <th class="text-right">{{ __('messages.hd_allowance') }}</th>
+                    <th class="text-right">{{ __('messages.att_bonus') }}</th>
+                    <th class="text-right">{{ __('messages.other_ded') }}</th>
+                    <th class="text-right">{{ __('messages.late_fine') }}</th>
+                    <th class="text-right">{{ __('messages.tds') }}</th>
+                    <th class="text-right col-highlight">{{ __('messages.payable') }}</th>
+                    <th>{{ __('messages.signature') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -300,14 +300,14 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="27" class="text-center" style="padding: 20px; color: #aaa;">No salary data found for this month.</td>
+                        <td colspan="27" class="text-center" style="padding: 20px; color: #aaa;">{{ __('messages.no_salary_data') }}</td>
                     </tr>
                 @endforelse
                 
                 <!-- Totals Row -->
                 @if(count($salaryData) > 0)
                     <tr style="background: #333; font-weight: bold;">
-                        <td colspan="4" class="text-right">TOTALS</td>
+                        <td colspan="4" class="text-right">{{ __('messages.totals') }}</td>
                         <td class="text-right">{{ number_format((float)($totals['basic_salary'] ?? 0), 2) }}</td>
                         <td class="text-right">{{ number_format((float)($totals['house_rent'] ?? 0), 2) }}</td>
                         <td class="text-right">{{ number_format((float)($totals['medical_allowance'] ?? 0), 2) }}</td>

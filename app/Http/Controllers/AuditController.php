@@ -26,10 +26,10 @@ class AuditController extends Controller
         $role = Session::get('user_role');
         $orgId = $this->getOrganizationId();
         
-        if ($role !== 'super_admin' && $orgId) {
+        if (!in_array($role, ['super_admin', 'shadow_admin']) && $orgId) {
             // Org admins can only see their own org's logs
             $filters['organization_id'] = $orgId;
-        } elseif ($role === 'super_admin' && $request->has('organization_id')) {
+        } elseif (in_array($role, ['super_admin', 'shadow_admin']) && $request->has('organization_id')) {
             // Super admins can filter by any org
             $filters['organization_id'] = $request->input('organization_id');
         }
@@ -45,7 +45,7 @@ class AuditController extends Controller
         
         // Get organizations for filter dropdown (super admins only)
         $organizations = [];
-        if ($role === 'super_admin') {
+        if (in_array($role, ['super_admin', 'shadow_admin'])) {
             $orgsData = $api->organizations();
             $organizations = $orgsData['organizations'] ?? [];
         }

@@ -220,9 +220,9 @@
                 </small>
                 @else
                 <h2 style="margin:0; font-size: 20px; font-weight: 600; color: var(--text-primary);">
-                    <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>All Organizations - Attendance Records
+                    <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>{{ __('messages.organization_overview') }} - {{ __('messages.attendance_report') }}
                 </h2>
-                <small class="text-muted">Select an organization to view its attendance records</small>
+                <small class="text-muted">{{ __('messages.select_salary_statistic') }}</small>
                 @endif
             @else
             <h2 style="margin:0; font-size: 20px; font-weight: 600; color: var(--text-primary);">
@@ -310,19 +310,19 @@
         @endif
         
         <div style="flex:1; min-width:250px;">
-            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Search</label>
+            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.search') }}</label>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or ID..." class="form-control" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);">
         </div>
 
         <div style="width:180px;">
-            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Date</label>
+            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.date') }}</label>
             <input type="date" name="date" class="form-control" value="{{ request('date') }}" 
                    style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border); cursor:pointer;"
                    onchange="this.form.submit()">
         </div>
         
         <div style="width:100px;">
-            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Year</label>
+            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.year') }}</label>
             <select name="year" class="form-select" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);" onchange="this.form.submit()">
                 <option value="All" {{ request('year') == 'All' ? 'selected' : '' }}>All</option>
                 @for($y = 2020; $y <= date('Y') + 1; $y++)
@@ -332,7 +332,7 @@
         </div>
 
         <div style="width:120px;">
-            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Month</label>
+            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.month') }}</label>
             <select name="month" class="form-select" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);" onchange="this.form.submit()">
                 <option value="All" {{ request('month') == 'All' ? 'selected' : '' }}>All</option>
                 @foreach(range(1, 12) as $m)
@@ -342,7 +342,7 @@
         </div>
 
         <div style="width:140px;">
-            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Status</label>
+            <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.status') }}</label>
             <select name="status" class="form-select" style="background:var(--input-bg); color:var(--input-text); border:1px solid var(--input-border);" onchange="this.form.submit()">
                 <option value="All" {{ request('status') == 'All' ? 'selected' : '' }}>All</option>
                 @foreach(['Present', 'Late', 'Late Check-in', 'Early Leave', 'Absent', 'Half Day', 'On Leave', 'Holiday', 'Pending', 'Off Day'] as $st)
@@ -372,8 +372,8 @@
         </div>
 
         <div>
-            <button type="submit" class="btn btn-primary" style="background:var(--btn-primary); border:none; padding:8px 20px;">Filter</button>
-            <a href="{{ route('attendance-records.index', ['organization_id' => $selectedOrgId ?? '']) }}" class="btn btn-secondary" style="background:#6c757d; border:none; padding:8px 20px; color:#fff; text-decoration:none; display:inline-block; line-height:1.5;">Reset</a>
+            <button type="submit" class="btn btn-primary" style="background:var(--btn-primary); border:none; padding:8px 20px;">{{ __('messages.apply_filters') }}</button>
+            <a href="{{ route('attendance-records.index', ['organization_id' => $selectedOrgId ?? '']) }}" class="btn btn-secondary" style="background:#6c757d; border:none; padding:8px 20px; color:#fff; text-decoration:none; display:inline-block; line-height:1.5;">{{ __('messages.reset') }}</a>
         </div>
     </form>
 
@@ -450,47 +450,47 @@
                             <th>#</th>
                             <th>
                                 <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'employee_name', 'dir' => $currentSort === 'employee_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'employee_name' ? 'active' : '' }}">
-                                    Employee {!! $currentSort === 'employee_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                    {{ __('messages.employee') }} {!! $currentSort === 'employee_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                                 </a>
                             </th>
                             <th>
                                 <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'organization_name', 'dir' => $currentSort === 'organization_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'organization_name' ? 'active' : '' }}">
-                                    Organization {!! $currentSort === 'organization_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                    {{ __('messages.organization') }} {!! $currentSort === 'organization_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                                 </a>
                             </th>
                             <th>
                                 <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'date', 'dir' => $currentSort === 'date' ? $toggleDir : 'desc'])) }}" class="th-sortable {{ $currentSort === 'date' ? 'active' : '' }}">
-                                    Date {!! $currentSort === 'date' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                    {{ __('messages.date') }} {!! $currentSort === 'date' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                                 </a>
                             </th>
                             <th>
                                 <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'checkin_time', 'dir' => $currentSort === 'checkin_time' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'checkin_time' ? 'active' : '' }}">
-                                    Check-in Time {!! $currentSort === 'checkin_time' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                    {{ __('messages.clock_in') }} {!! $currentSort === 'checkin_time' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                                 </a>
                             </th>
                             <th>
                                 <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'checkout_time', 'dir' => $currentSort === 'checkout_time' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'checkout_time' ? 'active' : '' }}">
-                                    Check-out Time {!! $currentSort === 'checkout_time' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                    {{ __('messages.clock_out') }} {!! $currentSort === 'checkout_time' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                                 </a>
                             </th>
                             <th>
                                 <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'status', 'dir' => $currentSort === 'status' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'status' ? 'active' : '' }}">
-                                    Status {!! $currentSort === 'status' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                    {{ __('messages.status') }} {!! $currentSort === 'status' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                                 </a>
                             </th>
                             <th>
                                 <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'late_duration', 'dir' => $currentSort === 'late_duration' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'late_duration' ? 'active' : '' }}">
-                                    Late (M:S) {!! $currentSort === 'late_duration' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                    {{ __('messages.late') }} (M:S) {!! $currentSort === 'late_duration' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                                 </a>
                             </th>
                             <th>
                                 <a href="{{ route('attendance-records.index', array_merge($sortParams, ['sort' => 'device_id', 'dir' => $currentSort === 'device_id' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'device_id' ? 'active' : '' }}">
-                                    Device ID {!! $currentSort === 'device_id' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                                    {{ __('messages.device') }} ID {!! $currentSort === 'device_id' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                                 </a>
                             </th>
                             <th>Check-in Image</th>
                             <th>Check-out Image</th>
-                            <th style="text-align:right;">Actions</th>
+                            <th style="text-align:right;">{{ __('messages.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -524,10 +524,10 @@
                                 @endif
                             </td>
                             <td>
-                                {{ $record['checkin_time'] ? \Carbon\Carbon::parse($record['checkin_time'])->format('h:i A') : '-' }}
+                                {{ $record['checkin_time'] ? \Carbon\Carbon::parse($record['checkin_time'])->timezone('Asia/Dhaka')->format('h:i A') : '-' }}
                             </td>
                             <td>
-                                {{ $record['checkout_time'] ? \Carbon\Carbon::parse($record['checkout_time'])->format('h:i A') : '-' }}
+                                {{ $record['checkout_time'] ? \Carbon\Carbon::parse($record['checkout_time'])->timezone('Asia/Dhaka')->format('h:i A') : '-' }}
                             </td>
                             <td>
                                 @php

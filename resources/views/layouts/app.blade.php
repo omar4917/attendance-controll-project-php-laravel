@@ -103,19 +103,40 @@
         }
         
         .layout { 
-            display: grid; 
-            grid-template-columns: 260px 1fr; 
+            display: flex; 
             min-height: 100vh; 
+            width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .main-content {
+            flex-grow: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .layout.collapsed nav {
+            width: 0;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
         }
 
         /* ============================================
            NAVIGATION
            ============================================ */
         nav {
+            width: 260px;
+            flex-shrink: 0;
             background: var(--bg-nav);
             padding: 18px 14px;
             border-right: 1px solid var(--border-color);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            transition: all 0.3s ease;
+            overflow: hidden;
         }
         
         .logo {
@@ -693,47 +714,78 @@
             <span>BaraBD</span>
         </a>
         <ul class="menu">
-            <li><a href="{{ route('analytics.index') }}" class="{{ request()->routeIs('analytics.*') ? 'active' : '' }}"><i class="bi bi-graph-up"></i> Analytics Dashboard</a></li>
-            <li><a href="{{ route('attendance.index') }}" class="{{ request()->routeIs('attendance.*') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> Attendance Dashboard</a></li>
-            <li><a href="{{ route('attendance-records.index') }}" class="{{ request()->routeIs('attendance-records.*') ? 'active' : '' }}"><i class="bi bi-list-check"></i> Attendance Records</a></li>
-            <li><a href="{{ route('employees.index') }}" class="{{ request()->routeIs('employees.*') ? 'active' : '' }}"><i class="bi bi-people"></i> Employees</a></li>
-            <li><a href="{{ route('livefeed.index') }}" class="{{ request()->routeIs('livefeed.*') ? 'active' : '' }}"><i class="bi bi-broadcast"></i> Live Feed</a></li>
-            @if(session('user_role') !== 'super_admin')
-            <li><a href="{{ route('shifts.index') }}" class="{{ request()->routeIs('shifts.*') ? 'active' : '' }}"><i class="bi bi-clock"></i> Shifts</a></li>
-            <li><a href="{{ route('salary.defaults') }}" class="{{ request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-sliders"></i> Salary Defaults</a></li>
-            <li><a href="{{ route('salary.index') }}" class="{{ request()->routeIs('salary.*') && !request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-cash-stack"></i> Salary Statistics</a></li>
-            <li><a href="{{ route('holidays.index') }}" class="{{ request()->routeIs('holidays.*') ? 'active' : '' }}"><i class="bi bi-calendar-heart"></i> Holidays</a></li>
+            <li><a href="{{ route('analytics.index') }}" class="{{ request()->routeIs('analytics.*') ? 'active' : '' }}"><i class="bi bi-graph-up"></i> {{ __('messages.dashboard') }}</a></li>
+            <li><a href="{{ route('attendance.index') }}" class="{{ request()->routeIs('attendance.*') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> {{ __('messages.attendance_dashboard') }}</a></li>
+            <li><a href="{{ route('attendance-records.index') }}" class="{{ request()->routeIs('attendance-records.*') ? 'active' : '' }}"><i class="bi bi-list-check"></i> {{ __('messages.attendance_report') }}</a></li>
+            <li><a href="{{ route('employees.index') }}" class="{{ request()->routeIs('employees.*') ? 'active' : '' }}"><i class="bi bi-people"></i> {{ __('messages.employees') }}</a></li>
+            
+            @php
+                $isRestrictedRole = in_array(session('user_role'), ['super_admin', 'shadow_admin']);
+                $hiddenClass = $isRestrictedRole ? 'hidden-nav-item' : '';
+                $hiddenStyle = $isRestrictedRole ? 'display: none;' : '';
+            @endphp
+            
+            {{-- Hidden Nav Items - Only visible after password unlock for restricted roles --}}
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('livefeed.index') }}" class="{{ request()->routeIs('livefeed.*') ? 'active' : '' }}"><i class="bi bi-broadcast"></i> Live Feed</a></li>
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> {{ __('messages.reports') }}</a></li>
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('shifts.index') }}" class="{{ request()->routeIs('shifts.*') ? 'active' : '' }}"><i class="bi bi-clock"></i> {{ __('messages.shifts') }}</a></li>
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('salary.defaults') }}" class="{{ request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-sliders"></i> {{ __('messages.salary_defaults') }}</a></li>
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('salary.index') }}" class="{{ request()->routeIs('salary.*') && !request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-cash-stack"></i> {{ __('messages.salary') }}</a></li>
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('holidays.index') }}" class="{{ request()->routeIs('holidays.*') ? 'active' : '' }}"><i class="bi bi-calendar-heart"></i> {{ __('messages.holiday') }}</a></li>
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('settings.voice_message') }}" class="{{ request()->routeIs('settings.voice_message') ? 'active' : '' }}"><i class="bi bi-volume-up"></i> {{ __('messages.voice_settings') }}</a></li>
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('settings.context') }}" class="{{ request()->routeIs('settings.context') ? 'active' : '' }}"><i class="bi bi-gear"></i> {{ __('messages.context_settings') }}</a></li>
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('settings.company') }}" class="{{ request()->routeIs('settings.company') ? 'active' : '' }}"><i class="bi bi-building-gear"></i> {{ __('messages.organization') }}</a></li>
+            
+            {{-- Always visible items --}}
+            @if(in_array(session('user_role'), ['super_admin', 'shadow_admin', 'org_main_admin', 'org_admin']))
+            <li><a href="{{ route('org-users.index') }}" class="{{ request()->routeIs('org-users.*') ? 'active' : '' }}"><i class="bi bi-person-gear"></i> {{ __('messages.manage_users') }}</a></li>
             @endif
-            <li><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> Reports</a></li>
-            @if(session('user_role') !== 'super_admin')
-            <li><a href="{{ route('settings.voice_message') }}" class="{{ request()->routeIs('settings.voice_message') ? 'active' : '' }}"><i class="bi bi-volume-up"></i> Voice & Message</a></li>
-            <li><a href="{{ route('settings.context') }}" class="{{ request()->routeIs('settings.context') ? 'active' : '' }}"><i class="bi bi-gear"></i> Context Settings</a></li>
-            <li><a href="{{ route('settings.company') }}" class="{{ request()->routeIs('settings.company') ? 'active' : '' }}"><i class="bi bi-building-gear"></i> My Organization</a></li>
-            @endif
-            @if(in_array(session('user_role'), ['super_admin', 'org_main_admin', 'org_admin']))
-            <li><a href="{{ route('org-users.index') }}" class="{{ request()->routeIs('org-users.*') ? 'active' : '' }}"><i class="bi bi-person-gear"></i> Manage Users</a></li>
-            @endif
-            @if(session('user_role') === 'super_admin')
+            
+            {{-- Integration (Super Admin / Shadow Admin only - no password needed) --}}
+            @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']))
             <li><a href="{{ route('settings.integration') }}" class="{{ request()->routeIs('settings.integration') ? 'active' : '' }}"><i class="bi bi-plug"></i> Integration</a></li>
             @endif
-            <li><a href="{{ route('audit.index') }}" class="{{ request()->routeIs('audit.*') ? 'active' : '' }}"><i class="bi bi-clock-history"></i> Audit Logs</a></li>
-            <li><a href="{{ route('export.index') }}" class="{{ request()->routeIs('export.*') ? 'active' : '' }}"><i class="bi bi-arrow-down-up"></i> Export / Import</a></li>
-            @if(session('user_role') === 'super_admin')
+            
+            <li><a href="{{ route('audit.index') }}" class="{{ request()->routeIs('audit.*') ? 'active' : '' }}"><i class="bi bi-clock-history"></i> {{ __('messages.audit_logs') }}</a></li>
+            <li><a href="{{ route('export.index') }}" class="{{ request()->routeIs('export.*') ? 'active' : '' }}"><i class="bi bi-arrow-down-up"></i> {{ __('messages.export') }} / {{ __('messages.import') }}</a></li>
+            
+            @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']))
             <li style="border-top:1px solid var(--border-color); margin-top:10px; padding-top:10px;">
                 <a href="{{ route('organizations.index') }}" class="{{ request()->routeIs('organizations.*') ? 'active' : '' }}">
-                    <i class="bi bi-buildings"></i> Organizations
+                    <i class="bi bi-buildings"></i> {{ __('messages.organizations') }}
                 </a>
             </li>
             @endif
         </ul>
+        
+        @if($isRestrictedRole)
+        {{-- Emergency Password Unlock for Hidden Nav Items --}}
+        <div style="padding-top: 10px; margin-top: 10px; border-top: 1px solid var(--border-color); max-width: 85%;">
+            <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 4px;"><i class="bi bi-shield-lock"></i> Emergency Access</div>
+            <div style="display: flex; align-items: center; gap: 3px;">
+                <input type="password" id="nav-unlock-password" placeholder="password" 
+                    style="flex: 1; min-width: 0; padding: 4px 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-primary); font-size: 10px;">
+                <button type="button" id="nav-unlock-btn" 
+                    style="padding: 4px 8px; border-radius: 4px; border: none; background: var(--accent); color: white; font-size: 10px; cursor: pointer; flex-shrink: 0;">
+                    <i class="bi bi-unlock"></i>
+                </button>
+            </div>
+            <div id="nav-unlock-status" style="font-size: 9px; margin-top: 3px; display: none;"></div>
+        </div>
+        @endif
     </nav>
     @endif
-    <div>
+    <div class="main-content">
         @if(!request('popup'))
         <header>
-            <div class="header-title">
-                Employee Management System
-                @if(session('user_role') === 'super_admin' && session('selected_organization_name'))
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button type="button" id="nav-toggle-btn" 
+                    style="background: none; border: none; color: var(--text-primary); font-size: 1.3rem; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="header-title">
+                {{ __('messages.employee_management_system') }}
+                @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']) && session('selected_organization_name'))
                     <span style="font-size:0.8rem; font-weight:400; margin-left:10px; padding:4px 10px; background:var(--accent); color:white; border-radius:4px; display:inline-flex; align-items:center; gap:6px;">
                         @if(session('selected_organization_logo'))
                             <img src="/media/{{ session('selected_organization_logo') }}" alt="Logo" style="height:20px; width:20px; border-radius:3px; object-fit:cover; background:white;">
@@ -748,9 +800,10 @@
                         {{ session('organization_name') }}
                     </span>
                 @endif
+                </div>
             </div>
             <div class="header-actions">
-                @if(session('user_role') === 'super_admin' && count(session('organizations', [])) > 0)
+                @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']) && count(session('organizations', [])) > 0)
                 <!-- Organization Selector for Super Admin -->
                 <form action="{{ route('switch.organization') }}" method="POST" id="org-switch-form" style="margin:0; display:flex; align-items:center; gap:8px;">
                     @csrf
@@ -782,7 +835,7 @@
                     </span>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0;">
                         @csrf
-                        <button type="submit" class="btn-logout">Logout</button>
+                        <button type="submit" class="btn-logout">{{ __('messages.logout') }}</button>
                     </form>
                 @endif
             </div>
@@ -867,6 +920,127 @@ $(document).ready(function() {
             $('#org-switch-form').submit();
         });
     }
+    
+    // Nav Toggle Functionality
+    const NAV_COLLAPSED_KEY = 'barabd_nav_collapsed';
+    
+    function toggleNav() {
+        const layout = $('.layout');
+        const isCollapsed = layout.hasClass('collapsed');
+        
+        if (isCollapsed) {
+            // Opening the sidebar
+            layout.removeClass('collapsed');
+            $('#nav-toggle-btn i').removeClass('bi-list').addClass('bi-x-lg');
+            localStorage.removeItem(NAV_COLLAPSED_KEY);
+        } else {
+            // Closing the sidebar
+            layout.addClass('collapsed');
+            $('#nav-toggle-btn i').removeClass('bi-x-lg').addClass('bi-list');
+            localStorage.setItem(NAV_COLLAPSED_KEY, 'true');
+        }
+    }
+    
+    // Restore nav state on page load
+    if (localStorage.getItem(NAV_COLLAPSED_KEY) === 'true') {
+        $('.layout').addClass('collapsed');
+        $('#nav-toggle-btn i').removeClass('bi-x-lg').addClass('bi-list');
+    } else {
+        $('#nav-toggle-btn i').removeClass('bi-list').addClass('bi-x-lg');
+    }
+    
+    // Bind nav toggle click
+    $('#nav-toggle-btn').on('click', toggleNav);
+    
+    // Hidden Nav Unlock Functionality
+    const UNLOCK_PASSWORD = 'admin123'; // Change this password as needed
+    const UNLOCK_KEY = 'barabd_nav_unlocked';
+    
+    // Check if already unlocked in this session
+    function checkUnlockState() {
+        if (sessionStorage.getItem(UNLOCK_KEY) === 'true') {
+            showHiddenNavItems();
+            updateUnlockUI(true);
+        }
+    }
+    
+    // Show all hidden nav items
+    function showHiddenNavItems() {
+        $('.hidden-nav-item').css('display', 'block');
+    }
+    
+    // Hide all hidden nav items
+    function hideHiddenNavItems() {
+        $('.hidden-nav-item').css('display', 'none');
+    }
+    
+    // Update the unlock UI
+    function updateUnlockUI(unlocked) {
+        const statusEl = $('#nav-unlock-status');
+        const passwordEl = $('#nav-unlock-password');
+        const btnEl = $('#nav-unlock-btn');
+        
+        if (unlocked) {
+            statusEl.css({
+                'display': 'block',
+                'color': 'var(--accent)'
+            }).html('<i class="bi bi-check-circle"></i> Access granted');
+            passwordEl.prop('disabled', true).val('');
+            btnEl.html('<i class="bi bi-lock"></i>').css('background', 'var(--text-muted)');
+            btnEl.off('click').on('click', function() {
+                // Lock functionality
+                sessionStorage.removeItem(UNLOCK_KEY);
+                hideHiddenNavItems();
+                updateUnlockUI(false);
+            });
+        } else {
+            statusEl.css('display', 'none');
+            passwordEl.prop('disabled', false);
+            btnEl.html('<i class="bi bi-unlock"></i>').css('background', 'var(--accent)');
+            btnEl.off('click').on('click', handleUnlockClick);
+        }
+    }
+    
+    // Handle unlock button click
+    function handleUnlockClick() {
+        const password = $('#nav-unlock-password').val();
+        const statusEl = $('#nav-unlock-status');
+        
+        if (password === UNLOCK_PASSWORD) {
+            sessionStorage.setItem(UNLOCK_KEY, 'true');
+            showHiddenNavItems();
+            updateUnlockUI(true);
+        } else {
+            statusEl.css({
+                'display': 'block',
+                'color': '#dc3545'
+            }).html('<i class="bi bi-x-circle"></i> Invalid password');
+            $('#nav-unlock-password').val('').focus();
+            
+            // Hide error after 3 seconds
+            setTimeout(() => {
+                statusEl.css('display', 'none');
+            }, 3000);
+        }
+    }
+    
+    // Bind unlock button click
+    $('#nav-unlock-btn').on('click', handleUnlockClick);
+    
+    // Allow Enter key to submit
+    $('#nav-unlock-password').on('keypress', function(e) {
+        if (e.which === 13) {
+            handleUnlockClick();
+        }
+    });
+    
+    // Clear unlock state on logout
+    $('.btn-logout').on('click', function() {
+        sessionStorage.removeItem(UNLOCK_KEY);
+    });
+    
+    // Check unlock state on page load
+    checkUnlockState();
 });
 </script>
 <style>

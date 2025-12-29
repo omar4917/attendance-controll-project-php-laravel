@@ -87,8 +87,8 @@
 
 <div style="padding: 20px;">
     <div class="page-header" style="margin-bottom: 20px;">
-        <h2 style="margin:0; font-size: 20px; font-weight: 600; color: var(--text-primary);">Shifts</h2>
-        <p style="margin:0; color:var(--text-secondary); font-size:14px;">Manage work shifts and timings</p>
+        <h2 style="margin:0; font-size: 20px; font-weight: 600; color: var(--text-primary);">{{ __('messages.shifts') }}</h2>
+        <p style="margin:0; color:var(--text-secondary); font-size:14px;">{{ __('messages.manage_shifts') }}</p>
     </div>
 
     @if(!empty($error))
@@ -102,51 +102,58 @@
         <form id="shiftForm" method="POST" action="{{ route('shifts.store') }}">
             @csrf
             <div id="methodField"></div>
-            <h3 style="margin:0 0 15px 0; font-size:16px; color:var(--text-primary); border-bottom:1px solid var(--border-color); padding-bottom:10px;">Add / Update Shift</h3>
+            <h3 style="margin:0 0 15px 0; font-size:16px; color:var(--text-primary); border-bottom:1px solid var(--border-color); padding-bottom:10px;">{{ __('messages.add_update_shift') }}</h3>
             
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; align-items:end;">
+            <div style="display:grid; grid-template-columns: repeat(9, 1fr); gap:12px; align-items:end;">
                 <input type="hidden" name="id" id="shift_id">
                 
                 <div>
-                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Name</label>
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.name') }}</label>
                     <input name="name" id="shift_name" required class="form-control" style="width:100%; padding:8px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text);">
                 </div>
                 
                 <div>
-                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Start Time</label>
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.start_time') }}</label>
                     <input type="time" name="start" id="shift_start" required class="form-control" style="width:100%; padding:8px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text);">
                 </div>
                 
                 <div>
-                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">End Time</label>
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.end_time') }}</label>
                     <input type="time" name="end" id="shift_end" required class="form-control" style="width:100%; padding:8px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text);">
                 </div>
                 
                 <div>
-                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Half Day (hrs)</label>
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.half_day_hours') }}</label>
                     <input type="number" step="0.1" name="half_day_hours" id="shift_half" value="4.0" class="form-control" style="width:100%; padding:8px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text);">
                 </div>
                 
                 <div>
-                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Present (hrs)</label>
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.present_hours') }}</label>
                     <input type="number" step="0.1" name="present_hours" id="shift_present" value="8.0" class="form-control" style="width:100%; padding:8px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text);">
                 </div>
                 
                 <div>
-                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">Allowed Late (min)</label>
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.allowed_late_minutes') }}</label>
                     <input type="number" name="allowed_late_minutes" id="shift_late" value="0" class="form-control" style="width:100%; padding:8px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text);">
                 </div>
                 
-                <div style="padding-bottom:10px;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:var(--text-primary);">
-                        <input type="checkbox" name="is_active" id="shift_active" value="1" style="width:16px; height:16px; accent-color:var(--btn-primary);"> 
-                        Active Shift
-                    </label>
+                <div>
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">{{ __('messages.absent_after_minutes') ?? 'Absent After (min)' }}</label>
+                    <input type="number" name="absent_after_minutes" id="shift_absent" value="15" class="form-control" style="width:100%; padding:8px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text);" placeholder="15">
                 </div>
                 
-                <div style="display:flex; gap:10px;">
-                    <button type="submit" id="saveBtn" style="padding:10px 20px; border:none; border-radius:4px; background:var(--btn-primary); color:var(--btn-text); font-weight:600; cursor:pointer;">Save Shift</button>
-                    <button type="button" id="cancelBtn" onclick="resetForm()" style="padding:10px 20px; border:1px solid var(--border-color); border-radius:4px; background:#6c757d; color:#fff; font-weight:600; cursor:pointer; display:none;">Cancel</button>
+                <div>
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px; display:block;">OT Active After</label>
+                    <input type="time" name="ot_active_after" id="shift_ot_active_after" class="form-control" style="width:100%; padding:8px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text);" title="Leave empty to use shift end time">
+                </div>
+                
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:var(--text-primary); white-space:nowrap;">
+                        <input type="checkbox" name="is_active" id="shift_active" value="1" style="width:14px; height:14px; accent-color:var(--btn-primary);"> 
+                        {{ __('messages.active_shift') }}
+                    </label>
+                    <button type="submit" id="saveBtn" style="padding:8px 16px; border:none; border-radius:4px; background:var(--btn-primary); color:var(--btn-text); font-weight:600; cursor:pointer; font-size:12px;">{{ __('messages.save_shift') }}</button>
+                    <button type="button" id="cancelBtn" onclick="resetForm()" style="padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; background:#6c757d; color:#fff; font-weight:600; cursor:pointer; display:none; font-size:12px;">Cancel</button>
                 </div>
             </div>
         </form>
@@ -162,29 +169,34 @@
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Owner</th>
+                    <th>{{ __('messages.owner') }}</th>
                     <th>
                         <a href="{{ route('shifts.index', array_merge($sortParams, ['sort' => 'name', 'dir' => $currentSort === 'name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'name' ? 'active' : '' }}">
-                            Name {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                            {{ __('messages.name') }} {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                         </a>
                     </th>
                     <th>
                         <a href="{{ route('shifts.index', array_merge($sortParams, ['sort' => 'start', 'dir' => $currentSort === 'start' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'start' ? 'active' : '' }}">
-                            Time {!! $currentSort === 'start' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                            {{ __('messages.time_range') }} {!! $currentSort === 'start' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                         </a>
                     </th>
-                    <th>Hours (H/P)</th>
+                    <th>{{ __('messages.hours_hp') }}</th>
                     <th>
                         <a href="{{ route('shifts.index', array_merge($sortParams, ['sort' => 'allowed_late_minutes', 'dir' => $currentSort === 'allowed_late_minutes' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'allowed_late_minutes' ? 'active' : '' }}">
-                            Late (min) {!! $currentSort === 'allowed_late_minutes' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                            {{ __('messages.late_min') }} {!! $currentSort === 'allowed_late_minutes' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ route('shifts.index', array_merge($sortParams, ['sort' => 'absent_after_minutes', 'dir' => $currentSort === 'absent_after_minutes' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'absent_after_minutes' ? 'active' : '' }}">
+                            Absent After {!! $currentSort === 'absent_after_minutes' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                         </a>
                     </th>
                     <th>
                         <a href="{{ route('shifts.index', array_merge($sortParams, ['sort' => 'is_active', 'dir' => $currentSort === 'is_active' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'is_active' ? 'active' : '' }}">
-                            Active {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                            {{ __('messages.active') }} {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                         </a>
                     </th>
-                    <th>Action</th>
+                    <th>{{ __('messages.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -195,6 +207,7 @@
                     <td>{{ $s['start'] }} - {{ $s['end'] }}</td>
                     <td>{{ $s['half_day_hours'] }} / {{ $s['present_hours'] }}</td>
                     <td>{{ $s['allowed_late_minutes'] }}</td>
+                    <td>{{ $s['absent_after_minutes'] ?? 15 }}</td>
                     <td>
                         @if($s['is_active'])
                             <span class="badge success">Active</span>
@@ -214,7 +227,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-secondary);">No shifts found.</td></tr>
+                <tr><td colspan="8" style="text-align:center; padding:20px; color:var(--text-secondary);">No shifts found.</td></tr>
             @endforelse
             </tbody>
         </table>
@@ -230,6 +243,8 @@
         document.getElementById('shift_half').value = s.half_day_hours;
         document.getElementById('shift_present').value = s.present_hours;
         document.getElementById('shift_late').value = s.allowed_late_minutes;
+        document.getElementById('shift_absent').value = s.absent_after_minutes || 15;
+        document.getElementById('shift_ot_active_after').value = s.ot_active_after || '';
         document.getElementById('shift_active').checked = s.is_active;
         
         // Update form action and method

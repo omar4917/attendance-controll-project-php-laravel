@@ -165,10 +165,10 @@
 @section('content')
 <div class="page-header">
     <div>
-        <div class="page-title">Change Company Information</div>
+        <div class="page-title">{{ __('messages.change_company_info') }}</div>
         <div class="page-subtitle">{{ $data['name'] ?? 'Company Name' }}</div>
     </div>
-    <a href="#" class="btn-history">HISTORY</a>
+    <a href="#" class="btn-history">{{ __('messages.history') }}</a>
 </div>
 
 @if(session('success'))
@@ -182,80 +182,80 @@
     @csrf
     
     <div class="admin-form-row">
-        <div class="admin-form-label">Name:</div>
+        <div class="admin-form-label">{{ __('messages.name') }}:</div>
         <div class="admin-form-field">
             <input type="text" class="form-control" name="name" value="{{ $data['name'] ?? '' }}" required>
         </div>
     </div>
 
     <div class="admin-form-row">
-        <div class="admin-form-label">Logo:</div>
+        <div class="admin-form-label">{{ __('messages.logo') }}:</div>
         <div class="admin-form-field">
             @if(!empty($data['logo_url']))
                 <div class="current-file">
-                    Currently: <a href="{{ $data['logo_url'] }}" target="_blank">{{ basename($data['logo_url']) }}</a>
-                    <input type="checkbox" name="clear_logo" id="clear_logo"> <label for="clear_logo">Clear</label>
+                    {{ __('messages.currently') }}: <a href="{{ $data['logo_url'] }}" target="_blank">{{ basename($data['logo_url']) }}</a>
+                    <input type="checkbox" name="clear_logo" id="clear_logo"> <label for="clear_logo">{{ __('messages.clear') }}</label>
                 </div>
             @endif
             <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-weight:600; font-size:0.9rem;">Change:</span>
+                <span style="font-weight:600; font-size:0.9rem;">{{ __('messages.change') }}:</span>
                 <input type="file" class="form-control" name="logo" accept="image/*" style="padding: 4px;">
             </div>
         </div>
     </div>
 
     <div class="admin-form-row">
-        <div class="admin-form-label">Address:</div>
+        <div class="admin-form-label">{{ __('messages.address') }}:</div>
         <div class="admin-form-field">
             <textarea class="form-control" name="address" rows="4">{{ $data['address'] ?? '' }}</textarea>
         </div>
     </div>
 
     <div class="admin-form-row">
-        <div class="admin-form-label">Email:</div>
+        <div class="admin-form-label">{{ __('messages.email') }}:</div>
         <div class="admin-form-field">
             <input type="email" class="form-control" name="email" value="{{ $data['email'] ?? '' }}">
         </div>
     </div>
 
     <div class="admin-form-row">
-        <div class="admin-form-label">Phone:</div>
+        <div class="admin-form-label">{{ __('messages.phone') }}:</div>
         <div class="admin-form-field">
             <input type="text" class="form-control" name="phone" value="{{ $data['phone'] ?? '' }}">
         </div>
     </div>
 
     <div class="admin-form-row">
-        <div class="admin-form-label">Website:</div>
+        <div class="admin-form-label">{{ __('messages.website') }}:</div>
         <div class="admin-form-field">
             @if(!empty($data['website']))
                 <div class="current-file">
-                    Currently: <a href="{{ $data['website'] }}" target="_blank">{{ $data['website'] }}</a>
+                    {{ __('messages.currently') }}: <a href="{{ $data['website'] }}" target="_blank">{{ $data['website'] }}</a>
                 </div>
             @endif
             <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-weight:600; font-size:0.9rem;">Change:</span>
+                <span style="font-weight:600; font-size:0.9rem;">{{ __('messages.change') }}:</span>
                 <input type="url" class="form-control" name="website" value="{{ $data['website'] ?? '' }}">
             </div>
         </div>
     </div>
 
     <div class="admin-form-row">
-        <div class="admin-form-label">TIN:</div>
+        <div class="admin-form-label">{{ __('messages.tin') }}:</div>
         <div class="admin-form-field">
             <input type="text" class="form-control" name="tin" value="{{ $data['tin'] ?? '' }}">
         </div>
     </div>
 
     <div class="admin-form-row">
-        <div class="admin-form-label">BIN / BFN:</div>
+        <div class="admin-form-label">{{ __('messages.bin_bfn') }}:</div>
         <div class="admin-form-field">
             <input type="text" class="form-control" name="bin" value="{{ $data['bin'] ?? '' }}">
         </div>
     </div>
 
     <div class="admin-form-row">
-        <div class="admin-form-label">Founder:</div>
+        <div class="admin-form-label">{{ __('messages.founder') }}:</div>
         <div class="admin-form-field">
             <input type="text" class="form-control" name="founder" value="{{ $data['founder'] ?? '' }}">
         </div>
@@ -263,10 +263,10 @@
 
     <div class="bottom-bar">
         <div style="display:flex; gap:10px;">
-            <button type="submit" class="btn-save">SAVE</button>
-            <button type="submit" name="continue" value="1" class="btn-save">Save and continue editing</button>
+            <button type="submit" class="btn-save">{{ __('messages.save') }}</button>
+            <button type="submit" name="continue" value="1" class="btn-save">{{ __('messages.save_and_continue') }}</button>
         </div>
-        <button type="button" class="btn-delete">Delete</button>
+        <button type="button" class="btn-delete">{{ __('messages.delete') }}</button>
     </div>
 </form>
 @endsection

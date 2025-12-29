@@ -191,8 +191,8 @@
 
 <div class="salary-container">
     <div class="salary-header">
-        <h2>Select salary statistic to change</h2>
-        <a href="#" class="add-salary-btn">ADD SALARY STATISTIC</a>
+        <h2>{{ __('messages.select_salary_statistic') }}</h2>
+        <a href="#" class="add-salary-btn">{{ __('messages.add_salary_statistic') }}</a>
     </div>
 
     @if(!empty($error))
@@ -205,7 +205,7 @@
     <form method="get" action="{{ route('salary.index') }}" class="search-bar" style="display:flex; gap:15px; align-items:flex-end; background:var(--bg-quaternary);">
         <!-- Month Filter -->
         <div style="flex:0 0 350px;">
-            <label style="font-size:11px; font-weight:700; display:block; margin-bottom:4px; text-transform:uppercase; color:var(--text-primary);">Month & Year</label>
+            <label style="font-size:11px; font-weight:700; display:block; margin-bottom:4px; text-transform:uppercase; color:var(--text-primary);">{{ __('messages.month') }} & {{ __('messages.year') }}</label>
             @php
                 $dt = \Carbon\Carbon::createFromDate($year, $month, 1);
                 $prev = $dt->copy()->subMonth();
@@ -246,16 +246,16 @@
 
         <!-- JS Search -->
         <div style="flex:1;">
-            <label style="font-size:11px; font-weight:700; display:block; margin-bottom:4px; text-transform:uppercase; color:var(--text-primary);">Search Employee</label>
+            <label style="font-size:11px; font-weight:700; display:block; margin-bottom:4px; text-transform:uppercase; color:var(--text-primary);">{{ __('messages.search_employee') }}</label>
             <div style="display:flex; gap:5px;">
-                <input type="text" placeholder="🔍 Search by name or ID..." id="searchInput" onkeyup="filterTable()" 
+                <input type="text" placeholder="🔍 {{ __('messages.search_name_id') }}" id="searchInput" onkeyup="filterTable()" 
                        style="width:100%; padding:6px 10px; border:1px solid var(--border-color); border-radius:4px; font-size:13px;">
             </div>
         </div>
         
         <!-- Reset -->
         <div>
-            <a href="{{ route('salary.index') }}" style="padding:7px 15px; background:var(--bg-secondary); color:var(--text-primary); text-decoration:none; border-radius:4px; font-size:13px; border:1px solid var(--border-color); display:inline-block; height: 32px; line-height: 16px;">Reset</a>
+            <a href="{{ route('salary.index') }}" style="padding:7px 15px; background:var(--bg-secondary); color:var(--text-primary); text-decoration:none; border-radius:4px; font-size:13px; border:1px solid var(--border-color); display:inline-block; height: 32px; line-height: 16px;">{{ __('messages.reset') }}</a>
         </div>
     </form>
 
@@ -267,18 +267,18 @@
                         <input type="checkbox" class="checkbox" onclick="toggleAll(this)">
                     </th>
                     <th style="width: 30px;">#</th>
-                    <th>EMPLOYEE</th>
-                    <th>NAME</th>
-                    <th>MONTH</th>
-                    <th>YEAR</th>
-                    <th>BASIC SALARY</th>
-                    <th>HOUSE RENT</th>
-                    <th>ATT. BONUS</th>
-                    <th>LATE FINE</th>
-                    <th>OTHER DED.</th>
-                    <th>GROSS SALARY</th>
-                    <th>PAYABLE</th>
-                    <th style="text-align: center;">ACTIONS</th>
+                    <th>{{ __('messages.employee') }}</th>
+                    <th>{{ __('messages.name') }}</th>
+                    <th>{{ __('messages.month') }}</th>
+                    <th>{{ __('messages.year') }}</th>
+                    <th>{{ __('messages.basic_salary') }}</th>
+                    <th>{{ __('messages.house_rent') }}</th>
+                    <th>{{ __('messages.att_bonus') }}</th>
+                    <th>{{ __('messages.late_fine') }}</th>
+                    <th>{{ __('messages.other_ded') }}</th>
+                    <th>{{ __('messages.gross_salary') }}</th>
+                    <th>{{ __('messages.payable') }}</th>
+                    <th style="text-align: center;">{{ __('messages.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -332,7 +332,7 @@
                 @empty
                     <tr>
                         <td colspan="15" style="text-align: center; padding: 30px; color: var(--text-secondary);">
-                            No salary statistics available.
+                            {{ __('messages.no_salary_stats') }}
                         </td>
                     </tr>
                 @endforelse

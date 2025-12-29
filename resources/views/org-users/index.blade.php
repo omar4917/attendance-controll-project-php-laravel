@@ -215,6 +215,24 @@
         font-size: 0.7rem;
         margin-left: 5px;
     }
+
+    .org-admin-badge {
+        background: #0d6efd;
+        color: #fff;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        margin-left: 5px;
+    }
+
+    .org-viewer-badge {
+        background: #adb5bd;
+        color: #000;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        margin-left: 5px;
+    }
 </style>
 @endpush
 
@@ -222,11 +240,11 @@
 <div class="page-header">
     <h1 class="page-title">
         <i class="bi bi-people me-2"></i>
-        Manage Users
+        {{ __('messages.manage_users') }}
     </h1>
     @if($canManage)
     <button class="btn-add" onclick="openModal()">
-        <i class="bi bi-plus-circle me-1"></i> Add User
+        <i class="bi bi-plus-circle me-1"></i> {{ __('messages.add_user') }}
     </button>
     @endif
 </div>
@@ -251,31 +269,31 @@
             <tr>
                 <th>
                     <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'username', 'dir' => $currentSort === 'username' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'username' ? 'active' : '' }}">
-                        Username {!! $currentSort === 'username' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.username') }} {!! $currentSort === 'username' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'email', 'dir' => $currentSort === 'email' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'email' ? 'active' : '' }}">
-                        Email {!! $currentSort === 'email' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.email') }} {!! $currentSort === 'email' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'organization_name', 'dir' => $currentSort === 'organization_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'organization_name' ? 'active' : '' }}">
-                        Organization {!! $currentSort === 'organization_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.organization') }} {!! $currentSort === 'organization_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'first_name', 'dir' => $currentSort === 'first_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'first_name' ? 'active' : '' }}">
-                        Name {!! $currentSort === 'first_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.name') }} {!! $currentSort === 'first_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('org-users.index', array_merge($sortParams, ['sort' => 'role', 'dir' => $currentSort === 'role' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'role' ? 'active' : '' }}">
-                        Role {!! $currentSort === 'role' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.role') }} {!! $currentSort === 'role' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
-                <th>Created By</th>
-                @if($canManage)<th>Actions</th>@endif
+                <th>{{ __('messages.created_by') }}</th>
+                @if($canManage)<th>{{ __('messages.actions') }}</th>@endif
             </tr>
         </thead>
         <tbody>
@@ -291,7 +309,7 @@
                 // Determine if deletion is allowed
                 $canDelete = false;
                 if (!$isSelf && $canManage) {
-                    if ($isSuperUser || $currentUserRole === 'super_admin') {
+                    if ($isSuperUser || in_array($currentUserRole, ['super_admin', 'shadow_admin'])) {
                         // Super Admin can delete anyone except themselves
                         $canDelete = true;
                     } elseif ($currentUserRole === 'org_main_admin') {
@@ -311,6 +329,10 @@
                     <span class="super-admin-badge">SUPER</span>
                     @elseif($user['role'] === 'org_main_admin')
                     <span class="main-admin-badge">MAIN</span>
+                    @elseif($user['role'] === 'org_admin')
+                    <span class="org-admin-badge">ADMIN</span>
+                    @elseif($user['role'] === 'org_viewer')
+                    <span class="org-viewer-badge">VIEWER</span>
                     @endif
                 </td>
                 <td>{{ $user['email'] ?: '-' }}</td>
@@ -334,9 +356,13 @@
                 <td>{{ $user['created_by'] ?? '-' }}</td>
                 @if($canManage)
                 <td>
+                    @if($user['role'] !== 'org_main_admin' || in_array(session('user_role'), ['super_admin', 'shadow_admin']))
                     <button class="btn-edit" onclick='openEditModal(@json($user))' title="Edit">
                         <i class="bi bi-pencil"></i> Edit
                     </button>
+                    @else
+                    <span style="color:#ffc107; font-size:0.8rem;"><i class="bi bi-star-fill"></i> Main Admin</span>
+                    @endif
                     @if($canDelete)
                     <form method="POST" action="{{ route('org-users.destroy', $user['id']) }}" style="display:inline;" onsubmit="return confirm('Delete this user?');">
                         @csrf
@@ -346,7 +372,7 @@
                         </button>
                     </form>
                     @else
-                    <span style="color:#6c757d; font-size:0.8rem;"><i class="bi bi-shield-check"></i> Protected</span>
+                    <span style="color:#6c757d; font-size:0.8rem;"><i class="bi bi-shield-check"></i> {{ __('messages.protected') }}</span>
                     @endif
                 </td>
                 @endif
@@ -354,7 +380,7 @@
             @empty
             <tr>
                 <td colspan="{{ $canManage ? 6 : 5 }}" style="text-align:center; padding:30px; color:#666;">
-                    No users found in this organization.
+                    {{ __('messages.no_users_found') }}
                 </td>
             </tr>
             @endforelse
@@ -365,7 +391,7 @@
 <!-- Add User Modal -->
 <div class="modal-overlay" id="addUserModal">
     <div class="modal-box">
-        <h3 class="modal-title"><i class="bi bi-person-plus me-2"></i>Add New User</h3>
+        <h3 class="modal-title"><i class="bi bi-person-plus me-2"></i>{{ __('messages.create_user') }}</h3>
         <form method="POST" action="{{ route('org-users.store') }}">
             @csrf
             <div class="form-group">
@@ -381,15 +407,15 @@
                 <input type="password" name="password" class="form-input" required minlength="6">
             </div>
             <div class="form-group">
-                <label class="form-label">First Name</label>
+                <label class="form-label">First Name <span style="color:var(--text-secondary);font-weight:400;">(optional)</span></label>
                 <input type="text" name="first_name" class="form-input">
             </div>
             <div class="form-group">
-                <label class="form-label">Last Name</label>
+                <label class="form-label">Last Name <span style="color:var(--text-secondary);font-weight:400;">(optional)</span></label>
                 <input type="text" name="last_name" class="form-input">
             </div>
 
-            @if(session('user_role') === 'super_admin' && !$orgId)
+            @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']) && !$orgId)
             <div class="form-group">
                 <label class="form-label">Organization *</label>
                 <select name="organization_id" class="form-input" required>
@@ -403,13 +429,13 @@
             <div class="form-group">
                 <label class="form-label">Role *</label>
                 <select name="role" class="form-input">
-                    <option value="org_admin">Organization Admin (Full Access)</option>
-                    <option value="org_viewer">Organization Viewer (Read Only)</option>
+                    <option value="org_admin">{{ __('messages.admin_role_full') }}</option>
+                    <option value="org_viewer">{{ __('messages.viewer_role_read') }}</option>
                 </select>
             </div>
             <div class="modal-actions">
-                <button type="submit" class="btn-add">Create User</button>
-                <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-add">{{ __('messages.create_user') }}</button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">{{ __('messages.cancel') }}</button>
             </div>
         </form>
     </div>
@@ -418,7 +444,7 @@
 <!-- Edit User Modal -->
 <div class="modal-overlay" id="editUserModal">
     <div class="modal-box">
-        <h3 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit User</h3>
+        <h3 class="modal-title"><i class="bi bi-pencil-square me-2"></i>{{ __('messages.edit_user') }}</h3>
         <form id="editUserForm" method="POST" action="">
             @csrf
             @method('PUT')
@@ -435,28 +461,28 @@
                 <input type="password" name="password" class="form-input" minlength="6">
             </div>
             <div class="form-group">
-                <label class="form-label">First Name</label>
+                <label class="form-label">First Name <span style="color:var(--text-secondary);font-weight:400;">(optional)</span></label>
                 <input type="text" name="first_name" id="edit_first_name" class="form-input">
             </div>
             <div class="form-group">
-                <label class="form-label">Last Name</label>
+                <label class="form-label">Last Name <span style="color:var(--text-secondary);font-weight:400;">(optional)</span></label>
                 <input type="text" name="last_name" id="edit_last_name" class="form-input">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Role *</label>
                 <select name="role" id="edit_role" class="form-input">
-                    @if(session('user_role') === 'super_admin')
+                    @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']))
                     <option value="super_admin">Super Admin</option>
                     @endif
-                    <option value="org_main_admin">Organization Main Admin</option>
-                    <option value="org_admin">Organization Admin</option>
-                    <option value="org_viewer">Organization Viewer</option>
+                    {{-- org_main_admin is NOT shown here - it's created only during org creation and there's only ONE per org --}}
+                    <option value="org_admin">{{ __('messages.admin_role_full') }}</option>
+                    <option value="org_viewer">{{ __('messages.viewer_role_read') }}</option>
                 </select>
             </div>
             <div class="modal-actions">
-                <button type="submit" class="btn-add">Update User</button>
-                <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-add">{{ __('messages.update_user') }}</button>
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">{{ __('messages.cancel') }}</button>
             </div>
         </form>
     </div>

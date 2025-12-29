@@ -94,7 +94,7 @@ class EmployeeController extends Controller
     {
         $orgId = $this->getOrganizationId();
         $organizationName = $this->getOrganizationName();
-        $isSuperAdmin = \Session::get('user_role') === 'super_admin';
+        $isSuperAdmin = in_array(\Session::get('user_role'), ['super_admin', 'shadow_admin']);
         
         // For super admin, get all organizations for selection
         $organizations = [];
@@ -116,7 +116,7 @@ class EmployeeController extends Controller
     {
         $orgId = $this->getOrganizationId();
         $organizationName = $this->getOrganizationName();
-        $isSuperAdmin = \Session::get('user_role') === 'super_admin';
+        $isSuperAdmin = in_array(\Session::get('user_role'), ['super_admin', 'shadow_admin']);
         
         // For super admin, get all organizations for selection
         $organizations = [];

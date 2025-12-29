@@ -179,32 +179,32 @@
         </div>
 
         @if(!isset($organization))
-        <h3 class="section-title">Main Organization Admin</h3>
-        <p class="form-help" style="margin-bottom:15px;">Create the primary administrator account for this organization.</p>
+        <h3 class="section-title">Main Organization Admin <span style="color:#dc3545;">*</span></h3>
+        <p class="form-help" style="margin-bottom:15px;">Create the primary administrator account for this organization. <strong>Required - Only one per organization.</strong></p>
 
         <div class="form-row">
             <div class="form-group">
-                <label class="form-label" for="admin_username">Admin Username</label>
+                <label class="form-label" for="admin_username">Admin Username *</label>
                 <input type="text" class="form-control" id="admin_username" name="admin_username" 
-                       value="{{ old('admin_username') }}" placeholder="e.g. admin_company">
+                       value="{{ old('admin_username') }}" placeholder="e.g. admin_company" required>
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="admin_email">Admin Email</label>
+                <label class="form-label" for="admin_email">Admin Email *</label>
                 <input type="email" class="form-control" id="admin_email" name="admin_email" 
-                       value="{{ old('admin_email') }}" placeholder="admin@company.com">
+                       value="{{ old('admin_email') }}" placeholder="admin@company.com" required>
             </div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
-                <label class="form-label" for="admin_password">Admin Password</label>
-                <input type="password" class="form-control" id="admin_password" name="admin_password" placeholder="Min. 8 characters">
+                <label class="form-label" for="admin_password">Admin Password *</label>
+                <input type="password" class="form-control" id="admin_password" name="admin_password" placeholder="Min. 8 characters" required minlength="8">
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="admin_password_confirmation">Confirm Password</label>
-                <input type="password" class="form-control" id="admin_password_confirmation" name="admin_password_confirmation">
+                <label class="form-label" for="admin_password_confirmation">Confirm Password *</label>
+                <input type="password" class="form-control" id="admin_password_confirmation" name="admin_password_confirmation" required>
             </div>
         </div>
         @endif

@@ -273,7 +273,7 @@
 </style>
 
 <div class="page-header">
-    <h2 class="page-title">Select employee to change</h2>
+    <h2 class="page-title">{{ __('messages.employee_name') }}</h2>
 </div>
 
 @if(session('success'))
@@ -293,8 +293,8 @@
         <input type="hidden" name="export_data" value="1">
         <input type="hidden" name="type" value="employees">
         
-        <span class="action-label"><i class="bi bi-file-earmark-arrow-down"></i> Export:</span>
-        <button type="submit" class="btn-action-primary" style="background:#0d6efd;">Export ZIP (with Images)</button>
+        <span class="action-label"><i class="bi bi-file-earmark-arrow-down"></i> {{ __('messages.export') }}:</span>
+        <button type="submit" class="btn-action-primary" style="background:#0d6efd;">{{ __('messages.export') }} ZIP</button>
     </form>
 
     <div class="divider-vertical"></div>
@@ -302,9 +302,9 @@
     <!-- Import Group -->
     <form action="{{ route('attendance.import') }}" method="POST" enctype="multipart/form-data" class="action-group" style="margin:0;">
         @csrf
-        <span class="action-label"><i class="bi bi-cloud-upload"></i> Import:</span>
+        <span class="action-label"><i class="bi bi-cloud-upload"></i> {{ __('messages.import') }}:</span>
         <input type="file" name="import_file" class="action-input-file" style="max-width:200px;">
-        <button type="submit" class="btn-action-secondary">Upload</button>
+        <button type="submit" class="btn-action-secondary">{{ __('messages.upload') }}</button>
     </form>
 
     <div class="divider-vertical"></div>
@@ -312,7 +312,7 @@
     <!-- Add Employee -->
     <div class="action-group">
         <a href="#" onclick="return openPopup('{{ route('employees.create', ['popup' => 1]) }}');" class="btn-action-primary" style="background:#212529;">
-            <i class="bi bi-person-plus"></i> ADD EMPLOYEE
+            <i class="bi bi-person-plus"></i> {{ __('messages.add_employee') }}
         </a>
     </div>
 </div>
@@ -320,17 +320,17 @@
 <!-- Filter Form -->
 <form method="GET" class="filter-form">
     <div class="filter-group search">
-        <label class="filter-label">Search</label>
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or ID..." class="filter-input">
+        <label class="filter-label">{{ __('messages.search') }}</label>
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('messages.search_placeholder') }}" class="filter-input">
     </div>
     
     <div class="filter-group">
-        <label class="filter-label">Date</label>
+        <label class="filter-label">{{ __('messages.date') }}</label>
         <input type="date" name="date" value="{{ request('date') }}" class="filter-input">
     </div>
 
     <div class="filter-group">
-        <label class="filter-label">Status</label>
+        <label class="filter-label">{{ __('messages.status') }}</label>
         <select name="active" class="filter-select">
             <option value="">All</option>
             <option value="yes" {{ request('active') == 'yes' ? 'selected' : '' }}>Active</option>
@@ -339,7 +339,7 @@
     </div>
 
     <div class="filter-group">
-        <label class="filter-label">Department</label>
+        <label class="filter-label">{{ __('messages.department') }}</label>
         <select name="department" class="filter-select">
             <option value="">All</option>
             @foreach($departments ?? [] as $dept)
@@ -349,7 +349,7 @@
     </div>
 
     <div class="filter-group">
-        <label class="filter-label">Designation</label>
+        <label class="filter-label">{{ __('messages.designation') }}</label>
         <select name="designation" class="filter-select">
             <option value="">All</option>
             @foreach($designations ?? [] as $desig)
@@ -359,8 +359,8 @@
     </div>
 
     <div style="display:flex; gap:8px; align-items:flex-end;">
-        <button type="submit" class="btn-action btn-primary">Filter</button>
-        <a href="{{ route('employees.index') }}" class="btn-action btn-secondary">Reset</a>
+        <button type="submit" class="btn-action btn-primary">{{ __('messages.filter') }}</button>
+        <a href="{{ route('employees.index') }}" class="btn-action btn-secondary">{{ __('messages.cancel') }}</a>
     </div>
 </form>
 
@@ -422,41 +422,41 @@
                 <th style="width: 40px;">#</th>
                 <th>
                     <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'employee_id', 'dir' => $currentSort === 'employee_id' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'employee_id' ? 'active' : '' }}">
-                        Employee ID {!! $currentSort === 'employee_id' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.employee_id') }} {!! $currentSort === 'employee_id' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'name', 'dir' => $currentSort === 'name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'name' ? 'active' : '' }}">
-                        Name {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.employee_name') }} {!! $currentSort === 'name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'organization_name', 'dir' => $currentSort === 'organization_name' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'organization_name' ? 'active' : '' }}">
-                        Organization {!! $currentSort === 'organization_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.organization') }} {!! $currentSort === 'organization_name' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'department', 'dir' => $currentSort === 'department' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'department' ? 'active' : '' }}">
-                        Department {!! $currentSort === 'department' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.department') }} {!! $currentSort === 'department' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'designation', 'dir' => $currentSort === 'designation' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'designation' ? 'active' : '' }}">
-                        Designation {!! $currentSort === 'designation' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.designation') }} {!! $currentSort === 'designation' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'monthly_salary', 'dir' => $currentSort === 'monthly_salary' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'monthly_salary' ? 'active' : '' }}">
-                        Monthly Salary {!! $currentSort === 'monthly_salary' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.salary') }} {!! $currentSort === 'monthly_salary' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>
                     <a href="{{ route('employees.index', array_merge($sortParams, ['sort' => 'is_active', 'dir' => $currentSort === 'is_active' ? $toggleDir : 'asc'])) }}" class="th-sortable {{ $currentSort === 'is_active' ? 'active' : '' }}">
-                        Is Active {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
+                        {{ __('messages.status') }} {!! $currentSort === 'is_active' ? ($currentDir === 'asc' ? '▲' : '▼') : '' !!}
                     </a>
                 </th>
                 <th>Template Synced</th>
-                <th style="text-align:right;">Actions</th>
+                <th style="text-align:right;">{{ __('messages.actions') }}</th>
             </tr>
         </thead>
         <tbody>

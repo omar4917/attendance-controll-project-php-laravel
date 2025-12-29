@@ -17,7 +17,7 @@ class AttendanceRecordController extends Controller
         
         // Role detection
         $userRole = \Session::get('user_role', 'org_admin');
-        $isSuperAdmin = $userRole === 'super_admin';
+        $isSuperAdmin = in_array($userRole, ['super_admin', 'shadow_admin']);
         
         // For super admins, get list of organizations
         $organizations = [];
