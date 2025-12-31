@@ -45,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
             ['email' => 'admin@example.com'],
             [
                 'name' => 'admin',
-                'password' => Hash::make('admin'),
+                'password' => Hash::make('Admin@2025'),
             ]
         );
 
