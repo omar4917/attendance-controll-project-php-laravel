@@ -410,6 +410,10 @@ document.getElementById('att-modal-overlay').addEventListener('click', function(
 document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = '{{ csrf_token() }}';
     const djangoBaseUrl = '{{ session("django_base_url", env("DJANGO_BASE_URL", "http://127.0.0.1:8000")) }}';
+    const userRole = '{{ session("user_role", "org_admin") }}';
+    const userEmail = '{{ session("admin_email", session("admin_user", "admin@example.com")) }}';
+    const organizationId = '{{ session("organization_id", "1") }}';
+    const apiKey = '{{ env("DJANGO_API_KEY", "Key123") }}';
     
     // Initialize Staged Upload for Import
     const fileInput = document.getElementById('stagedFileInput');
@@ -481,7 +485,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             currentXhr.open('POST', djangoBaseUrl + '/api/staged-upload/', true);
-            currentXhr.setRequestHeader('Authorization', 'Key {{ env("DJANGO_API_KEY", "Key123") }}');
+            currentXhr.setRequestHeader('Authorization', 'Key ' + apiKey);
+            currentXhr.setRequestHeader('X-User-Role', userRole);
+            currentXhr.setRequestHeader('X-User-Email', userEmail);
+            currentXhr.setRequestHeader('X-Organization-Id', organizationId);
             currentXhr.send(formData);
         });
     }
@@ -497,7 +504,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Key {{ env("DJANGO_API_KEY", "Key123") }}'
+                    'Authorization': 'Key ' + apiKey,
+                    'X-User-Role': userRole,
+                    'X-User-Email': userEmail,
+                    'X-Organization-Id': organizationId
                 },
                 body: JSON.stringify({ session_id: currentSessionId })
             })
@@ -545,7 +555,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Key {{ env("DJANGO_API_KEY", "Key123") }}'
+                    'Authorization': 'Key ' + apiKey,
+                    'X-User-Role': userRole,
+                    'X-User-Email': userEmail,
+                    'X-Organization-Id': organizationId
                 },
                 body: JSON.stringify({
                     type: 'attendance',
@@ -570,7 +583,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function pollExportStatus(jobId) {
         const poll = setInterval(() => {
             fetch(djangoBaseUrl + '/api/export-job/status/?job_id=' + jobId, {
-                headers: { 'Authorization': 'Key {{ env("DJANGO_API_KEY", "Key123") }}' }
+                headers: { 
+                    'Authorization': 'Key ' + apiKey,
+                    'X-User-Role': userRole,
+                    'X-User-Email': userEmail,
+                    'X-Organization-Id': organizationId
+                }
             })
             .then(res => res.json())
             .then(data => {
