@@ -88,32 +88,67 @@
         <a href="{{ route('attendance.pdf', ['type' => 'combined', 'month' => $month, 'year' => $year, 'department' => request('department'), 'designation' => request('designation'), 'organization_id' => $orgId]) }}" class="btn-action-primary" style="background:#fd7e14;">{{ __('messages.combined_pdf') }}</a>
     </div>
 
+
     @if(session('user_role') !== 'org_viewer')
     <div class="divider-vertical"></div>
 
-    <!-- Export Group -->
+    <!-- Export Group with Progress -->
     <div class="action-group">
-        <form action="{{ route('attendance.export') }}" method="POST" target="_blank" style="margin:0;display:flex;align-items:center;gap:8px;">
-            @csrf
-            <input type="hidden" name="month" value="{{ $month }}">
-            <input type="hidden" name="year" value="{{ $year }}">
-            <span class="action-label"><i class="bi bi-box-arrow-up"></i> {{ __('messages.export') }}:</span>
-            <button type="submit" name="export_data" value="1" class="btn-action-primary" style="background:#0d6efd;">{{ __('messages.export') }} ZIP</button>
-        </form>
+        <span class="action-label"><i class="bi bi-box-arrow-up"></i> {{ __('messages.export') }}:</span>
+        <button type="button" id="exportBtn" class="btn-action-primary" style="background:#0d6efd;">
+            <i class="bi bi-download"></i> {{ __('messages.export') }} ZIP
+        </button>
+        <div id="exportProgressContainer" style="display:none;margin-left:10px;min-width:200px;">
+            <div style="height:6px;background:#e9ecef;border-radius:3px;overflow:hidden;">
+                <div id="exportProgressBar" style="height:100%;background:#0d6efd;width:0%;transition:width 0.3s;"></div>
+            </div>
+            <small id="exportProgressText" style="color:var(--text-secondary);">Preparing...</small>
+        </div>
+        <a href="#" id="exportDownloadBtn" class="btn-action-primary" style="display:none;background:#28a745;">
+            <i class="bi bi-check-circle"></i> Download
+        </a>
     </div>
 
     <div class="divider-vertical"></div>
 
-    <!-- Import Group -->
-    <form action="{{ route('attendance.import') }}" method="POST" enctype="multipart/form-data" class="action-group" style="margin:0;">
-        @csrf
-        <input type="hidden" name="month" value="{{ $month }}">
-        <input type="hidden" name="year" value="{{ $year }}">
+    <!-- Import Group with Staged Upload -->
+    <div class="action-group">
         <span class="action-label"><i class="bi bi-cloud-upload"></i> {{ __('messages.import') }}:</span>
-        <input type="file" name="import_file" class="action-input-file" style="max-width:180px;">
-        <button type="submit" class="btn-action-secondary">{{ __('messages.upload') }}</button>
-    </form>
+        <button type="button" id="importBtn" class="btn-action-secondary" onclick="document.getElementById('stagedFileInput').click();">
+            <i class="bi bi-folder2-open"></i> Select File
+        </button>
+        <input type="file" id="stagedFileInput" style="display:none;" accept=".zip,.json">
+        <div id="uploadProgressContainer" style="display:none;margin-left:10px;min-width:200px;">
+            <div style="height:6px;background:#e9ecef;border-radius:3px;overflow:hidden;">
+                <div id="uploadProgressBar" style="height:100%;background:#28a745;width:0%;transition:width 0.3s;"></div>
+            </div>
+            <small id="uploadProgressText" style="color:var(--text-secondary);">Uploading...</small>
+        </div>
+    </div>
     @endif
+</div>
+
+<!-- Upload Preview Modal -->
+<div class="modal fade" id="uploadPreviewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--header-bg, #2c3e50);color:#fff;">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-check"></i> Upload Preview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- Preview content inserted by JS -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="uploadCancelBtn" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-success" id="uploadConfirmBtn">
+                    <i class="bi bi-check-circle"></i> Confirm Import
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -368,4 +403,191 @@ document.getElementById('att-modal-overlay').addEventListener('click', function(
   });
 })();
 </script>
+
+<!-- Staged Upload JS -->
+<script src="{{ asset('js/staged-upload.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = '{{ csrf_token() }}';
+    const djangoBaseUrl = '{{ session("django_base_url", env("DJANGO_BASE_URL", "http://127.0.0.1:8000")) }}';
+    
+    // Initialize Staged Upload for Import
+    const fileInput = document.getElementById('stagedFileInput');
+    const progressContainer = document.getElementById('uploadProgressContainer');
+    const progressBar = document.getElementById('uploadProgressBar');
+    const progressText = document.getElementById('uploadProgressText');
+    const previewModal = document.getElementById('uploadPreviewModal');
+    const confirmBtn = document.getElementById('uploadConfirmBtn');
+    const cancelBtn = document.getElementById('uploadCancelBtn');
+    
+    let currentSessionId = null;
+    let currentXhr = null;
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Show progress
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Uploading...';
+            
+            // Create XHR for progress tracking
+            currentXhr = new XMLHttpRequest();
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', 'attendance');
+            
+            currentXhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                    const loaded = (e.loaded / 1024 / 1024).toFixed(2);
+                    const total = (e.total / 1024 / 1024).toFixed(2);
+                    progressText.textContent = `Uploading: ${loaded}MB / ${total}MB (${percent}%)`;
+                }
+            });
+            
+            currentXhr.addEventListener('load', function() {
+                if (currentXhr.status === 200) {
+                    try {
+                        const response = JSON.parse(currentXhr.responseText);
+                        currentSessionId = response.session_id;
+                        progressText.textContent = 'Upload complete! Review and confirm.';
+                        
+                        // Show preview modal
+                        document.getElementById('previewContent').innerHTML = `
+                            <div class="alert alert-info">
+                                <strong>File:</strong> ${response.filename}<br>
+                                <strong>Size:</strong> ${(response.filesize / 1024 / 1024).toFixed(2)} MB<br>
+                                <strong>Records found:</strong> ${response.record_count}
+                            </div>
+                            ${response.preview_html || ''}
+                            <p class="text-muted">Click "Confirm Import" to proceed with the import.</p>
+                        `;
+                        const modal = new bootstrap.Modal(previewModal);
+                        modal.show();
+                    } catch (err) {
+                        progressText.textContent = 'Error: Invalid response';
+                    }
+                } else {
+                    progressText.textContent = 'Upload failed: ' + currentXhr.statusText;
+                }
+            });
+            
+            currentXhr.addEventListener('error', function() {
+                progressText.textContent = 'Upload failed - network error';
+            });
+            
+            currentXhr.open('POST', djangoBaseUrl + '/api/staged-upload/', true);
+            currentXhr.setRequestHeader('Authorization', 'Key {{ env("DJANGO_API_KEY", "Key123") }}');
+            currentXhr.send(formData);
+        });
+    }
+    
+    // Confirm button
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (!currentSessionId) return;
+            
+            progressText.textContent = 'Importing data...';
+            
+            fetch(djangoBaseUrl + '/api/staged-upload/confirm/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Key {{ env("DJANGO_API_KEY", "Key123") }}'
+                },
+                body: JSON.stringify({ session_id: currentSessionId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    progressText.textContent = 'Import complete! Reloading...';
+                    bootstrap.Modal.getInstance(previewModal)?.hide();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    progressText.textContent = 'Error: ' + (data.error || 'Import failed');
+                }
+            })
+            .catch(err => {
+                progressText.textContent = 'Error: ' + err.message;
+            });
+        });
+    }
+    
+    // Cancel button
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            if (currentXhr) currentXhr.abort();
+            currentSessionId = null;
+            progressContainer.style.display = 'none';
+            fileInput.value = '';
+        });
+    }
+    
+    // Background Export
+    const exportBtn = document.getElementById('exportBtn');
+    const exportProgressContainer = document.getElementById('exportProgressContainer');
+    const exportProgressBar = document.getElementById('exportProgressBar');
+    const exportProgressText = document.getElementById('exportProgressText');
+    const exportDownloadBtn = document.getElementById('exportDownloadBtn');
+    
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            exportProgressContainer.style.display = 'block';
+            exportDownloadBtn.style.display = 'none';
+            exportProgressBar.style.width = '0%';
+            exportProgressText.textContent = 'Starting export...';
+            
+            fetch(djangoBaseUrl + '/api/export-job/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Key {{ env("DJANGO_API_KEY", "Key123") }}'
+                },
+                body: JSON.stringify({
+                    type: 'attendance',
+                    month: {{ $month }},
+                    year: {{ $year }}
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.job_id) {
+                    pollExportStatus(data.job_id);
+                } else {
+                    exportProgressText.textContent = 'Failed to start export';
+                }
+            })
+            .catch(err => {
+                exportProgressText.textContent = 'Error: ' + err.message;
+            });
+        });
+    }
+    
+    function pollExportStatus(jobId) {
+        const poll = setInterval(() => {
+            fetch(djangoBaseUrl + '/api/export-job/status/?job_id=' + jobId, {
+                headers: { 'Authorization': 'Key {{ env("DJANGO_API_KEY", "Key123") }}' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                exportProgressBar.style.width = data.progress + '%';
+                exportProgressText.textContent = data.status;
+                
+                if (data.complete) {
+                    clearInterval(poll);
+                    exportDownloadBtn.href = djangoBaseUrl + data.download_url;
+                    exportDownloadBtn.style.display = 'inline-block';
+                    exportProgressText.textContent = 'Ready! Click to download.';
+                }
+            })
+            .catch(() => clearInterval(poll));
+        }, 1000);
+    }
+});
+</script>
 @endsection
+
