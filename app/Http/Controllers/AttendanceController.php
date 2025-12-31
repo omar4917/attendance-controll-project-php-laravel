@@ -341,8 +341,13 @@ class AttendanceController extends Controller
         // Ideally the form should include them. I will update the blade to include them.
         $year = $request->input('year', Carbon::now()->year);
         $month = $request->input('month', Carbon::now()->month);
+        $type = $request->input('type', 'attendance');
 
-        $result = $api->import($request->file('import_file'), ['year' => $year, 'month' => $month]);
+        $result = $api->import($request->file('import_file'), [
+            'year' => $year, 
+            'month' => $month,
+            'type' => $type
+        ]);
 
         if (!empty($result['error'])) {
              return back()->with('error', $result['error']);
@@ -393,7 +398,7 @@ class AttendanceController extends Controller
         $qs = http_build_query($queryParams);
         
         // Determine Django endpoint and filename
-        $djangoBase = rtrim(Session::get('django_base_url', config('django.base_url', 'http://localhost:8001')), '/');
+        $djangoBase = $api->getBaseUrl();
         
         // Build filename with org name if available
         $orgSuffix = $orgNameSafe ? "-{$orgNameSafe}" : '';
@@ -485,7 +490,7 @@ class AttendanceController extends Controller
         ]);
         $qs = http_build_query($queryParams);
         
-        $djangoBase = rtrim(Session::get('django_base_url', config('django.base_url', 'http://localhost:8001')), '/');
+        $djangoBase = $api->getBaseUrl();
         $endpoint = "/salary-report/pdf/?{$qs}";
         
         $orgSuffix = $orgNameSafe ? "-{$orgNameSafe}" : '';

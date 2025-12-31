@@ -153,8 +153,9 @@
         @forelse($images as $img)
             <div class="livefeed-card">
                 <div class="livefeed-img-container">
+@inject('djangoApi', 'App\Services\DjangoApi')
                     @if($img['url'])
-                        <img src="{{ session('django_base_url', config('django.base_url')) }}{{ $img['url'] }}" class="livefeed-img" alt="Snapshot">
+                        <img src="{{ $djangoApi->getBaseUrl() . $img['url'] }}" class="livefeed-img" alt="Snapshot">
                     @else
                         <span style="color:var(--text-secondary);">{{ __('messages.no_image') }}</span>
                     @endif

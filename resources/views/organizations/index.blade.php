@@ -285,7 +285,8 @@
             <td style="width:50px;">
                 @if(!empty($org['logo']))
                 <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;background:#f8f9fa;display:flex;align-items:center;justify-content:center;">
-                    <img src="{{ rtrim(Session::get('django_base_url', config('django.base_url', 'http://localhost:8001')), '/') . $org['logo'] }}" 
+@inject('djangoApi', 'App\Services\DjangoApi')
+                    <img src="{{ $djangoApi->getBaseUrl() . $org['logo'] }}" 
                          alt="{{ $org['name'] }}" 
                          style="width:100%;height:100%;object-fit:cover;"
                          onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'bi bi-building\'></i>';">

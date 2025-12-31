@@ -302,6 +302,7 @@
     <!-- Import Group -->
     <form action="{{ route('attendance.import') }}" method="POST" enctype="multipart/form-data" class="action-group" style="margin:0;">
         @csrf
+        <input type="hidden" name="type" value="employees">
         <span class="action-label"><i class="bi bi-cloud-upload"></i> {{ __('messages.import') }}:</span>
         <input type="file" name="import_file" class="action-input-file" style="max-width:200px;">
         <button type="submit" class="btn-action-secondary">{{ __('messages.upload') }}</button>

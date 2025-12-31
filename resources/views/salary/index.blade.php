@@ -192,7 +192,17 @@
 <div class="salary-container">
     <div class="salary-header">
         <h2>{{ __('messages.select_salary_statistic') }}</h2>
-        <a href="#" class="add-salary-btn">{{ __('messages.add_salary_statistic') }}</a>
+        <div style="display: flex; gap: 10px;">
+            <form action="{{ route('salary.generate') }}" method="POST" onsubmit="return confirm('Generate salary reports for the selected month? This will update existing records.');">
+                @csrf
+                <input type="hidden" name="month" value="{{ $month }}">
+                <input type="hidden" name="year" value="{{ $year }}">
+                <button type="submit" class="add-salary-btn" style="background: var(--accent-color); border: none; cursor: pointer;">
+                    <i class="bi bi-arrow-repeat"></i> {{ __('messages.generate_reports') }}
+                </button>
+            </form>
+            <a href="#" class="add-salary-btn">{{ __('messages.add_salary_statistic') }}</a>
+        </div>
     </div>
 
     @if(!empty($error))

@@ -28,6 +28,21 @@ class OrgUsersController extends Controller
         $orgUsers = $response['org_users'] ?? [];
         $canManage = in_array($role, ['super_admin', 'shadow_admin', 'org_main_admin']);
         
+        // Check if current org already has a main admin
+        $hasMainAdmin = collect($orgUsers)->contains(function ($user) use ($orgId) {
+            return $user['role'] === 'org_main_admin' && 
+                   (!$orgId || ($user['organization_id'] ?? null) == $orgId);
+        });
+        
+        // Track which orgs have main admins (for super admin viewing all)
+        $orgsWithMainAdmin = collect($orgUsers)
+            ->where('role', 'org_main_admin')
+            ->pluck('organization_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        
         // Sorting
         $sortField = $request->input('sort', 'username');
         $sortDir = $request->input('dir', 'asc');
@@ -46,7 +61,7 @@ class OrgUsersController extends Controller
             $organizations = $organizationsResponse['organizations'] ?? [];
         }
         
-        return view('org-users.index', compact('orgUsers', 'canManage', 'organizations', 'orgId'));
+        return view('org-users.index', compact('orgUsers', 'canManage', 'organizations', 'orgId', 'hasMainAdmin', 'orgsWithMainAdmin'));
     }
 
     /**
@@ -103,8 +118,12 @@ class OrgUsersController extends Controller
             'email' => $request->input('email'),
             'first_name' => $request->input('first_name', ''),
             'last_name' => $request->input('last_name', ''),
-            'role' => $request->input('role'),
+            // 'role' => $request->input('role'), // Removed to prevent sending null
         ];
+        
+        if ($request->filled('role')) {
+            $payload['role'] = $request->input('role');
+        }
         
         // Only include password if provided
         if ($request->filled('password')) {

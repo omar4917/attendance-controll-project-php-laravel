@@ -46,6 +46,14 @@ class DjangoApi
         ]);
     }
 
+    /**
+     * Get the Django base URL for use by controllers that need to make direct requests
+     */
+    public function getBaseUrl(): string
+    {
+        return $this->baseUrl;
+    }
+
     protected function get(string $path): array
     {
         try {
@@ -133,6 +141,7 @@ class DjangoApi
                 'role' => $data['role'] ?? 'org_admin',
                 'organization_id' => $data['organization_id'] ?? null,
                 'organization_name' => $data['organization_name'] ?? null,
+                'organization_logo' => $data['organization_logo'] ?? null,
                 'organizations' => $data['organizations'] ?? [],
             ];
         } catch (GuzzleException $e) {
@@ -294,6 +303,11 @@ class DjangoApi
     public function deleteSalaryStatistic($id): array
     {
         return $this->send('DELETE', '/api/salary-statistics/', ['id' => $id]);
+    }
+
+    public function generateSalaryStatistics(array $payload): array
+    {
+        return $this->post('/api/salary-statistics/generate/', $payload);
     }
 
     public function reports(): array
@@ -475,6 +489,10 @@ class DjangoApi
                 [
                     'name' => 'month',
                     'contents' => $data['month'],
+                ],
+                [
+                    'name' => 'type',
+                    'contents' => $data['type'] ?? 'attendance',
                 ],
             ];
 
@@ -670,6 +688,21 @@ class DjangoApi
     public function plans(): array
     {
         return $this->subscriptionPlans();
+    }
+
+    public function upsertPlan(array $payload): array
+    {
+        $method = !empty($payload['id']) ? 'PUT' : 'POST';
+        // If ID is present in payload for PUT, append it to URL if your API expects /api/subscription-plans/{id}/
+        // But some APIs (like your upsertAttendance) assume /api/subscription-plans/ handles both with ID in body.
+        // Let's check attendance/urls.py... it uses one view `subscription_plans_api`.
+        // So keeping the URL as /api/subscription-plans/ is correct if the view handles method dispatch.
+        return $this->send($method, '/api/subscription-plans/', $payload);
+    }
+
+    public function deletePlan($id): array
+    {
+        return $this->send('DELETE', '/api/subscription-plans/', ['id' => $id]);
     }
 
     // ============================================================================

@@ -418,18 +418,23 @@
             @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']) && !$orgId)
             <div class="form-group">
                 <label class="form-label">Organization *</label>
-                <select name="organization_id" class="form-input" required>
+                <select name="organization_id" id="add_organization_id" class="form-input" required onchange="updateMainAdminOption()">
                     <option value="">Select Organization</option>
                     @foreach($organizations as $org)
-                    <option value="{{ $org['id'] }}">{{ $org['name'] }}</option>
+                    <option value="{{ $org['id'] }}" data-has-main-admin="{{ in_array($org['id'], $orgsWithMainAdmin ?? []) ? '1' : '0' }}">{{ $org['name'] }}</option>
                     @endforeach
                 </select>
             </div>
             @endif
             <div class="form-group">
                 <label class="form-label">Role *</label>
-                <select name="role" class="form-input">
-                    <option value="org_admin">{{ __('messages.admin_role_full') }}</option>
+                <select name="role" id="add_role" class="form-input">
+                    @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']))
+                    <option value="org_main_admin" id="main_admin_option" {{ ($hasMainAdmin ?? false) && $orgId ? 'disabled' : '' }}>
+                        Organization Main Admin {{ ($hasMainAdmin ?? false) && $orgId ? '(Already exists)' : '(One per org)' }}
+                    </option>
+                    @endif
+                    <option value="org_admin" selected>{{ __('messages.admin_role_full') }}</option>
                     <option value="org_viewer">{{ __('messages.viewer_role_read') }}</option>
                 </select>
             </div>
@@ -475,7 +480,7 @@
                     @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']))
                     <option value="super_admin">Super Admin</option>
                     @endif
-                    {{-- org_main_admin is NOT shown here - it's created only during org creation and there's only ONE per org --}}
+                    <option value="org_main_admin">Organization Main Admin</option>
                     <option value="org_admin">{{ __('messages.admin_role_full') }}</option>
                     <option value="org_viewer">{{ __('messages.viewer_role_read') }}</option>
                 </select>
@@ -518,5 +523,29 @@ window.addEventListener('click', function(e) {
     if (e.target.id === 'addUserModal') closeModal();
     if (e.target.id === 'editUserModal') closeEditModal();
 });
+
+// Update Main Admin option based on selected organization
+function updateMainAdminOption() {
+    const orgSelect = document.getElementById('add_organization_id');
+    const mainAdminOption = document.getElementById('main_admin_option');
+    const roleSelect = document.getElementById('add_role');
+    
+    if (!orgSelect || !mainAdminOption) return;
+    
+    const selectedOption = orgSelect.options[orgSelect.selectedIndex];
+    const hasMainAdmin = selectedOption?.dataset?.hasMainAdmin === '1';
+    
+    if (hasMainAdmin) {
+        mainAdminOption.disabled = true;
+        mainAdminOption.textContent = 'Organization Main Admin (Already exists)';
+        // If Main Admin was selected, switch to org_admin
+        if (roleSelect.value === 'org_main_admin') {
+            roleSelect.value = 'org_admin';
+        }
+    } else {
+        mainAdminOption.disabled = false;
+        mainAdminOption.textContent = 'Organization Main Admin (One per org)';
+    }
+}
 </script>
 @endsection

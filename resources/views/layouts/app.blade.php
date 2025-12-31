@@ -755,6 +755,11 @@
                     <i class="bi bi-buildings"></i> {{ __('messages.organizations') }}
                 </a>
             </li>
+            <li style="">
+                <a href="{{ route('plans.index') }}" class="{{ request()->routeIs('plans.*') ? 'active' : '' }}">
+                    <i class="bi bi-award"></i> Plans
+                </a>
+            </li>
             @endif
         </ul>
         
@@ -785,17 +790,30 @@
                 </button>
                 <div class="header-title">
                 {{ __('messages.employee_management_system') }}
+                @inject('djangoApi', 'App\Services\DjangoApi')
                 @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']) && session('selected_organization_name'))
                     <span style="font-size:0.8rem; font-weight:400; margin-left:10px; padding:4px 10px; background:var(--accent); color:white; border-radius:4px; display:inline-flex; align-items:center; gap:6px;">
                         @if(session('selected_organization_logo'))
-                            <img src="/media/{{ session('selected_organization_logo') }}" alt="Logo" style="height:20px; width:20px; border-radius:3px; object-fit:cover; background:white;">
+                            @php 
+                                $logoPath = session('selected_organization_logo');
+                                if (!str_starts_with($logoPath, 'http')) {
+                                    $logoPath = $djangoApi->getBaseUrl() . (str_starts_with($logoPath, '/') ? '' : '/') . $logoPath;
+                                }
+                            @endphp
+                            <img src="{{ $logoPath }}" alt="Logo" style="height:20px; width:20px; border-radius:3px; object-fit:cover; background:white;">
                         @endif
                         {{ session('selected_organization_name') }}
                     </span>
                 @elseif(session('organization_name'))
                     <span style="font-size:0.8rem; font-weight:400; margin-left:10px; padding:4px 10px; background:var(--accent); color:white; border-radius:4px; display:inline-flex; align-items:center; gap:6px;">
                         @if(session('organization_logo'))
-                            <img src="/media/{{ session('organization_logo') }}" alt="Logo" style="height:20px; width:20px; border-radius:3px; object-fit:cover; background:white;">
+                             @php 
+                                $logoPath = session('organization_logo');
+                                if (!str_starts_with($logoPath, 'http')) {
+                                    $logoPath = $djangoApi->getBaseUrl() . (str_starts_with($logoPath, '/') ? '' : '/') . $logoPath;
+                                }
+                            @endphp
+                            <img src="{{ $logoPath }}" alt="Logo" style="height:20px; width:20px; border-radius:3px; object-fit:cover; background:white;">
                         @endif
                         {{ session('organization_name') }}
                     </span>

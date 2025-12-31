@@ -22,6 +22,32 @@ class SalaryController extends Controller
         return view('salary.index', compact('stats', 'error', 'month', 'year'));
     }
 
+    public function generate(Request $request, DjangoApi $api)
+    {
+        $orgId = $this->getOrganizationId();
+        $month = $request->input('month', date('n'));
+        $year = $request->input('year', date('Y'));
+
+        $payload = [
+            'month' => $month,
+            'year' => $year,
+        ];
+        
+        if ($orgId) {
+            $payload['organization_id'] = $orgId;
+        }
+
+        $resp = $api->generateSalaryStatistics($payload);
+
+        if (!empty($resp['error'])) {
+            return redirect()->route('salary.index', ['month' => $month, 'year' => $year])
+                ->with('error', $resp['error']);
+        }
+        
+        return redirect()->route('salary.index', ['month' => $month, 'year' => $year])
+            ->with('success', $resp['message'] ?? 'Salary reports generated successfully');
+    }
+
     public function edit($id, DjangoApi $api)
     {
         $orgId = $this->getOrganizationId();

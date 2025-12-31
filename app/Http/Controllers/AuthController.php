@@ -103,6 +103,7 @@ class AuthController extends Controller
             Session::put('user_role', $result['role'] ?? 'org_admin');
             Session::put('organization_id', $result['organization_id'] ?? null);
             Session::put('organization_name', $result['organization_name'] ?? null);
+            Session::put('organization_logo', $result['organization_logo'] ?? null);
             Session::put('organizations', $result['organizations'] ?? []);
             
             // If super_admin with no org selected, they'll see all data

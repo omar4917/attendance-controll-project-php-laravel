@@ -1,6 +1,16 @@
 @extends('layouts.app')
 
 @section('title', 'Analytics Dashboard')
+@push('head')
+<style>
+    .device-card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px var(--shadow) !important;
+        cursor: pointer;
+        border-color: var(--accent) !important;
+    }
+</style>
+@endpush
 
 @section('content')
 <div class="container-fluid">
@@ -33,14 +43,20 @@
             </div>
         </div>
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 shadow-sm">
+            @if(!empty($orgId))
+            <a href="{{ route('organizations.devices', $orgId) }}" class="text-decoration-none" style="display:block; height:100%;">
+            @endif
+            <div class="card h-100 border-0 shadow-sm device-card-hover">
                 <div class="card-body text-center">
                     <i class="bi bi-phone-fill fs-1 text-success"></i>
-                    <h3 class="mt-2 mb-0">{{ $summary['active_devices'] ?? 0 }}</h3>
+                    <h3 class="mt-2 mb-0 {{ !empty($orgId) ? 'text-success' : '' }}">{{ $summary['active_devices'] ?? 0 }}</h3>
                     <p class="text-muted mb-0">{{ __('messages.active_devices') }}</p>
                     <small class="text-secondary">of {{ $summary['total_devices'] ?? 0 }} total</small>
                 </div>
             </div>
+            @if(!empty($orgId))
+            </a>
+            @endif
         </div>
         <div class="col-md-3 mb-3">
             <div class="card h-100 border-0 shadow-sm">
@@ -302,7 +318,7 @@
             </div>
             @if(!empty($orgPlanUsage['plan_name']))
             <div class="text-center mt-3">
-                <span class="badge bg-secondary fs-6">{{ $orgPlanUsage['plan_name'] }} Plan</span>
+                <span class="badge bg-secondary fs-6">{{ $orgPlanUsage['plan_name'] }}</span>
             </div>
             @endif
         </div>

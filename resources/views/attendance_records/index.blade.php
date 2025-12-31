@@ -265,8 +265,9 @@
                             <div class="d-flex align-items-center gap-3">
                                 @if(!empty($org['logo']))
                                 {{-- Show org logo if available --}}
+@inject('djangoApi', 'App\Services\DjangoApi')
                                 <div style="width:50px;height:50px;border-radius:12px;overflow:hidden;background:#f8f9fa;display:flex;align-items:center;justify-content:center;">
-                                    <img src="{{ rtrim(Session::get('django_base_url', config('django.base_url', 'http://localhost:8001')), '/') . $org['logo'] }}" 
+                                    <img src="{{ $djangoApi->getBaseUrl() . $org['logo'] }}" 
                                          alt="{{ $org['name'] }}" 
                                          style="width:100%;height:100%;object-fit:cover;"
                                          onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'bi bi-building text-secondary fs-4\'></i>';">

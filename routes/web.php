@@ -99,6 +99,7 @@ Route::middleware(['web', 'django.auth'])->group(function () {
     // Salary
     Route::middleware('role:super_admin,org_main_admin,org_admin,org_viewer')->group(function () {
         Route::get('/salary', [SalaryController::class, 'index'])->name('salary.index');
+        Route::post('/salary/generate', [SalaryController::class, 'generate'])->name('salary.generate');
         Route::get('/salary/{id}/edit', [SalaryController::class, 'edit'])->name('salary.edit');
         Route::post('/salary', [SalaryController::class, 'store'])->name('salary.store');
         Route::put('/salary/{id}', [SalaryController::class, 'update'])->name('salary.update');
@@ -138,6 +139,8 @@ Route::middleware(['web', 'django.auth'])->group(function () {
     Route::put('/organizations/{orgId}/devices/{deviceId}', [OrganizationController::class, 'updateDevice'])->name('organizations.devices.update');
     Route::delete('/organizations/{orgId}/devices/{deviceId}', [OrganizationController::class, 'destroyDevice'])->name('organizations.devices.destroy');
     
+    // Subscription Plans - Super Admin
+    Route::resource('plans', App\Http\Controllers\PlanController::class);
     // Audit Logs
     Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
     

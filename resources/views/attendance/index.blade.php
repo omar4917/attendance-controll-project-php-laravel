@@ -129,8 +129,17 @@
             </h3>
             <small class="text-muted">Cross-organization attendance overview</small>
             @else
+@inject('djangoApi', 'App\Services\DjangoApi')
             <h3 style="margin:0;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height:24px;" onerror="this.style.display='none'" />
+                @if(session('organization_logo'))
+                    @php 
+                        $dashLogoPath = session('organization_logo');
+                        if (!str_starts_with($dashLogoPath, 'http')) {
+                            $dashLogoPath = $djangoApi->getBaseUrl() . (str_starts_with($dashLogoPath, '/') ? '' : '/') . $dashLogoPath;
+                        }
+                    @endphp
+                    <img src="{{ $dashLogoPath }}" alt="Logo" style="height:24px;width:24px;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'" />
+                @endif
                 {{ __('messages.attendance_dashboard') }} – {{ $month }}/{{ $year }}
             </h3>
             <small class="text-muted">Your organization's attendance</small>
