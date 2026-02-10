@@ -48,7 +48,7 @@ Route::middleware(['web', 'django.auth'])->group(function () {
         Route::put('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update');
         Route::delete('/employees/{id}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
     });
-    
+
     // Attendance
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::middleware('role:super_admin,org_main_admin,org_admin,org_viewer')->group(function () {
@@ -60,7 +60,7 @@ Route::middleware(['web', 'django.auth'])->group(function () {
     Route::post('/attendance/import', [AttendanceController::class, 'import'])->name('attendance.import');
     Route::get('/attendance/pdf', [AttendanceController::class, 'downloadPdf'])->name('attendance.pdf');
     Route::get('/reports/salary/pdf', [AttendanceController::class, 'downloadSalaryPdf'])->name('reports.salary.pdf');
-    
+
     // Attendance Records (Manual CRUD)
     Route::get('/attendance-records', [AttendanceRecordController::class, 'index'])->name('attendance-records.index');
     Route::middleware('role:super_admin,org_main_admin,org_admin,org_viewer')->group(function () {
@@ -71,7 +71,7 @@ Route::middleware(['web', 'django.auth'])->group(function () {
         Route::delete('/attendance-records/{id}', [AttendanceRecordController::class, 'destroy'])->name('attendance-records.destroy');
         Route::post('/attendance-records/bulk-action', [AttendanceRecordController::class, 'bulkAction'])->name('attendance-records.bulk_action');
     });
-    
+
     Route::middleware('role:super_admin,org_main_admin,org_admin,org_viewer')->group(function () {
         Route::post('/settings/voice-message', [SettingsController::class, 'saveVoiceMessage'])->name('settings.voice_message.save');
         Route::post('/settings/api-server', [SettingsController::class, 'saveApiServer'])->name('settings.api-server');
@@ -85,7 +85,7 @@ Route::middleware(['web', 'django.auth'])->group(function () {
     Route::get('/settings/company', [SettingsController::class, 'company'])->name('settings.company');
     Route::get('/settings/context', [SettingsController::class, 'context'])->name('settings.context');
     Route::get('/settings/integration', [SettingsController::class, 'integration'])->name('settings.integration');
-    
+
     // Holidays
     Route::middleware('role:super_admin,org_main_admin,org_admin,org_viewer')->group(function () {
         Route::get('/holidays', [HolidayController::class, 'index'])->name('holidays.index');
@@ -95,7 +95,7 @@ Route::middleware(['web', 'django.auth'])->group(function () {
         Route::delete('/holidays/{id}', [HolidayController::class, 'destroy'])->name('holidays.destroy');
         Route::post('/holidays/generate', [HolidayController::class, 'generate'])->name('holidays.generate');
     });
-    
+
     // Salary
     Route::middleware('role:super_admin,org_main_admin,org_admin,org_viewer')->group(function () {
         Route::get('/salary', [SalaryController::class, 'index'])->name('salary.index');
@@ -107,7 +107,7 @@ Route::middleware(['web', 'django.auth'])->group(function () {
         Route::get('/salary/defaults', [SalaryController::class, 'defaults'])->name('salary.defaults');
         Route::post('/salary/defaults', [SalaryController::class, 'saveDefaults'])->name('salary.defaults.save');
     });
-    
+
     // Reports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/salary', [ReportController::class, 'salaryReport'])->name('reports.salary');
@@ -138,23 +138,23 @@ Route::middleware(['web', 'django.auth'])->group(function () {
     Route::post('/organizations/{id}/devices', [OrganizationController::class, 'storeDevice'])->name('organizations.devices.store');
     Route::put('/organizations/{orgId}/devices/{deviceId}', [OrganizationController::class, 'updateDevice'])->name('organizations.devices.update');
     Route::delete('/organizations/{orgId}/devices/{deviceId}', [OrganizationController::class, 'destroyDevice'])->name('organizations.devices.destroy');
-    
+
     // Subscription Plans - Super Admin
     Route::resource('plans', App\Http\Controllers\PlanController::class);
     // Audit Logs
     Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
-    
+
     // Organization Users Management
     Route::get('/org-users', [OrgUsersController::class, 'index'])->name('org-users.index');
     Route::post('/org-users', [OrgUsersController::class, 'store'])->name('org-users.store');
     Route::put('/org-users/{id}', [OrgUsersController::class, 'update'])->name('org-users.update');
     Route::delete('/org-users/{id}', [OrgUsersController::class, 'destroy'])->name('org-users.destroy');
-    
+
     // Export / Import
     Route::get('/export', [ExportController::class, 'index'])->name('export.index');
     Route::get('/export/download', [ExportController::class, 'export'])->name('export.download');
     Route::post('/export/import', [ExportController::class, 'import'])->name('export.import');
-    
+
     // Analytics Dashboard
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
 });

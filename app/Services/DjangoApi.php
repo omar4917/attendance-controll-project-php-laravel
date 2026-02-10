@@ -19,10 +19,10 @@ class DjangoApi
         // Priority: Session > Cache (persistent) > ENV > fallback
         // Cache persists across sessions, session is per-login
         $this->baseUrl = rtrim(
-            Session::get('django_base_url') 
+            Session::get('django_base_url')
             ?: Cache::get('django_base_url')
-            ?: env('DJANGO_BASE_URL') 
-            ?: 'http://127.0.0.1:8000', 
+            ?: env('DJANGO_BASE_URL')
+            ?: 'http://127.0.0.1:8000',
             '/'
         );
         $this->apiKey = config('django.api_key', env('DJANGO_API_KEY'));
@@ -54,10 +54,31 @@ class DjangoApi
         return $this->baseUrl;
     }
 
+    /**
+     * Get headers with current session data
+     */
+    protected function getHeaders(): array
+    {
+        $headers = [
+            'Accept' => 'application/json',
+            'X-User-Email' => Session::get('admin_email', Session::get('admin_user', 'unknown')),
+            'X-User-Name' => Session::get('admin_name', Session::get('admin_user', 'unknown')),
+            'X-User-Role' => Session::get('user_role', 'org_viewer'),
+            'X-Organization-Id' => Session::get('organization_id'),
+        ];
+
+        if ($this->apiKey) {
+            $headers['Authorization'] = "Key {$this->apiKey}";
+        }
+
+        return $headers;
+    }
+
     protected function get(string $path): array
     {
         try {
-            $resp = $this->client->get($path);
+            $options = ['headers' => $this->getHeaders()];
+            $resp = $this->client->get($path, $options);
             return json_decode((string) $resp->getBody(), true) ?: [];
         } catch (GuzzleException $e) {
             return $this->handleGuzzleException($e);
@@ -68,7 +89,11 @@ class DjangoApi
     {
         \Log::info("DJANGO_API: {$method} {$path} - Payload: " . json_encode($payload));
         try {
-            $resp = $this->client->request($method, $path, ['json' => $payload]);
+            $options = [
+                'json' => $payload,
+                'headers' => $this->getHeaders()
+            ];
+            $resp = $this->client->request($method, $path, $options);
             $body = (string) $resp->getBody();
             \Log::info("DJANGO_API: Response: " . $body);
             return json_decode($body, true) ?: [];
@@ -83,7 +108,7 @@ class DjangoApi
     protected function handleGuzzleException(GuzzleException $e): array
     {
         $code = $e->getCode();
-        
+
         if ($code === 403) {
             // Try to extract detail from response
             if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse()) {
@@ -104,7 +129,7 @@ class DjangoApi
                 return ['error' => "Error: " . $json['detail']];
             }
             if (!empty($json['error'])) {
-                 return ['error' => "Error: " . $json['error']];
+                return ['error' => "Error: " . $json['error']];
             }
         }
 
@@ -126,11 +151,11 @@ class DjangoApi
                 'headers' => ['Accept' => 'application/json'],
                 'verify' => false,
             ]);
-            
+
             // Use POST to validate credentials (Django API expects POST or any method)
             $resp = $client->post('/api/validate-admin/');
             $data = json_decode((string) $resp->getBody(), true) ?: [];
-            
+
             // Return full response including role and organization data
             return [
                 'success' => $data['success'] ?? true,
@@ -213,7 +238,7 @@ class DjangoApi
             'files_empty' => empty($files),
             'employee_id' => $payload['employee_id'] ?? 'MISSING'
         ]);
-        
+
         if (!empty($files)) {
             \Log::info("=== UPSERT: Using MULTIPART path ===");
             try {
@@ -233,7 +258,11 @@ class DjangoApi
                     \Log::info("Added field to multipart: {$key} = " . (strlen($value) > 50 ? substr($value, 0, 50) . '...' : $value));
                 }
                 \Log::info("Sending MULTIPART request to /api/attendance/ with " . count($multipart) . " parts");
-                $resp = $this->client->request($method, '/api/attendance/', ['multipart' => $multipart]);
+                $options = [
+                    'multipart' => $multipart,
+                    'headers' => $this->getHeaders()
+                ];
+                $resp = $this->client->request($method, '/api/attendance/', $options);
                 $body = (string) $resp->getBody();
                 \Log::info("MULTIPART response: " . $body);
                 return json_decode($body, true) ?: [];
@@ -286,10 +315,13 @@ class DjangoApi
     public function salaryStatistics(?int $organizationId = null, $month = null, $year = null): array
     {
         $query = [];
-        if ($organizationId) $query['organization_id'] = $organizationId;
-        if ($month) $query['month'] = $month;
-        if ($year) $query['year'] = $year;
-        
+        if ($organizationId)
+            $query['organization_id'] = $organizationId;
+        if ($month)
+            $query['month'] = $month;
+        if ($year)
+            $query['year'] = $year;
+
         $queryStr = http_build_query($query);
         return $this->get('/api/salary-statistics/?' . $queryStr);
     }
@@ -326,7 +358,7 @@ class DjangoApi
         // Always use POST because Guzzle/Django has issues with PUT + Multipart
         // The backend handles update_or_create logic on POST requests
         $method = 'POST';
-        
+
         if ($file) {
             try {
                 $multipart = [
@@ -340,7 +372,11 @@ class DjangoApi
                     $multipart[] = ['name' => $key, 'contents' => $value];
                 }
                 // Guzzle request with multipart
-                $resp = $this->client->request($method, '/api/employees/', ['multipart' => $multipart]);
+                $options = [
+                    'multipart' => $multipart,
+                    'headers' => $this->getHeaders()
+                ];
+                $resp = $this->client->request($method, '/api/employees/', $options);
                 return json_decode((string) $resp->getBody(), true) ?: [];
             } catch (GuzzleException $e) {
                 return $this->handleGuzzleException($e);
@@ -426,7 +462,11 @@ class DjangoApi
                 foreach ($payload as $key => $value) {
                     $multipart[] = ['name' => $key, 'contents' => $value];
                 }
-                $resp = $this->client->post('/api/company-info/', ['multipart' => $multipart]);
+                $options = [
+                    'multipart' => $multipart,
+                    'headers' => $this->getHeaders()
+                ];
+                $resp = $this->client->post('/api/company-info/', $options);
                 return json_decode((string) $resp->getBody(), true) ?: [];
             } catch (GuzzleException $e) {
                 return $this->handleGuzzleException($e);
@@ -467,6 +507,7 @@ class DjangoApi
             return $this->client->post('/api/export/', [
                 'form_params' => $payload,
                 'stream' => true,
+                'headers' => $this->getHeaders()
             ]);
         } catch (GuzzleException $e) {
             return $this->handleGuzzleException($e);
@@ -498,8 +539,9 @@ class DjangoApi
 
             $resp = $this->client->post('/api/import/', [
                 'multipart' => $multipart,
+                'headers' => $this->getHeaders()
             ]);
-            
+
             return json_decode((string) $resp->getBody(), true) ?: [];
         } catch (GuzzleException $e) {
             return $this->handleGuzzleException($e);
