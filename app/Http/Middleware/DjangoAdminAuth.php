@@ -17,12 +17,14 @@ class DjangoAdminAuth
     {
         // Check if user is authenticated
         if (!Session::get('authenticated')) {
+            \Log::debug("DjangoAdminAuth: Session 'authenticated' missing. Redirecting to login.", ['url' => $request->fullUrl()]);
             return redirect()->route('login');
         }
 
         // Check if session has expired
         $expires = Session::get('auth_expires');
         if ($expires && now()->timestamp > $expires) {
+            \Log::debug("DjangoAdminAuth: Session expired.", ['expires' => $expires, 'now' => now()->timestamp]);
             Session::forget(['authenticated', 'admin_user', 'is_admin', 'auth_expires']);
             return redirect()->route('login')->withErrors(['login' => 'Your session has expired. Please log in again.']);
         }

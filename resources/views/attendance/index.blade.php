@@ -274,9 +274,9 @@
               @endif
               <div style="margin-top:2px;display:flex;gap:6px;align-items:center;font-size:11px;">
                 @if(!empty($emp['pdf_url']))
-                    <a href="{{ $emp['pdf_url'] }}" target="_blank" style="color:#5b80b2;text-decoration:none;font-weight:600;">PDF</a>
+                    <a href="{{ route('attendance.pdf', ['type' => 'pdf', 'month' => $month, 'year' => $year, 'employee_id' => $emp['emp_pk'], 'organization_id' => $orgId]) }}" target="_blank" style="color:#5b80b2;text-decoration:none;font-weight:600;">PDF</a>
                 @else
-                    <a href="{{ $base }}/attendance-dashboard/pdf/?month={{ $month }}&year={{ $year }}&employee_id={{ $emp['emp_pk'] }}" target="_blank" style="color:#5b80b2;text-decoration:none;font-weight:600;">PDF</a>
+                    <a href="{{ route('attendance.pdf', ['type' => 'pdf', 'month' => $month, 'year' => $year, 'employee_id' => $emp['emp_pk'], 'organization_id' => $orgId]) }}" target="_blank" style="color:#5b80b2;text-decoration:none;font-weight:600;">PDF</a>
                 @endif
               </div>
             </div>

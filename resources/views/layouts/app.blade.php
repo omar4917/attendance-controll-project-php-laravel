@@ -729,12 +729,20 @@
             <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('livefeed.index') }}" class="{{ request()->routeIs('livefeed.*') ? 'active' : '' }}"><i class="bi bi-broadcast"></i> Live Feed</a></li>
             <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> {{ __('messages.reports') }}</a></li>
             <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('shifts.index') }}" class="{{ request()->routeIs('shifts.*') ? 'active' : '' }}"><i class="bi bi-clock"></i> {{ __('messages.shifts') }}</a></li>
-            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('salary.defaults') }}" class="{{ request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-sliders"></i> {{ __('messages.salary_defaults') }}</a></li>
+            {{-- Intentionally hidden: Salary Defaults nav item --}}
             <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('salary.index') }}" class="{{ request()->routeIs('salary.*') && !request()->routeIs('salary.defaults') ? 'active' : '' }}"><i class="bi bi-cash-stack"></i> {{ __('messages.salary') }}</a></li>
             <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('holidays.index') }}" class="{{ request()->routeIs('holidays.*') ? 'active' : '' }}"><i class="bi bi-calendar-heart"></i> {{ __('messages.holiday') }}</a></li>
             <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('settings.voice_message') }}" class="{{ request()->routeIs('settings.voice_message') ? 'active' : '' }}"><i class="bi bi-volume-up"></i> {{ __('messages.voice_settings') }}</a></li>
             <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('settings.context') }}" class="{{ request()->routeIs('settings.context') ? 'active' : '' }}"><i class="bi bi-gear"></i> {{ __('messages.context_settings') }}</a></li>
-            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}"><a href="{{ route('settings.company') }}" class="{{ request()->routeIs('settings.company') ? 'active' : '' }}"><i class="bi bi-building-gear"></i> {{ __('messages.organization') }}</a></li>
+            <li class="{{ $hiddenClass }}" style="{{ $hiddenStyle }}">
+                @php
+                    $isOrgAdminRole = in_array(session('user_role'), ['org_main_admin', 'org_admin']);
+                    $myOrgId = session('organization_id');
+                    $myOrgRoute = ($isOrgAdminRole && $myOrgId) ? route('organizations.edit', $myOrgId) : route('settings.company');
+                    $myOrgActive = request()->routeIs('organizations.edit') || request()->routeIs('settings.company');
+                @endphp
+                <a href="{{ $myOrgRoute }}" class="{{ $myOrgActive ? 'active' : '' }}"><i class="bi bi-building-gear"></i> {{ __('messages.organization') }}</a>
+            </li>
             
             {{-- Always visible items --}}
             @if(in_array(session('user_role'), ['super_admin', 'shadow_admin', 'org_main_admin', 'org_admin']))
@@ -745,10 +753,6 @@
             @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']))
             <li><a href="{{ route('settings.integration') }}" class="{{ request()->routeIs('settings.integration') ? 'active' : '' }}"><i class="bi bi-plug"></i> Integration</a></li>
             @endif
-            
-            <li><a href="{{ route('audit.index') }}" class="{{ request()->routeIs('audit.*') ? 'active' : '' }}"><i class="bi bi-clock-history"></i> {{ __('messages.audit_logs') }}</a></li>
-            <li><a href="{{ route('export.index') }}" class="{{ request()->routeIs('export.*') ? 'active' : '' }}"><i class="bi bi-arrow-down-up"></i> {{ __('messages.export') }} / {{ __('messages.import') }}</a></li>
-            
             @if(in_array(session('user_role'), ['super_admin', 'shadow_admin']))
             <li style="border-top:1px solid var(--border-color); margin-top:10px; padding-top:10px;">
                 <a href="{{ route('organizations.index') }}" class="{{ request()->routeIs('organizations.*') ? 'active' : '' }}">
@@ -761,6 +765,9 @@
                 </a>
             </li>
             @endif
+            
+            <li><a href="{{ route('audit.index') }}" class="{{ request()->routeIs('audit.*') ? 'active' : '' }}"><i class="bi bi-clock-history"></i> {{ __('messages.audit_logs') }}</a></li>
+            <li><a href="{{ route('export.index') }}" class="{{ request()->routeIs('export.*') ? 'active' : '' }}"><i class="bi bi-arrow-down-up"></i> {{ __('messages.export') }} / {{ __('messages.import') }}</a></li>
         </ul>
         
         @if($isRestrictedRole)
@@ -972,7 +979,7 @@ $(document).ready(function() {
     
     // Hidden Nav Unlock Functionality
     const UNLOCK_PASSWORD = 'admin123'; // Change this password as needed
-    const UNLOCK_KEY = 'barabd_nav_unlocked';
+    const UNLOCK_KEY = 'barabd_nav_unlocked_v2';
     
     // Check if already unlocked in this session
     function checkUnlockState() {

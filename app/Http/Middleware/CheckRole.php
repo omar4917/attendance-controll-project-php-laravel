@@ -20,10 +20,17 @@ class CheckRole
     public function handle(Request $request, Closure $next, ...$roles)
     {
         if (!Session::has('authenticated')) {
+            \Log::debug("CheckRole: Session authenticated key missing. Redirecting to login.");
             return redirect()->route('login');
         }
 
-        $userRole = Session::get('user_role');
+        $userRole = Session::get('user_role') ?? '';
+        \Log::debug("CheckRole: Request start", [
+            'url' => $request->fullUrl(),
+            'method' => $request->method(),
+            'userRole' => $userRole,
+            'required_roles' => $roles
+        ]);
 
         // If no roles specified, just allow authenticated users
         if (empty($roles)) {
@@ -37,6 +44,7 @@ class CheckRole
         }
 
         // User is not authorized - log the attempt to Django audit log
+        \Log::debug("CheckRole: Unauthorized attempt", ['userRole' => $userRole, 'required_roles' => $roles]);
         $this->logUnauthorizedAttempt($request, $userRole, $roles);
 
         // Special restriction: org_viewer can NEVER perform non-GET requests on protected resources
@@ -54,7 +62,7 @@ class CheckRole
 
         abort(403, 'You do not have permission to access following resource.');
     }
-    
+
     /**
      * Log unauthorized attempt to Django's audit log.
      */
@@ -63,7 +71,7 @@ class CheckRole
         try {
             $api = app(DjangoApi::class);
             $intendedAction = $this->getIntendedAction($request);
-            
+
             $api->logAction([
                 'action' => 'unauthorized_attempt',
                 'resource_type' => $this->getResourceType($request),
@@ -83,7 +91,7 @@ class CheckRole
             \Log::warning('Failed to log unauthorized attempt to Django: ' . $e->getMessage());
         }
     }
-    
+
     /**
      * Determine the intended action from HTTP method.
      */
@@ -91,7 +99,7 @@ class CheckRole
     {
         $method = strtoupper($request->method());
         $path = $request->path();
-        
+
         switch ($method) {
             case 'POST':
                 return 'create';
@@ -113,23 +121,31 @@ class CheckRole
                 return 'unknown';
         }
     }
-    
+
     /**
      * Determine resource type from request path.
      */
     protected function getResourceType(Request $request): string
     {
         $path = $request->path();
-        
-        if (str_contains($path, 'employees')) return 'employee';
-        if (str_contains($path, 'attendance')) return 'attendance';
-        if (str_contains($path, 'holidays')) return 'holiday';
-        if (str_contains($path, 'salary')) return 'salary';
-        if (str_contains($path, 'shifts')) return 'shift';
-        if (str_contains($path, 'settings')) return 'settings';
-        if (str_contains($path, 'organizations')) return 'organization';
-        if (str_contains($path, 'livefeed')) return 'livefeed';
-        
+
+        if (str_contains($path, 'employees'))
+            return 'employee';
+        if (str_contains($path, 'attendance'))
+            return 'attendance';
+        if (str_contains($path, 'holidays'))
+            return 'holiday';
+        if (str_contains($path, 'salary'))
+            return 'salary';
+        if (str_contains($path, 'shifts'))
+            return 'shift';
+        if (str_contains($path, 'settings'))
+            return 'settings';
+        if (str_contains($path, 'organizations'))
+            return 'organization';
+        if (str_contains($path, 'livefeed'))
+            return 'livefeed';
+
         return 'unknown';
     }
 }

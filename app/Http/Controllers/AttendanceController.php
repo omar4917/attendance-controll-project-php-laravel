@@ -16,13 +16,13 @@ class AttendanceController extends Controller
     public function index(Request $request, DjangoApi $api)
     {
         $queryParams = $request->query();
-        
+
         // Add organization filtering
         $orgId = $this->getOrganizationId();
         if ($orgId) {
             $queryParams['organization_id'] = $orgId;
         }
-        
+
         // Handle date filter (YYYY-MM) -> month/year
         if ($request->has('date')) {
             try {
@@ -62,11 +62,11 @@ class AttendanceController extends Controller
         $late = collect($records)->where('status', 'Late')->count();
 
         // filters
-        $month = (int)($queryParams['month'] ?? Carbon::now()->month);
-        $year = (int)($queryParams['year'] ?? Carbon::now()->year);
+        $month = (int) ($queryParams['month'] ?? Carbon::now()->month);
+        $year = (int) ($queryParams['year'] ?? Carbon::now()->year);
         $departments = collect($empList)->pluck('department')->filter(fn($v) => !empty($v) && $v !== 'All')->unique()->values()->all();
         $designations = collect($empList)->pluck('designation')->filter(fn($v) => !empty($v) && $v !== 'All')->unique()->values()->all();
-        
+
         // Months and Years for filter dropdowns
         $months = range(1, 12);
         $years = range(Carbon::now()->year - 5, Carbon::now()->year + 1);
@@ -109,7 +109,7 @@ class AttendanceController extends Controller
                     'name' => $emp['name'],
                     'designation' => $emp['designation'] ?? '',
                     'department' => $emp['department'] ?? '',
-                    'emp_image_url' => $emp['face_image'] ? "data:image/jpeg;base64,".$emp['face_image'] : null,
+                    'emp_image_url' => $emp['face_image'] ? "data:image/jpeg;base64," . $emp['face_image'] : null,
                     'statuses' => array_fill(0, count($daysForGrid), ['status' => '']), // Initialize empty statuses
                     'totals' => [
                         'Present' => 0,
@@ -129,10 +129,10 @@ class AttendanceController extends Controller
                 if (!$eid || !isset($employees[$eid])) {
                     continue;
                 }
-                
+
                 $date = $rec['date'] ?? null;
                 if ($date) {
-                    $dayNum = (int)Carbon::parse($date)->day;
+                    $dayNum = (int) Carbon::parse($date)->day;
                     $idx = $dayNum - 1;
                     if (isset($employees[$eid]['statuses'][$idx])) {
                         $employees[$eid]['statuses'][$idx] = [
@@ -150,7 +150,7 @@ class AttendanceController extends Controller
                     }
                 }
             }
-            
+
             // Convert to array
             $employeesForGrid = array_values($employees);
             usort($employeesForGrid, function ($a, $b) {
@@ -168,11 +168,11 @@ class AttendanceController extends Controller
         ];
 
         $djangoBaseUrl = config('django.base_url');
-        
+
         // Navigation query strings
         $prevDate = Carbon::create($year, $month, 1)->subMonth();
         $nextDate = Carbon::create($year, $month, 1)->addMonth();
-        
+
         $prevParams = $request->query();
         $prevParams['month'] = $prevDate->month;
         $prevParams['year'] = $prevDate->year;
@@ -185,7 +185,7 @@ class AttendanceController extends Controller
 
         $prev_qs = http_build_query($prevParams);
         $next_qs = http_build_query($nextParams);
-        
+
         // For super admins, get list of organizations for batch downloads
         $organizations = [];
         $isSuperAdmin = session('is_superuser', false);
@@ -224,18 +224,24 @@ class AttendanceController extends Controller
         // Map status to icon path (relative to public)
         // Assuming icons are in public/icons/
         switch ($status) {
-            case 'Present': return 'icons/present.png';
-            case 'Absent': return 'icons/absent.png';
-            case 'Late': return 'icons/late.png';
-            case 'On Leave': return 'icons/on_leave.png';
-            case 'Holiday': return 'icons/holidays.png';
-            default: return 'icons/pendings.png';
+            case 'Present':
+                return 'icons/present.png';
+            case 'Absent':
+                return 'icons/absent.png';
+            case 'Late':
+                return 'icons/late.png';
+            case 'On Leave':
+                return 'icons/on_leave.png';
+            case 'Holiday':
+                return 'icons/holidays.png';
+            default:
+                return 'icons/pendings.png';
         }
     }
 
     public function store(Request $request, DjangoApi $api)
     {
-        $payload = $request->only(['id','employee_id','date','status','checkin_time','checkout_time']);
+        $payload = $request->only(['id', 'employee_id', 'date', 'status', 'checkin_time', 'checkout_time']);
         $resp = $api->upsertAttendance($payload);
         if (!empty($resp['error'])) {
             return redirect()->back()->withInput()->with('error', $resp['error']);
@@ -245,7 +251,7 @@ class AttendanceController extends Controller
 
     public function update(Request $request, $id, DjangoApi $api)
     {
-        $payload = $request->only(['employee_id','date','status','checkin_time','checkout_time']);
+        $payload = $request->only(['employee_id', 'date', 'status', 'checkin_time', 'checkout_time']);
         $payload['id'] = $id;
         $resp = $api->upsertAttendance($payload);
         if (!empty($resp['error'])) {
@@ -269,17 +275,17 @@ class AttendanceController extends Controller
         $month = $request->input('month', Carbon::now()->month);
         $orgId = $this->getOrganizationId();
         $type = $request->input('type', 'attendance');
-        
+
         // If triggered from the form button
         if ($request->has('export_data')) {
             $response = $api->export([
-                'year' => $year, 
-                'month' => $month, 
-                'export_data' => '1', 
+                'year' => $year,
+                'month' => $month,
+                'export_data' => '1',
                 'organization_id' => $orgId,
                 'type' => $type
             ]);
-            
+
             // Check if it's an error array
             if (is_array($response) && !empty($response['error'])) {
                 return back()->with('error', $response['error']);
@@ -293,18 +299,18 @@ class AttendanceController extends Controller
             if (is_object($response) && method_exists($response, 'getBody')) {
                 $contentType = $response->getHeaderLine('Content-Type');
                 $body = $response->getBody()->getContents();
-                
+
                 // Check if response is JSON (error) instead of ZIP
                 if (strpos($contentType, 'application/json') !== false) {
                     $errorData = json_decode($body, true);
                     return back()->with('error', $errorData['error'] ?? 'Export failed - server returned an error');
                 }
-                
+
                 // Get organization name for filename
                 $orgNameSafe = 'All';
                 if ($orgId) {
                     try {
-                        $orgData = $api->organization((int)$orgId);
+                        $orgData = $api->organization((int) $orgId);
                         $orgName = $orgData['name'] ?? ($orgData['organization']['name'] ?? 'Org');
                         $orgNameSafe = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $orgName);
                     } catch (\Exception $e) {
@@ -316,7 +322,7 @@ class AttendanceController extends Controller
                 if ($type === 'employees') {
                     $filename = "employees_export_{$orgNameSafe}_" . date('Y-m-d') . ".zip";
                 }
-                
+
                 return response($body, 200, [
                     'Content-Type' => 'application/zip',
                     'Content-Disposition' => 'attachment; filename="' . $filename . '"',
@@ -344,13 +350,13 @@ class AttendanceController extends Controller
         $type = $request->input('type', 'attendance');
 
         $result = $api->import($request->file('import_file'), [
-            'year' => $year, 
+            'year' => $year,
             'month' => $month,
             'type' => $type
         ]);
 
         if (!empty($result['error'])) {
-             return back()->with('error', $result['error']);
+            return back()->with('error', $result['error']);
         }
 
         if (!empty($result['errors'])) {
@@ -371,12 +377,13 @@ class AttendanceController extends Controller
         $department = $request->query('department', '');
         $designation = $request->query('designation', '');
         $orgId = $request->query('organization_id', $this->getOrganizationId());
-        
+        $employeeId = $request->query('employee_id', '');
+
         // Get organization name for filename
         $orgNameSafe = '';
         if ($orgId) {
             try {
-                $orgData = $api->organization((int)$orgId);
+                $orgData = $api->organization((int) $orgId);
                 $orgName = $orgData['name'] ?? ($orgData['organization']['name'] ?? '');
                 // Sanitize org name for filename
                 $orgNameSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $orgName);
@@ -386,7 +393,7 @@ class AttendanceController extends Controller
                 $orgNameSafe = '';
             }
         }
-        
+
         // Build query string for Django
         $queryParams = array_filter([
             'month' => $month,
@@ -394,15 +401,16 @@ class AttendanceController extends Controller
             'department' => $department,
             'designation' => $designation,
             'organization_id' => $orgId,
+            'employee_id' => $employeeId,
         ]);
         $qs = http_build_query($queryParams);
-        
+
         // Determine Django endpoint and filename
         $djangoBase = $api->getBaseUrl();
-        
+
         // Build filename with org name if available
         $orgSuffix = $orgNameSafe ? "-{$orgNameSafe}" : '';
-        
+
         switch ($type) {
             case 'bulk':
                 $endpoint = "/attendance-dashboard/pdf/bulk/?{$qs}";
@@ -419,7 +427,7 @@ class AttendanceController extends Controller
                 $filename = "attendance{$orgSuffix}-{$year}-{$month}.pdf";
                 $contentType = 'application/pdf';
         }
-        
+
         // Log the export action
         try {
             $api->logAction([
@@ -439,13 +447,13 @@ class AttendanceController extends Controller
         } catch (\Exception $e) {
             \Log::warning('Failed to log PDF export: ' . $e->getMessage());
         }
-        
+
         try {
             $client = new \GuzzleHttp\Client(['verify' => false, 'timeout' => 60]);
             $response = $client->get($djangoBase . $endpoint);
-            
+
             $content = $response->getBody()->getContents();
-            
+
             return response($content)
                 ->header('Content-Type', $contentType)
                 ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
@@ -466,12 +474,12 @@ class AttendanceController extends Controller
         $department = $request->query('department', '');
         $employeeId = $request->query('employee_id', '');
         $orgId = $request->query('organization_id', $this->getOrganizationId());
-        
+
         // Get organization name for filename
         $orgNameSafe = '';
         if ($orgId) {
             try {
-                $orgData = $api->organization((int)$orgId);
+                $orgData = $api->organization((int) $orgId);
                 $orgName = $orgData['name'] ?? ($orgData['organization']['name'] ?? '');
                 $orgNameSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $orgName);
                 $orgNameSafe = substr($orgNameSafe, 0, 30);
@@ -479,7 +487,7 @@ class AttendanceController extends Controller
                 $orgNameSafe = '';
             }
         }
-        
+
         // Build query string for Django
         $queryParams = array_filter([
             'month' => $month,
@@ -489,16 +497,16 @@ class AttendanceController extends Controller
             'organization_id' => $orgId,
         ]);
         $qs = http_build_query($queryParams);
-        
+
         $djangoBase = $api->getBaseUrl();
         $endpoint = "/salary-report/pdf/?{$qs}";
-        
+
         $orgSuffix = $orgNameSafe ? "-{$orgNameSafe}" : '';
         $filename = "salary-report{$orgSuffix}-{$year}-{$month}.pdf";
-        
+
         try {
             $client = new \GuzzleHttp\Client([
-                'verify' => false, 
+                'verify' => false,
                 'timeout' => 60,
                 'headers' => [
                     'X-User-Email' => Session::get('admin_email', Session::get('admin_user', 'unknown')),
@@ -507,21 +515,21 @@ class AttendanceController extends Controller
                     'X-Organization-Id' => $orgId,
                 ]
             ]);
-            
+
             \Log::info("Fetching salary PDF from: " . $djangoBase . $endpoint);
             $response = $client->get($djangoBase . $endpoint);
-            
+
             $content = $response->getBody()->getContents();
             $contentType = $response->getHeaderLine('Content-Type');
-            
+
             \Log::info("Salary PDF response - Size: " . strlen($content) . ", Content-Type: " . $contentType);
-            
+
             // Check if response is valid PDF (starts with %PDF)
             if (strlen($content) < 100 || !str_starts_with($content, '%PDF')) {
                 \Log::error("Invalid PDF response - Content: " . substr($content, 0, 500));
                 return back()->with('error', 'Django returned invalid PDF. Check Django logs.');
             }
-            
+
             return response($content)
                 ->header('Content-Type', 'application/pdf')
                 ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')

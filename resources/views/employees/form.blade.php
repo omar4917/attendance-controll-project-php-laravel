@@ -260,7 +260,7 @@
     
     // Handle Click on Preview
     previewContainer.addEventListener('click', function() {
-        if(previewImage && previewImage.src && previewImage.src.startsWith('data') || previewImage.src.startsWith('blob')) {
+        if (previewImage && previewImage.src && (previewImage.src.startsWith('data') || previewImage.src.startsWith('blob'))) {
              openCropper(previewImage.src);
         }
     });
@@ -314,9 +314,9 @@
 
 @push('scripts')
 <script>
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Organization selector (for super admin)
-    if ($('#emp-org-selector').length) {
+    if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2 && $('#emp-org-selector').length) {
         $('#emp-org-selector').select2({
             placeholder: 'Search organization...',
             allowClear: false,

@@ -18,6 +18,11 @@ use App\Http\Controllers\OrgUsersController;
 use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 
+\Log::debug("WEB_ROUTE_ENTRY: " . request()->method() . " " . request()->fullUrl(), [
+    'session' => session()->all(),
+    'ip' => request()->ip()
+]);
+
 // Media proxy - serve Django media files through Laravel (no auth required)
 Route::get('/media/{path}', [MediaController::class, 'proxy'])->where('path', '.*')->name('media.proxy');
 

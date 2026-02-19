@@ -268,6 +268,16 @@
             <div class="info-label">Address</div>
             <div class="info-value">{{ $organization['address'] ?: '—' }}</div>
         </div>
+        <div class="info-row">
+            <div class="info-label">Weekend Days</div>
+            <div class="info-value">
+                @if(!empty($organization['weekend_day_names']) && is_array($organization['weekend_day_names']))
+                    {{ implode(', ', $organization['weekend_day_names']) }}
+                @else
+                    Friday
+                @endif
+            </div>
+        </div>
 
         <div class="info-row">
             <div class="info-label">Created</div>

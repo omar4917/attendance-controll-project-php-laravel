@@ -16,15 +16,17 @@ class DjangoApi
 
     public function __construct()
     {
-        // Priority: Session > Cache (persistent) > ENV > fallback
-        // Cache persists across sessions, session is per-login
+        // Priority: Session > Cache (persistent) > Config/ENV > fallback
+        // This ensures the Integration page "API Server URL" override is respected.
         $this->baseUrl = rtrim(
             Session::get('django_base_url')
             ?: Cache::get('django_base_url')
+            ?: config('django.base_url')
             ?: env('DJANGO_BASE_URL')
             ?: 'http://127.0.0.1:8000',
             '/'
         );
+        \Log::debug("DjangoApi initialized with Base URL: {$this->baseUrl}");
         $this->apiKey = config('django.api_key', env('DJANGO_API_KEY'));
 
         $headers = [
@@ -369,6 +371,15 @@ class DjangoApi
                     ]
                 ];
                 foreach ($payload as $key => $value) {
+                    if (is_bool($value)) {
+                        $value = $value ? '1' : '0';
+                    } elseif ($value === null) {
+                        $value = '';
+                    } elseif (is_array($value) || is_object($value)) {
+                        $value = json_encode($value);
+                    } else {
+                        $value = (string) $value;
+                    }
                     $multipart[] = ['name' => $key, 'contents' => $value];
                 }
                 // Guzzle request with multipart

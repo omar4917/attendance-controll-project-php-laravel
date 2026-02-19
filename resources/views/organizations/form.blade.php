@@ -115,10 +115,67 @@
         padding-bottom: 8px;
         border-bottom: 1px solid var(--border-color, #badbcc);
     }
+
+    .weekend-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .weekend-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border: 1px solid var(--border-color, #badbcc);
+        border-radius: 6px;
+        background: #fff;
+    }
+
+    .weekend-option input {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .weekend-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
 </style>
 @endpush
 
 @section('content')
+@php
+    $selectedWeekendDays = old('weekend_days', $organization['weekend_days'] ?? [4]);
+    if (is_string($selectedWeekendDays)) {
+        $decodedWeekendDays = json_decode($selectedWeekendDays, true);
+        $selectedWeekendDays = is_array($decodedWeekendDays) ? $decodedWeekendDays : explode(',', $selectedWeekendDays);
+    }
+    if (!is_array($selectedWeekendDays)) {
+        $selectedWeekendDays = [$selectedWeekendDays];
+    }
+    $selectedWeekendDays = collect($selectedWeekendDays)
+        ->map(fn ($day) => (int) $day)
+        ->filter(fn ($day) => $day >= 0 && $day <= 6)
+        ->unique()
+        ->values()
+        ->all();
+    if (empty($selectedWeekendDays)) {
+        $selectedWeekendDays = [4];
+    }
+    $weekdayOptions = [
+        0 => 'Monday',
+        1 => 'Tuesday',
+        2 => 'Wednesday',
+        3 => 'Thursday',
+        4 => 'Friday',
+        5 => 'Saturday',
+        6 => 'Sunday',
+    ];
+@endphp
+
 <div class="page-header">
     <h1 class="page-title">
         <i class="bi bi-building me-2"></i>
@@ -176,6 +233,21 @@
         <div class="form-group">
             <label class="form-label" for="address">Address</label>
             <textarea class="form-control" id="address" name="address" rows="3">{{ old('address', $organization['address'] ?? '') }}</textarea>
+        </div>
+
+        <h3 class="section-title">Weekend Configuration</h3>
+        <div class="form-group">
+            <label class="form-label">Weekend Days</label>
+            <div class="weekend-grid">
+                @foreach($weekdayOptions as $weekdayValue => $weekdayLabel)
+                    <label class="weekend-option">
+                        <input type="checkbox" name="weekend_days[]" value="{{ $weekdayValue }}"
+                            {{ in_array($weekdayValue, $selectedWeekendDays, true) ? 'checked' : '' }}>
+                        <span>{{ $weekdayLabel }}</span>
+                    </label>
+                @endforeach
+            </div>
+            <p class="form-help">These days are treated as weekly off days in attendance and salary calculations.</p>
         </div>
 
         @if(!isset($organization))

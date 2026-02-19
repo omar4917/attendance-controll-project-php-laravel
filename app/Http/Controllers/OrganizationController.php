@@ -71,12 +71,15 @@ class OrganizationController extends Controller
      */
     public function store(Request $request, DjangoApi $api)
     {
+        $weekendDays = $this->extractWeekendDays($request);
+
         $payload = [
             'name' => $request->input('name'),
             'slug' => $request->input('slug'),
             'email' => $request->input('email'),
             'phone' => $request->input('phone'),
             'address' => $request->input('address'),
+            'weekend_days' => $weekendDays,
             'max_employees' => $request->input('max_employees', 100),
             'max_devices' => $request->input('max_devices', 5),
             'plan_id' => $request->input('plan_id') ?: null,
@@ -151,11 +154,14 @@ class OrganizationController extends Controller
      */
     public function update(Request $request, $id, DjangoApi $api)
     {
+        $weekendDays = $this->extractWeekendDays($request);
+
         $payload = [
             'name' => $request->input('name'),
             'email' => $request->input('email'),
             'phone' => $request->input('phone'),
             'address' => $request->input('address'),
+            'weekend_days' => $weekendDays,
             'max_employees' => $request->input('max_employees', 100),
             'max_devices' => $request->input('max_devices', 5),
             'plan_id' => $request->input('plan_id') ?: null,
@@ -257,5 +263,23 @@ class OrganizationController extends Controller
         }
         
         return redirect()->route('organizations.devices', $orgId)->with('success', 'Device deleted');
+    }
+
+    private function extractWeekendDays(Request $request): array
+    {
+        $weekendDays = $request->input('weekend_days', [4]);
+        if (!is_array($weekendDays)) {
+            $weekendDays = [$weekendDays];
+        }
+
+        $weekendDays = collect($weekendDays)
+            ->map(fn ($day) => (int) $day)
+            ->filter(fn ($day) => $day >= 0 && $day <= 6)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        return empty($weekendDays) ? [4] : $weekendDays;
     }
 }
